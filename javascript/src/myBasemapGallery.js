@@ -6,8 +6,13 @@ class My_BasemapGallery {
     constructor(){
         // create basemap services
         this.setupLayers();
-        this.bmGallery = document.createElement("ul");
-        this.bmGallery.role = "menu";
+        this.menu =  document.createElement("ul");
+        this.bmGallery = document.createElement("div");
+        this.bmGallery.style.backgroundColor = "#fff";
+        this.bmGallery.style.width = "300px";
+        this.bmGallery.className ="esri-legend";
+        this.bmGallery.appendChild(this.menu);
+        this.menu.role = "menu";
         this.bmGallery.id = "bmGallery";
 
         // add basemap layers
@@ -147,7 +152,8 @@ class My_BasemapGallery {
         label.innerHTML=title;
         label.id=id;
         basemap.appendChild(label);
-        this.bmGallery.appendChild(basemap);
+        //this.bmGallery.appendChild(basemap);
+        this.menu.appendChild(basemap);
     }
     toggleBasemap(event){
         const name = event.target.id;

@@ -162,6 +162,13 @@ body{
 	position:relative;/*for help button to show up*/
 }
 #bmGallery{
+	background-color: #fff;
+	min-height: 200px;
+	overflow-y: auto;
+	height: calc(100vh - 250px);
+    max-height: 425px;
+}
+#bmGallery ul{
 	list-style: none;text-align: center;display:flex;padding-left:0;flex-flow: wrap;justify-content: center;
 }
 #bmGallery li{

@@ -651,6 +651,14 @@
 		overflow: visible !important;
 		padding:5px;
 	}*/
+	#bmGallery{
+		background-color: #fff;
+		min-height: 200px;
+		overflow-y: auto;
+	}
+	#bmGallery ul{
+		list-style-type: none; /* Remove bullets */
+	}
 	.galleryContent{
 		/*height: 400px !important;*/
 		padding:5px;
@@ -950,7 +958,7 @@
 	/* Remove dashed line outline on Chrome */
 	a, a:active, a:focus, 
 	button, button:focus, button:active, select, select:focus, select:active, 
-	mblToolbarButton, mblToolbarButton:focus, mblToolbarButton:active, mblToolbarButton:active:focus, mblToolbarButton:focus:active,
+	mblToolbarButton, mblToolbarButton:focus, mblToolbarButton:active, mblToolbarButton:active:focus, mblToolbarButton:focus:active
 	{
 		outline: none;
 		outline: 0;

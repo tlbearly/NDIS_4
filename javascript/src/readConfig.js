@@ -2129,10 +2129,9 @@ else*/
 					addMapLayers();
 
 					// Add Legend
-					/*let legend = new Legend({
+					let legend = new Legend({
 						view: view
 					});
-
 					const legendExpand = new Expand({
 						view,
 						content: legend,
@@ -2140,7 +2139,18 @@ else*/
 						expandIconClass: "esri-icon-legend"
 					});
 					view.ui.add(legendExpand, "top-right");
-					*/
+
+
+					// Add Basemap Gallery
+					let basemap = new My_BasemapGallery();
+					const basemapExpand = new Expand({
+						view,
+						content: basemap,
+						expandTooltip: "Basemap",
+						expandIconClass: "esri-icon-basemap"
+					});
+					view.ui.add(basemapExpand, "top-right");
+
 
 					// Add Scalebar
 					let scalebar = new ScaleBar({
