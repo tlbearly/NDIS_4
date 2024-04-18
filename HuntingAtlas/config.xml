@@ -154,7 +154,13 @@
 			<layer label="Motor Vehicle Use Map" open="true" type="dynamic" visible="false" alpha="1"
                     url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
             <layer label="BLM Roads and Trails" open="true" type="dynamic" visible="false" alpha="1"
-                    url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />     
+                    url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />
+            
+            <!-- USFS layers Can we use these????? -->
+            <layer label="MVUM" open="true" alpha="1" visible="true" url="https://apps.fs.usda.gov/fsgisx05/rest/services/wo_nfs_gtac/GTAC_IVMTravelOpportunities_01/MapServer" />
+            <layer label="Recreation" open="false" visible="false" alpha="1"
+                    url="https://apps.fs.usda.gov/fsgisx05/rest/services/wo_nfs_gtac/EGIS_RecreationBasemap_01/MapServer" />  
+            <layer label="Catography" open="true" alpha="1" visible="true" url="https://apps.fs.usda.gov/fsgisx05/rest/services/wo_nfs_gtac/GTAC_IVMCartography_02/MapServer" />
             
             <!-- Wildfire Incidents and Wildfire Perimeters Current from the last 7 days -->
             <layer group="Wildfires" open="false" visible="true" alpha="1" radio="false" portal="d957997ccee7408287a963600a77f61f"/>

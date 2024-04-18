@@ -1,7 +1,6 @@
 /* report.js
  * Does the hunter resource report or a custom report on a freehand polygon selected area or buffered circle.
  * Modified: 1/10/23 Tammy Bearly
- * 10/17/23 Tammy Bearly - Add ability to download a CSV file
  */
 function reportInit(){
 	require(["dojo/dom","dijit/registry","dojo/sniff","dijit/form/Select", "esri/toolbars/draw","dojo/i18n!esri/nls/jsapi","esri/layers/GraphicsLayer","esri/geometry/Circle",
@@ -269,8 +268,6 @@ function reportInit(){
 			}
 			registry.byId("reportPrintBtn").set('disabled',false); // enable Open Report button
 			registry.byId("reportCancelBtn").set('disabled',false);
-			// enable download CSV file buttons
-			enableDownloadBtns();
 		}
 		function reportCancel(){
 			document.getElementById(selectBtn).className = "graphBtn";
@@ -285,16 +282,12 @@ function reportInit(){
 			registry.byId("saveReportBtn2").set('disabled',false);
 			registry.byId("reportPrintBtn").set('disabled',true);
 			registry.byId("reportCancelBtn").set('disabled',true);
-			// disable download CSV file buttons
-			disableDownloadBtns();
 		}
 		
 		function activateReportTool(){
 			// Draw point or polygon button was clicked.
 			registry.byId("reportPrintBtn").set('disabled',true);
 			registry.byId("reportCancelBtn").set('disabled',true);
-			// disable download CSV file buttons
-			disableDownloadBtns();
 			// Check if button was already depressed. If so reset to Identify
 			if (document.getElementById(selectBtn).className === "graphBtnSelected") {
 				reportCancel();
@@ -333,14 +326,7 @@ function reportInit(){
 					var layerInfos = layer.layerInfos;
 					// add hidden group ids
 					for (j=0; j<layer.visibleLayers.length; j++) {
-						// 1-25-24 get index k in layerInfos where layerInfos.id == the next visible layer id
-						// was assuming the ids would be the same as the index!
-						for(var p=0; p<layerInfos.length; p++){
-							if (layer.visibleLayers[j] == layerInfos[p].id){
-								k = p;
-								break;
-							}
-						}
+						k=layer.visibleLayers[j];
 						do {
 							// Add hidden group sublayers for all levels
 							if (hideGroupSublayers.indexOf(layerInfos[k].name) > -1 && layerInfos[k].subLayerIds) {
@@ -444,8 +430,7 @@ function reportInit(){
 			else if (tries[event.target.id] === 10){
 				if (event.target.id.indexOf("Motor Vehicle") > -1 || event.target.id.indexOf("Wildfire") > -1 || event.target.id.indexOf("BLM") > -1)
 					alert("While creating the report map, the external map service that provides "+event.target.id+" is experiencing problems.  This issue is out of CPW control. We will continue trying to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
-				// 1-22-24 added quotes to layer
-				else if (event.target.id.indexOf("layer")>-1)
+				else if (event.target.id.indexOf(layer)>-1)
 					alert("While creating the report map, the basemap service is busy or not responding. We will continue trying to load it.","Data Error");
 				else
 					alert("While creating the report map, the "+event.target.id+" service is busy or not responding. We will continue trying to load it.","Data Error");
@@ -634,237 +619,6 @@ function reportInit(){
 			registry.byId("reportPreviewDialog").hide();
 		}
 		
-		function replaceSpecialChar(label, char){
-			// Download button label
-			// replace special characters in label with the character char
-			return label.replace(/([ :\-,\'\".;?\/()!@#$%^&*+=])/g,char);
-		}
-		function disableDownloadBtns(){
-			for (var i=0;i<download_buttons.length;i++){
-				var btn = registry.byId(replaceSpecialChar(download_buttons[i].label+"Btn","_"));
-				btn.set('disabled',true);
-			}
-		}
-		function enableDownloadBtns(i){
-			for (var i=0;i<download_buttons.length;i++){
-				var btn = registry.byId(replaceSpecialChar(download_buttons[i].label+"Btn","_"));
-				btn.set('disabled', false);
-			}
-		}
-		function addDownloadButtons(){
-			// creates temp CSV files for each <download_buttons><button> in the ResourceReportWidget.xml file
-			// Create each button and disable it
-			// reportDrawEnd calls createDownloadCSVFiles(0) which calls queryCSVCompleteHandler which attaches the file to the button
-			// then it call createDownloadCSVFiles(next button id)
-			if (!download_buttons) return;
-			
-			require(["dijit/form/Button"],function(Button){
-				var downloadDiv = document.getElementById("downloadButtons");
-				downloadDiv.style.display = "block";
-				for (var q=0; q<download_buttons.length; q++){
-					var label = replaceSpecialChar(download_buttons[q].label,"_");//.replace(/([ :\-,\'\".;?\/()!@#$%^&*+=])/g,'_');
-					var btnId = label+"Btn";
-					var btn = new Button({
-						label: download_buttons[q].label,
-						id: btnId,
-						onClick: function(event){
-							var label = event.target.parentNode.innerText.replace("\n",""); // replace newline, not sure why this is here
-							createDownloadCSVFiles(label)}
-					}).placeAt(downloadDiv);
-					
-					btn.set('disabled',true);
-					 // disable them until reportDrawEnd creates the download files and then enables
-				}
-			});
-		}
-		var downloadIndex; // index that allows each download_buttons/button to be processed. The index is passed in when createDownloadCSVFiles is called.
-		function createDownloadCSVFiles(label){
-			// Generate the query task which will download a csv file
-			// myIndex: index of download_buttons button
-			// calls queryCSVCompleteHandler to create the file download it.
-			// find the index in download_buttons by the label
-			downloadIndex = -1;
-			if (label.indexOf("...")>-1) label = label.replace("...","");
-			
-			for (var l=0; l<download_buttons.length; l++){
-				var btnLabel = replaceSpecialChar(download_buttons[l].label,"_");
-				if (document.getElementById(btnLabel+"Btn").innerText.indexOf("...")>-1) {
-					document.getElementById(btnLabel+"Btn").innerText.replace("...","");
-					if (download_buttons[l].label === label){
-						downloadIndex = l;
-						break;
-					}
-				}
-				else if (download_buttons[l].label === label){
-					downloadIndex = l;
-					break;
-				}
-			}
-			if (downloadIndex == -1) {
-				alert("Download button "+label+ " not found!");
-				return;
-			}
-			var label = replaceSpecialChar(download_buttons[downloadIndex].label,"_");//.replace(/([ :\-,\'\".;?\/()!@#$%^&*+=])/g,'_');
-			document.getElementById(label+"Btn").innerText += "...";
-			var queries = [];
-			var ids=[];
-			var j;
-			var query = [];
-			var queryTask = [];
-			var visibleOnly = download_buttons[downloadIndex].visOnly;
-			var url = download_buttons[downloadIndex].url;
-			if (url[url.length-1] != "/") url += "/";
-
-			// Generate array of numbers from a range and list of ids
-			var items =  download_buttons[downloadIndex].ids.split(",");
-			for(var i=0;i<items.length;i++){
-				if (items[i].indexOf("-")>-1){
-					let firstLast = items[i].split("-"); // "3-5" -> [3],[5]
-					for(j=parseInt(firstLast[0]);j<parseInt(firstLast[1])+1;j++){
-						ids.push(j);// push all the numbers 3,4,5
-					}
-				}
-				else ids.push(items[i]);
-			}
-
-			// get layer Id name if visibleOnly check
-			var layerName = "";
-			var mapUrl = "";
-			if (visibleOnly){
-				for (j=0; j<map.layerIds.length; j++){
-					mapUrl = map.getLayer(map.layerIds[j]).url;
-					// Add a / to the end, if it is missing, so we can compare
-					if (map.getLayer(map.layerIds[j]).url[map.getLayer(map.layerIds[j]).url.length-1] != "/")
-						mapUrl = mapUrl + "/";
-					
-					if (url.toLowerCase() === mapUrl.toLowerCase()){
-						layerName = map.layerIds[j]
-						break;
-					}
-				}
-			}
-			if (visibleOnly && layerName === ""){
-				var theMapLayers = "";
-				for(j=0; j<map.layerIds.length; j++){
-					theMapLayers += map.getLayer(map.layerIds[j]).url + "\n";
-				}
-				alert("Cannot find url: "+url+" In visible maps layers: "+theMapLayers,"ResourceReportWidget.xml File Warning");
-				document.getElementById(label+"Btn").innerText = document.getElementById(label+"Btn").innerText.replace("...","");
-				return;
-			}
-			for (var q=0; q<ids.length; q++){
-				if (download_buttons[downloadIndex].url[download_buttons[downloadIndex].url.length-1] != "/")
-					url = download_buttons[downloadIndex].url+"/"+ids[q];
-				else
-					url = download_buttons[downloadIndex].url+ids[q];
-				// check if visible only is set to true and layer is visible
-				if (visibleOnly == true){
-					var layerIsVisible = false;
-					if (map.getLayer(layerName).visibleLayers.includes(parseInt(ids[q]))){
-						 layerIsVisible = true;
-					}
-					// don't include data if not visible
-					if (!layerIsVisible) continue;
-				}
-				queryTask[q] = new QueryTask(url);
-				query[q] = new Query();
-				query[q].geometry = theArea;
-				query[q].returnGeometry = true;
-				query[q].spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
-				query[q].outFields = ["*"];
-				queries.push(queryTask[q].execute(query[q]));	
-			}
-			if (queries.length > 0) {
-				promises = all(queries);
-				promises.then(queryCSVCompleteHandler);
-				promises.otherwise(queryCSVFaultHandler);
-			} else {
-				// no visable data found. See if there is another download button
-				alert("Download file for "+label+" was not created since the data is not currently visible.", "Notice");
-				document.getElementById(label+"Btn").innerText = document.getElementById(label+"Btn").innerText.replace("...","");
-			}
-		};
-		function queryCSVCompleteHandler(results){
-			// Loop through each result create a csv file and attatch the button.
-			// <a href="2022,elk,april\n2022,bear,may..." download="all_mammals.csv"><button/></a>
-			// downloadIndex is set in createDownloadCSVFiles and is a global variable. When finished
-			// increment downloadIndex and call createDownloadCSVFiles again.
-			var j;
-			var downloadTable = [];
-			var noData = true;
-			// create a comma delimited file in downloadTable (an array of objects) 
-			for (var r=0; r<results.length;r++){
-				if (results[r].features.length != 0) noData = false;
-				for (var p = 0; p < results[r].features.length; p++) {
-					var feature = results[r].features[p];
-					var attr = feature.attributes;
-					//if point is in the selected area
-					if((feature.geometry.type == "point" && theArea.contains(feature.geometry)) ||
-						feature.geometry.type != "point"){
-						var obj={};
-						for (j=0; j<download_buttons[downloadIndex].displayfields.length; j++){
-							// handle UTTM xy
-							if (download_buttons[downloadIndex].fields[j].toLowerCase() === "wgs84x"){
-								obj[download_buttons[downloadIndex].fields[j]] = feature.geometry.x;
-							} else if (download_buttons[downloadIndex].fields[j].toLowerCase() === "wgs84y"){
-								obj[download_buttons[downloadIndex].fields[j]] = feature.geometry.y;
-							}
-							// handle other data
-							else {
-								obj[download_buttons[downloadIndex].fields[j]] = attr[download_buttons[downloadIndex].fields[j]];
-							}
-						}
-						downloadTable.push(obj);
-						obj=null;
-					}
-				}
-			}
-
-			var label = replaceSpecialChar(download_buttons[downloadIndex].label,"_");
-			//  No data found, warn user, and leave download button disabled
-			if (noData){
-				alert("No data found for "+download_buttons[downloadIndex].label, "Notice");
-			}
-			else {
-				// sort the table
-				if (download_buttons[downloadIndex].sortorder === "descending")
-					downloadTable.sort(descendingSortMultipleArryOfObj(download_buttons[downloadIndex].sortfields));
-				else
-					downloadTable.sort(sortMultipleArryOfObj(download_buttons[downloadIndex].sortfields));
-
-				// create file
-				var fileContent = "";
-				// Add header
-				for (j=0; j<download_buttons[downloadIndex].displayfields.length;j++){
-					if (j == download_buttons[downloadIndex].displayfields.length-1){
-						fileContent += download_buttons[downloadIndex].displayfields[j]+"\n";
-					}else {
-						fileContent += download_buttons[downloadIndex].displayfields[j]+",";
-					}
-				}
-				for (var i=0; i<downloadTable.length;i++){
-					for (var j=0; j<download_buttons[downloadIndex].fields.length;j++){
-						if (j == download_buttons[downloadIndex].fields.length-1){
-							fileContent += downloadTable[i][download_buttons[downloadIndex].fields[j]]+"\n";
-						}else {
-							fileContent += downloadTable[i][download_buttons[downloadIndex].fields[j]]+",";
-						}
-					}
-				}
-				
-				// download the table and attach it to download when the button is clicked
-				//var fileContent = "Elk,May,2023\nDeer,June,2023";
-				var blob = new Blob([fileContent ], { type: 'text/plain' });
-				saveAs(blob, label+".csv");
-			}
-			var downloadBtn = document.getElementById(label+"Btn");
-			downloadBtn.innerText = downloadBtn.innerText.replace("...","");
-		}
-		function queryCSVFaultHandler(error){
-			// can't download CSV file
-			alert("Error creating file to download. Message: "+error.message+" in ResourceReportWidget.xml at resourceReport.js, queryCSVFaultHandler");
-		}
-
 		function createPDF_EventHandler(action){
 			return function createPDF(evt){
 				if (!centerPt) return;
@@ -947,7 +701,7 @@ function reportInit(){
 				
 					query[q] = new Query();
 					queryTask[q] = new QueryTask(hunterResourceReport.contactBoundaries.url);
-					//query[q].geometry = theArea;
+					query[q].geometry = theArea;
 					query[q].returnGeometry = true;
 					query[q].spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
 					query[q].outFields = ["*"]; 
@@ -959,7 +713,7 @@ function reportInit(){
 				if (hunterResourceReport.gameBoundaries) {
 					query[q] = new Query();
 					queryTask[q] = new QueryTask(hunterResourceReport.gameBoundaries.url);
-					//query[q].geometry = theArea;
+					query[q].geometry = theArea;
 					query[q].returnGeometry = true;
 					query[q].spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
 					query[q].outFields = ["*"]; 
@@ -1966,10 +1720,6 @@ function reportInit(){
 							img.src = "assets/images/testmap.jpg";
 							alert("The image in the pdf is a placeholder. <a href='"+result.url+"' target='pdf_image'>Here is a link to the true image.</a>","Note for Test Site");
 						}
-						// *** TODO ***  remove this when Bob installs SSL at CPW
-						else if (window.location.hostname.toLowerCase().indexOf("gisweb") > -1){
-							img.src = result.url.replace("https","http");
-						}
 						else if (printServiceUrl.indexOf(window.location.hostname) === -1)
 							alert("The fastmap url machine name or alias must match the printserviceurl in the ResourceReport.xml file.","Data Error");
 					}
@@ -2026,7 +1776,6 @@ function reportInit(){
 				gameBoundaries: null
 			};
 			var reports = [];
-			var download_buttons = [];
 			var numDatabaseCalls = 0;
 			var processedDatabaseCalls;
 			var basemapUrl;
@@ -2079,8 +1828,7 @@ function reportInit(){
 						basemapUrl = xmlDoc.getElementsByTagName("basemapurl")[0] ? xmlDoc.getElementsByTagName("basemapurl")[0].firstChild.nodeValue : showWarning("basemapurl tag");
 						reportTitle = xmlDoc.getElementsByTagName("reporttitle")[0] ? xmlDoc.getElementsByTagName("reporttitle")[0].firstChild.nodeValue : showWarning("reporttitle tag");
 						selectby = xmlDoc.getElementsByTagName("selectby")[0] ? xmlDoc.getElementsByTagName("selectby")[0].firstChild.nodeValue : "point";
-						var download_buttonsTag = xmlDoc.getElementsByTagName("download_buttons")[0]  && xmlDoc.getElementsByTagName("download_buttons")[0].getElementsByTagName("button") ? xmlDoc.getElementsByTagName("download_buttons")[0].getElementsByTagName("button") : null; ;
-
+						
 						if (selectby === "polygon"){
 							selectBtn = "reportPolyBtn";
 							document.getElementById("polyReport").style.display = "block";
@@ -2121,12 +1869,11 @@ function reportInit(){
 							};
 						}
 						
-						var obj;
 						// Custom Reports
 						if (reportsTag){
 							for (i=0; i<reportsTag.length; i++)
 							{
-								obj = {
+								var obj = {
 									url: reportsTag[i].getAttribute("url")?reportsTag[i].getAttribute("url"):showWarning("report tag, url attribute"),
 									id: reportsTag[i].getAttribute("id")?reportsTag[i].getAttribute("id"):showWarning("report tag, id attribute"),
 									type: reportsTag[i].getAttribute("type")?reportsTag[i].getAttribute("type"):showWarning("report tag, type attribute"),
@@ -2156,42 +1903,6 @@ function reportInit(){
 								}
 								obj = null;
 							}
-						}
-
-						if (download_buttonsTag){
-							for (i=0; i<download_buttonsTag.length; i++)
-							{
-								obj = {
-									visOnly: download_buttonsTag[i].getAttribute("onlyIfVisible")?download_buttonsTag[i].getAttribute("onlyIfVisible") === "true".toLowerCase():false,
-									url: download_buttonsTag[i].getAttribute("url")?download_buttonsTag[i].getAttribute("url"):showWarning("button tag, url attribute"),
-									ids: download_buttonsTag[i].getAttribute("ids")?download_buttonsTag[i].getAttribute("ids"):showWarning("button tag, ids attribute"),
-									label: download_buttonsTag[i].getAttribute("label")?download_buttonsTag[i].getAttribute("label"):showWarning("button tag, label attribute"),
-									displayfields: download_buttonsTag[i].getAttribute("displayfields")?download_buttonsTag[i].getAttribute("displayfields").split(","):showWarning("report tag, displayfields attribute"),
-									fields: download_buttonsTag[i].getAttribute("fields")?download_buttonsTag[i].getAttribute("fields").split(","):showWarning("report tag, fields attribute"),
-									where_field: download_buttonsTag[i].getAttribute("where_field")?download_buttonsTag[i].getAttribute("where_field"):"",
-									where_inequality: download_buttonsTag[i].getAttribute("where_inequality")?download_buttonsTag[i].getAttribute("where_inequality"):"",
-									where_value: download_buttonsTag[i].getAttribute("where_value")?download_buttonsTag[i].getAttribute("where_value"):"",
-									where_type: download_buttonsTag[i].getAttribute("where_type")?download_buttonsTag[i].getAttribute("where_type"):"",
-									sortfields: download_buttonsTag[i].getAttribute("sortfields")?download_buttonsTag[i].getAttribute("sortfields").split(","):download_buttonsTag[i].getAttribute("fields").split(","),
-									sortorder: download_buttonsTag[i].getAttribute("sortorder")?download_buttonsTag[i].getAttribute("sortorder"):"ascending",
-									keyField: download_buttonsTag[i].getAttribute("key")?download_buttonsTag[i].getAttribute("key"):null,
-									database: download_buttonsTag[i].getAttribute("database")?download_buttonsTag[i].getAttribute("database"):null,
-									filename: download_buttonsTag[i].getAttribute("filename")?download_buttonsTag[i].getAttribute("filename"):null,
-									one2one_fields: download_buttonsTag[i].getAttribute("one2one_fields")?download_buttonsTag[i].getAttribute("one2one_fields").split(","):null,
-									one2one_display: download_buttonsTag[i].getAttribute("one2one_display")? download_buttonsTag[i].getAttribute("one2one_display").split(","):download_buttonsTag[i].getAttribute("one2one_fields")?download_buttonsTag[i].getAttribute("one2one_fields").split(","):null,
-									one2many_fields: download_buttonsTag[i].getAttribute("one2many_fields")?download_buttonsTag[i].getAttribute("one2many_fields").split(","):null,
-									one2many_display: download_buttonsTag[i].getAttribute("one2many_display")?download_buttonsTag[i].getAttribute("one2many_display").split(","):download_buttonsTag[i].getAttribute("one2many_fields")?download_buttonsTag[i].getAttribute("one2many_fields").split(","):null
-								};
-								download_buttons.push(obj);
-								// lookup data in database if necessary
-								if (obj.database && obj.database != "")
-								{
-									numDatabaseCalls++;
-								}
-								obj = null;
-							}
-
-							addDownloadButtons();
 						}
 						
 						mapTitle = xmlDoc.getElementsByTagName("title")[0] ? xmlDoc.getElementsByTagName("title")[0].firstChild.nodeValue: showWarning("title tag");
