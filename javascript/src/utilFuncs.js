@@ -406,6 +406,84 @@
 	  }
 	  
 	  // Drawing
+	  function addTempLabel(point, label, fontSize){
+		// Add text at a point. Fade out after 5 seconds.
+		// point: Point, label: text, fontSize: int
+		require(["esri/symbols/TextSymbol","esri/Graphic"], function (TextSymbol, Graphic) {
+			let textSymbol = new TextSymbol({
+				text: label,
+				color: [255, 255, 255],
+				haloColor: [1, 68, 33],
+				haloSize: 2,
+				yoffset: -1 * (fontSize) - 3,
+				font: {
+				family: "Arial Unicode MS",
+				size: fontSize
+				}
+			});
+			let pointText = new Graphic({
+				geometry: point,
+				symbol: textSymbol
+			});
+			view.graphics.add(pointText);
+			let fade = 1.0; // starting transparency
+			let width = pointText.symbol.haloSize / 4;
+			setTimeout(function(){
+				let tim = setInterval(function(){
+					fade = fade - 0.25;
+					pointText.symbol.color.a = fade;
+					pointText.symbol.haloSize = pointText.symbol.haloSize - width;
+					pointText.symbol.haloColor.a = fade;
+					if (fade == 0) {
+						clearTimeout(tim);
+						view.graphics.remove(pointText);
+					}
+				},2000);
+			},5000);
+		});
+	  }
+	  function addTempPoint(pt){
+		// add point and remove it in 10 seconds
+		// added 4/25/24
+		require(["esri/symbols/PictureMarkerSymbol","esri/Graphic"], function (PictureMarkerSymbol, Graphic) {
+			const symbol = new PictureMarkerSymbol({
+				url: "assets/images/yellowdot.png",
+				width: "40px",
+				height: "40px"
+			});
+			let point = new Graphic({
+				geometry: pt,
+				symbol: symbol
+			});
+			view.graphics.add(point);
+			setTimeout(function(){
+				view.graphics.remove(point);
+			},10000);
+		});
+	  }
+	  function addTempPolygon(feature){
+		// add polygon outline and remove it in 10 seconds
+		require(["esri/geometry/Point", "esri/geometry/Polygon", "esri/Graphic"],
+			function (Point, Polygon, Graphic) {
+			const polySymbol = {
+				type: "simple-line",  // autocasts as SimpleLineSymbol()
+				color: [226, 119, 40],
+				width: 4
+			}
+			const polygon = new Polygon({
+				rings: feature.geometry.rings,
+				spatialReference: feature.geometry.spatialReference
+			});
+			const poly = new Graphic({
+				geometry: polygon,
+				symbol: polySymbol
+			});
+			view.graphics.add(poly);
+			setTimeout(function(){
+				view.graphics.remove(poly);
+			},10000);
+		});
+	  }
 	  function addLabel(point, label, graphicsLayer, fontsize) {
 		  // Adds a label to the map at the given point, fontsize = "11pt"
 		  // graphicsName is the name for this graphics layer. For example: searchgraphics or drawgraphics

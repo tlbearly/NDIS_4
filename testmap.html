@@ -4,9 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
     <meta charset="utf-8" />
-    <title>Test ArcGIS API for JavaScript 4.26</title>
+    <title>Test ArcGIS API for JavaScript 4.29</title>
 
-    <link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/light/main.css" async="true"/>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css" async="true"/>
     <link rel="stylesheet" type="text/css" href="assets/css/claro/claro.css?v=1">
     
     <!-- dojo is not longer a part of 4.25 so load it here. Download it from https://dojotoolkit.org/download/ release package .zip 
@@ -16,7 +16,7 @@
       window.dojoConfig = {
         tlmSiblingOfDojo: false,
         packages: [
-            { name:"../esri", location: "https://js.arcgis.com/4.26/esri" },
+            { name:"../esri", location: "https://js.arcgis.com/4.29/esri" },
             { name: "dojo", location: location.pathname.replace(/\/[^/]+$/, '') +"/Dojo/dojo-release-1.17.3/dojo" },
             { name: "dijit", location: location.pathname.replace(/\/[^/]+$/, '') +"/Dojo/dojo-release-1.17.3/dijit" },
             { name: "dojox", location: location.pathname.replace(/\/[^/]+$/, '') +"/Dojo/dojo-release-1.17.3/dojox" },
@@ -27,7 +27,7 @@
       };
     </script>
 
-    <script src="https://js.arcgis.com/4.26/"></script>
+    <script src="https://js.arcgis.com/4.29/"></script>
     
     <link rel="shortcut icon" href="assets/images/favicon.png" />
     <link rel="icon" type="image/png" href="assets/images/favicon.png" />
@@ -52,7 +52,7 @@
     <!-- For Debugging -->
     <script>
       var jsVer = Date.now();
-      //var jsVer = "b";
+      var jsVer = "aq";
       var path = "javascript/src";
       document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '" async><\/script>');
@@ -68,8 +68,8 @@
       //document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
         document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '" async><\/script>');
         //document.write('<script type="text/javascript" src="' + path + '/basemapGallery.js?v=' + jsVer + '"><\/script>');
-          document.write('<script type="text/javascript" src="' + path + '/myBasemapGallery.js?v=' + jsVer + '"><\/script>');
-      //v4        document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=' + jsVer + '"><\/script>');
+      document.write('<script type="text/javascript" src="' + path + '/myBasemapGallery.js?v=' + jsVer + '"><\/script>');
+      //document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=' + jsVer + '"><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/search.js?v=' + jsVer + '"><\/script>');
     </script>
 
@@ -110,6 +110,8 @@
       var visible = [];
       var settings; // hold user defined settings {XYProjection: 26913, ...} Set in readSettingsWidget in identify.js
       var use_map_link, use_get_extent; // Read from SettingsWidget.xml in readSettingsWidget in identify.js.
+      var searchGraphicsCount = []; // store names of graphics layers used to display one point or polygon for Find a Place.
+      var searchGraphicsCounter = 0;
       var drawGraphicsCount = []; // store names of graphics layers used to display one point,line, label, or polygon for Draw, Label, Measure.
       var drawGraphicsCounter = 0;
       var drawGraphicsLayer;
@@ -260,7 +262,7 @@
           <div style="display:flex;flex-direction:row;">
               <!-- Menu to show left panel -->
               <div>
-                <button id="menuBtn" class="headerBtn myBtn" alt="show/hide left menu" title="Menu" onClick="javascript:toggleMenu()"><img src="assets/images/icons8-menu-50.png" style="padding-top: .2em;"></button>
+                <button id="menuBtn" class="headerBtn myBtn" alt="show or hide left menu" title="Menu" onClick="javascript:toggleMenu()"><img alt="menu button" src="assets/images/icons8-menu-50.png" style="padding-top: .2em;"></button>
               </div>
               <!-- Logo & Tittle -->
               <div id="titleBox" style="margin:1px;flex-grow:3;">

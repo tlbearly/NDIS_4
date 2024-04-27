@@ -1,4 +1,7 @@
 // Read config.xml file and also URL paramaters
+
+//const { regexpDot } = require("jshint/src/reg");
+
 // globals
 var locator;
 var addressGraphicsCount = []; // store names of graphics layers used to display address.
@@ -154,11 +157,12 @@ function clearAddress() {
 // Read config.xml file
 //**********************
 function readConfig() {
+	//"esri/widgets/Sketch",
 	// "agsjs/dijit/TOC", "esri/tasks/locator", "esri/rest/support/ProjectParameters", "esri/widget/Popup",
 	require(["dojo/dom", "dojo/io-query", "esri/core/promiseUtils", "esri/core/reactiveUtils", "esri/layers/GroupLayer", "esri/layers/SubtypeGroupLayer", "esri/layers/MapImageLayer",
 	 "esri/layers/FeatureLayer", "esri/layers/WMSLayer", "esri/rest/geometryService",
 	 "esri/geometry/SpatialReference", "esri/Graphic", "esri/Map", "esri/views/MapView","esri/widgets/Print","esri/geometry/Extent",
-	 "esri/widgets/Home", "esri/widgets/Expand", "esri/widgets/LayerList", "esri/widgets/Legend", "esri/widgets/Locate", "esri/widgets/Search", "esri/widgets/ScaleBar", "esri/widgets/Slider", "esri/rest/support/ProjectParameters",
+	 "esri/widgets/Home", "esri/widgets/Expand", "esri/widgets/LayerList", "esri/widgets/Legend",   "esri/widgets/Locate", "esri/widgets/Search", "esri/widgets/ScaleBar", "esri/widgets/Slider", "esri/rest/support/ProjectParameters",
 	 "esri/symbols/SimpleFillSymbol", "dijit/form/CheckBox", "dijit/layout/ContentPane", "dijit/TitlePane", "dijit/layout/TabContainer", "esri/symbols/SimpleLineSymbol",
 	 "esri/arcade", "esri/layers/support/arcadeUtils", "dojo/sniff"], 
 	 function (dom, ioquery, promiseUtils, reactiveUtils, GroupLayer, SubtypeGroupLayer, MapImageLayer, FeatureLayer, WMSLayer, GeometryService, SpatialReference,
@@ -1144,7 +1148,7 @@ else*/
 						
 						dom.byId("reportDiv").style.display = "block";
 						dom.byId("reportDiv").style.visibility = "visible";
-						// TODO ***************reportInit();
+	// TODO*****					reportInit();
 					} else if (label == "Feature Search") {
 						var searchPane = new TitlePane({
 							title: "<img id='searchIcon' role='presentation' alt='feature search icon' src='assets/images/i_search.png'/> "+label,
@@ -1201,6 +1205,16 @@ else*/
 						//drawInit(); // in javascript/draw.js called in identify.js/readSettingsWidget because it needs XYProjection from this file.
 						dom.byId("drawDiv").style.display = "block";
 						dom.byId("drawDiv").style.visibility = "visible";
+						
+						// Test new V4 sketch widtet
+						// create a new sketch widget
+						/*const graphicsLayer = new GraphicsLayer();
+						map.add(graphicsLayer);
+						const sketch = new Sketch({
+							view,
+							layer: graphicsLayer
+						});
+						document.getElementById("drawDiv").appendChild(sketch);*/
 					} else if (label == "Bookmark") {
 						var bookmarkPane = new TitlePane({
 							title: "<img id='bookmarkIcon' role='presentation' alt='bookmark icon' src='assets/images/i_bookmark.png'/> "+label,
@@ -2160,9 +2174,10 @@ else*/
 						unit: "dual"
 					});
 					
-					view.ui.add(scalebar, {
-						position: "bottom-left"
-					});
+					view.ui.add(scalebar, "bottom-left");
+					//view.ui.add(scalebar, {
+					//	position: "bottom-left"
+					//});
 
 					// Home
 					const homeBtn = new Home({
@@ -2178,9 +2193,10 @@ else*/
 					});
 			
 					// Add the locate widget to the top left corner of the view
-						view.ui.add(locateBtn, {
-						position: "top-left"
-					});
+					view.ui.add(locateBtn, "top-left");
+					//view.ui.add(locateBtn, {
+					//	position: "top-left"
+					//});
 				});
 			});
 		}
@@ -2466,7 +2482,7 @@ else*/
 							if (!queryObj.value || queryObj.value == "")
 								alert("When &keyword is used on the URL, there must be a &value also.", "URL Keyword/Value Error");
 							else {
-								require(["esri/request", "esri/tasks/QueryTask", "esri/tasks/query"], function (esriRequest, QueryTask, Query) {
+								require(["esri/request", "esri/rest/query", "esri/rest/support/Query"], function (esriRequest, query, Query) {
 									var urlFile = app + "/url.xml?v=" + ndisVer;
 									var xmlurl = createXMLhttpRequest();
 									xmlurl.onreadystatechange = function () {
@@ -2488,19 +2504,20 @@ else*/
 													alert("Missing tag expression, in " + app + "/url.xml file for keyword: " + queryObj.keyword, "Data Error");
 												else {
 													var expr = layer[i].getElementsByTagName("expression")[0].firstChild.nodeValue.replace("[value]", queryObj.value);
-													var queryTask = new QueryTask(layer[i].getElementsByTagName("url")[0].firstChild.nodeValue);
-													var query = new Query();
-													query.where = expr;
-													query.returnGeometry = true;
-													queryTask.execute(query, function (response) {
+													
+													const params = new Query({
+														returnGeometry: true,
+														where: expr
+													});
+          											query.executeQueryJSON(layer[i].getElementsByTagName("url")[0].firstChild.nodeValue, params).then((response) =>  {
 														if (response.features.length == 0) {
 															gotoLocation(queryObj.value, true);
 														} else {
 															// Zoom to point or polygon
-															require(["esri/geometry/Point", "esri/graphicsUtils", "esri/layers/GraphicsLayer", "esri/graphic", "esri/symbols/PictureMarkerSymbol"], function (Point, graphicsUtils, GraphicsLayer, Graphic, PictureMarkerSymbol) {
+															require(["esri/geometry/Point", "esri/Graphic"],
+															 function (Point, Graphic) {
 																var pt;
-																var searchGraphicsLayer;
-																if (response.geometryType == "esriGeometryPoint") {
+																if (response.geometryType === "point") {
 																	var level = 8; // 4-21-17 Updated lods, used to be 14
 																	if (layer[i].getElementsByTagName("mapscale")[0] && layer[i].getElementsByTagName("mapscale")[0].firstChild)
 																		level = parseInt(layer[i].getElementsByTagName("mapscale")[0].firstChild.nodeValue);
@@ -2509,21 +2526,18 @@ else*/
 																		level = 8; // 4-21-17 Updated lods, used to be 14
 																	}
 																	pt = new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference);
-																	map.centerAndZoom(pt, level);
+																	// zoom to point
+																	view.goTo({
+																		center: pt,
+																		zoom: level
+																	});
+																	// add point symbol
+																	addTempPoint(pt);
 																	if (queryObj.label && queryObj.label != "") {
-																		// add label to find a place graphics layer
-																		searchGraphicsLayer = new GraphicsLayer();
-																		searchGraphicsLayer.id = "searchgraphics" + searchGraphicsCounter;
-																		searchGraphicsCount.push(searchGraphicsLayer.id);
-																		searchGraphicsCounter++;
-																		addLabel(new Graphic(pt), queryObj.label, searchGraphicsLayer, "11pt");
-																		// add point
-																		var symbol = new PictureMarkerSymbol("assets/images/yellowdot.png", 30, 30);
-																		searchGraphicsLayer.add(new Graphic(pt, symbol));
-																		document.getElementById("findClear").style.opacity = 1.0;
-																		document.getElementById("findClear").style.filter = "alpha(opacity=100)";
+																		// add label view.graphics
+																		addTempLabel(pt,queryObj.label,12);
 																	}
-																} else if (response.geometryType == "esriGeometryPolygon") {
+																} else if (response.geometryType === "polygon") {
 																	var union=false;
 																	if (layer[i].getElementsByTagName("union")[0] && layer[i].getElementsByTagName("union")[0].firstChild &&
 																		layer[i].getElementsByTagName("union")[0].firstChild.nodeValue.toLowerCase() === "true"){
@@ -2531,43 +2545,53 @@ else*/
 																	}
 																	// zoom to extent of first feature
 																	if (!union){
-																		pt = response.features[0].geometry.getCentroid();
-																		map.setExtent(response.features[0].geometry.getExtent(), true);
+																		pt = response.features[0].geometry.centroid;
+																		view.extent = response.features[0].geometry.extent;
+																		addTempPolygon(response.features[0]);
 																	}
 
 																	// zoom to extent of all features 1-14-19
 																	else{
-																		var newExtent = new Extent(response.features[0].geometry.getExtent());
+																		var newExtent = response.features[0].geometry.extent;//new Extent(response.features[0].geometry.getExtent());
 																		for (var j = 0; j < response.features.length; j++) { 
-																			var thisExtent = response.features[j].geometry.getExtent();
-																			// making a union of extent or previous feature and current feature. 
+																			var thisExtent = response.features[j].geometry.extent;
+																			// making a union of extent or previous feature and current feature.  
 																			newExtent = newExtent.union(thisExtent);
-																		} 
-																		map.setExtent(newExtent);
-																		pt = newExtent.getCenter();
+																			// highlight polygons
+																			addTempPolygon(response.features[j]);
+																		}
+																		view.extent = newExtent;
+																		pt = newExtent.center;
 																	}	
 
 																	if (queryObj.label && queryObj.label != "") {
-																		// add label to find a place graphics layer
-																		searchGraphicsLayer = new GraphicsLayer();
-																		searchGraphicsLayer.id = "searchgraphics" + searchGraphicsCounter;
-																		searchGraphicsCount.push(searchGraphicsLayer.id);
-																		searchGraphicsCounter++;
-																		addLabel(new Graphic(pt), queryObj.label, searchGraphicsLayer, "11pt");
-																		document.getElementById("findClear").style.opacity = 1.0;
-																		document.getElementById("findClear").style.filter = "alpha(opacity=100)";
+																		// add label to view.graphics
+																		addTempLabel(pt,queryObj.label,12);
 																	}
-																} else
-																	map.setExtent(response.features[0].geometry.getExtent(), true);
+																} else {
+																	// not a point or polygon
+																	view.extent = response.features[0].geometry.extent;
+																	//map.setExtent(response.features[0].geometry.getExtent(), true);
+																	poly[0] = new Graphic({
+																		geometry: view.extent,
+																		symbol: polySymbol
+																	});
+																	view.graphics.add(poly[0]);
+																	setTimeout(function(){
+																		view.graphics.remove(poly[0]);
+																	},10000);
+																	pt = view.extent.center;
+																	if (queryObj.label && queryObj.label != "") {
+																		addTempLabel(pt,queryObj.label,12);
+																	}
+																}
 															});
 														}
-													}, function (error) {
+													}).catch ( (error) => {
 														if (error.responseText) {
-															alert("Error: QueryTask failed for keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message + error.responseText, "URL Keyword/Value Error", error);
-															document.execCommand('Stop');
+															alert("Error: Failed to zoom to keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message + error.responseText, "URL Keyword/Value Error", error);
 														} else {
-															alert("Error: QueryTask failed for keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message, "URL Keyword/Value Error", error);
-															document.execCommand('Stop');
+															alert("Error: Failed to zoom to keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message, "URL Keyword/Value Error", error);
 														}
 													});
 												}

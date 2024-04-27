@@ -4,13 +4,15 @@
  * 10/17/23 Tammy Bearly - Add ability to download a CSV file
  */
 function reportInit(){
-	require(["dojo/dom","dijit/registry","dojo/sniff","dijit/form/Select", "esri/toolbars/draw","dojo/i18n!esri/nls/jsapi","esri/layers/GraphicsLayer","esri/geometry/Circle",
-	"esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleFillSymbol","dojo/_base/Color", "esri/graphic",
-	"dijit/Dialog","esri/map","dijit/form/Button","esri/graphicsUtils","esri/layers/ArcGISDynamicMapServiceLayer","esri/layers/FeatureLayer","esri/layers/ArcGISTiledMapServiceLayer","esri/layers/VectorTileLayer",
-	"esri/tasks/PrintTask", "esri/tasks/PrintTemplate", "esri/tasks/PrintParameters","esri/urlUtils","esri/geometry/webMercatorUtils",
-	 "esri/tasks/query","esri/tasks/QueryTask","dojo/promise/all","dojo/on","dojo/_base/array"],
-	function(dom,registry,has,Select,Draw,bundle,GraphicsLayer,Circle,SimpleMarkerSymbol,SimpleLineSymbol,SimpleFillSymbol,Color,Graphic,Dialog,Map,Button,
-	graphicsUtils,ArcGISDynamicMapServiceLayer,FeatureLayer,ArcGISTiledMapServiceLayer,VectorTileLayer,PrintTask,PrintTemplate,PrintParameters,urlUtils,webMercatorUtils,Query,QueryTask,all,on,array){
+	// ArcGISDynamicMapServiceLayer -> MapImageLayer
+	// ArcGISTiledMapServiceLayer -> TileLayer
+	require(["dojo/dom","dijit/registry","dojo/sniff","dijit/form/Select","esri/layers/GraphicsLayer","esri/geometry/Circle",
+	"esri/symbols/SimpleMarkerSymbol", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleFillSymbol","dojo/_base/Color", "esri/Graphic", "esri/layers/TileLayer",
+	"dijit/Dialog","esri/Map","dijit/form/Button","esri/graphicsUtils","esri/layers/MapImageLayer","esri/layers/FeatureLayer","esri/layers/VectorTileLayer",
+	"esri/rest/print", "esri/rest/support/PrintTemplate", "esri/rest/support/PrintParameters","esri/geometry/support/webMercatorUtils",
+	"esri/rest/support/Query","esri/tasks/QueryTask","dojo/promise/all","dojo/on","dojo/_base/array"],
+	function(dom,registry,has,Select,GraphicsLayer,Circle,SimpleMarkerSymbol,SimpleLineSymbol,SimpleFillSymbol,Color,Graphic,TileLayer,Dialog,Map,Button,
+	graphicsUtils,ArcGISDynamicMapServiceLayer,FeatureLayer,VectorTileLayer,print,PrintTemplate,PrintParameters,webMercatorUtils,Query,QueryTask,all,on,array){
 		var displayedOnce = false;
 		function pixels2pts(px) {
 			return Math.round((px/dpi) * 72);
@@ -307,7 +309,8 @@ function reportInit(){
 				document.getElementById("reportPolyBtn").className = "graphBtnSelected";
 				reportToolbar.activate(Draw.FREEHAND_POLYGON);
 			} else if (selectby === "point"){
-				bundle.toolbars.draw.addPoint = "Click on location"; // change tooltip
+				// TODO change tooltip ******************************************
+				//bundle.toolbars.draw.addPoint = "Click on location"; // change tooltip
 				document.getElementById("reportPtBtn").className = "graphBtnSelected";
 				reportToolbar.activate(Draw.POINT);
 			}
@@ -580,8 +583,10 @@ function reportInit(){
 						}
 						else if (map.layerIds[i].indexOf("layer")>-1){
 							if (map.getLayer(map.layerIds[i]).visibleAtMapScale == true){
-								if (map.getLayer(map.layerIds[i]).url.indexOf ("MapServer")>-1)
-									basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
+								if (map.getLayer(map.layerIds[i]).url.indexOf ("MapServer")>-1){
+									basemap = new TileLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
+									//basemap = new ArcGISTiledMapServiceLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
+								}
 								else {
 									basemap = new VectorTileLayer(map.getLayer(map.layerIds[i]).url,{"id":"basemap","visible": true});
 									basemap.setStyle(map.getLayer(map.layerIds[i]).url);
@@ -1986,7 +1991,7 @@ function reportInit(){
 						document.getElementById("reportMsg1").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src='assets/images/loading.gif' width='20px' height='20px'/> Generating map image for report";
 						document.getElementById("reportMsg2").innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src='assets/images/loading.gif' width='20px' height='20px'/> Generating map image for report";
 						doc.addPage();	
-						var printTask = new PrintTask(printServiceUrl);
+						//var printTask = new PrintTask(printServiceUrl);
 						var params = new PrintParameters();
 						var template = new PrintTemplate();
 						//template.exportOptions = { dpi: dpi, width: 3150, height: 2400 };
@@ -2006,8 +2011,7 @@ function reportInit(){
 						
 						params.map = reportMap;
 						params.template = template;				
-						printTask.execute(params, printResult, printError);
-					}
+						print.execute(printServiceUrl,params).then(printResult).catch(printError);					}
 					catch(e){
 						alert("Error creating map for resource report. "+e.message,"Code Error",e);
 					}
