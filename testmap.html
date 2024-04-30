@@ -52,7 +52,7 @@
     <!-- For Debugging -->
     <script>
       var jsVer = Date.now();
-      var jsVer = "aq";
+      var jsVer = "ab";
       var path = "javascript/src";
       document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '" async><\/script>');
@@ -110,8 +110,8 @@
       var visible = [];
       var settings; // hold user defined settings {XYProjection: 26913, ...} Set in readSettingsWidget in identify.js
       var use_map_link, use_get_extent; // Read from SettingsWidget.xml in readSettingsWidget in identify.js.
-      var searchGraphicsCount = []; // store names of graphics layers used to display one point or polygon for Find a Place.
-      var searchGraphicsCounter = 0;
+      //var searchGraphicsCount = []; // store names of graphics layers used to display one point or polygon for Find a Place.
+      //var searchGraphicsCounter = 0;
       var drawGraphicsCount = []; // store names of graphics layers used to display one point,line, label, or polygon for Draw, Label, Measure.
       var drawGraphicsCounter = 0;
       var drawGraphicsLayer;

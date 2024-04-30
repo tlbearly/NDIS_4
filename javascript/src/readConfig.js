@@ -158,7 +158,7 @@ function clearAddress() {
 //**********************
 function readConfig() {
 	//"esri/widgets/Sketch",
-	// "agsjs/dijit/TOC", "esri/tasks/locator", "esri/rest/support/ProjectParameters", "esri/widget/Popup",
+	// "agsjs/dijit/TOC", "esri/tasks/locator", "esri/widget/Popup",
 	require(["dojo/dom", "dojo/io-query", "esri/core/promiseUtils", "esri/core/reactiveUtils", "esri/layers/GroupLayer", "esri/layers/SubtypeGroupLayer", "esri/layers/MapImageLayer",
 	 "esri/layers/FeatureLayer", "esri/layers/WMSLayer", "esri/rest/geometryService",
 	 "esri/geometry/SpatialReference", "esri/Graphic", "esri/Map", "esri/views/MapView","esri/widgets/Print","esri/geometry/Extent",
@@ -1393,221 +1393,165 @@ else*/
 		//**********************
 		//   Add Find a Place
 		//**********************
+		var searchWidget;
 		function addFindPlace(){
 			// Find a Place Widget ESRI default
-			//require(["esri/geometry/Point","esri/geometry/Polygon"],function(Point,Polygon){
-				/*
-				// Create a symbol for drawing the point
-				const textSymbol = {
-				type: "text", // autocasts as new TextSymbol()
-				color: "#7A003C",
-				text: "\ue61d", // esri-icon-map-pin // "", // esri-icon-map-pin
-				font: {
-					// autocasts as new Font()
-					size: 36,
-					family: "CalciteWebCoreIcons"
-				}
-				};
-				*/
-				/*let highlightSymbol = {
-					type: "simple-line",  // autocasts as new SimpleLineSymbol()
-					style: "solid",
-					color: "red",
-					width: "3px"
-				};*/
-
-				//define layers for boundaries
-				var countyFL = new FeatureLayer({
-					url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1",
-					popupTemplate: {
-						// autocasts as new PopupTemplate()
-						title: "{COUNTYNAME} County",
-						overwriteActions: true
+			//define layers for boundaries
+			var countyFL = new FeatureLayer({
+				url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1"
+				/*popupTemplate: {
+					// autocasts as new PopupTemplate()
+					title: "{COUNTYNAME} County",
+					overwriteActions: true
+				}*/
+			});
+			var propertyFL = new FeatureLayer({
+				url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3"
+				/*popupTemplate: {
+					// autocasts as new PopupTemplate()
+					title: "{PropName}",
+					overwriteActions: true
+					}*/
+			});
+			var gmuFL = new FeatureLayer({
+				url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/4"
+				/*popupTemplate: {
+					// autocasts as new PopupTemplate()
+					title: "GMU {GMUID}",
+					overwriteActions: true
+					}*/
+			});
+			var forestFL = new FeatureLayer({
+				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5"
+				/*popupTemplate: {
+					// autocasts as new PopupTemplate()
+					title: "{MapName}",
+					overwriteActions: true
+					}*/
+			});
+			var wildernessFL = new FeatureLayer({
+				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/4"
+				/*popupTemplate: {
+					// autocasts as new PopupTemplate()
+					title: "{NAME}",
+					overwriteActions: true
+					}*/
+			});
+			searchWidget = new Search({
+				view: view,
+				includeDefaultSources:false, // include ESRI geocode service "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+				searchAllEnabled:false, // if true has drop down list of sources includeing ESRI's
+				popupEnabled:false,
+				locationEnabled:false, // Adds option to go to current location
+				resultGraphicEnabled:false, // Disable ESRI's graphic symbol, we will handle this below
+				maxResults: 6,
+				maxSuggestions: 50,
+				suggestionsEnabled: true,
+				minSuggestCharacters: 2,
+				sources: [
+					{
+						url: myFindService, //https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer 
+						singleLineFieldName: "SingleLine",
+						outFields: ["*"],
+						name: "Colorado Places",
+						placeholder: "Search Colorado Places"
+					},
+					{
+						layer: countyFL,
+						searchFields: ["COUNTYNAME"],
+						displayField: "COUNTYNAME",
+						exactMatch: false,
+						outFields: ["COUNTYNAME"],
+						name: "Counties",
+						placeholder: "Search Counties"
+					},
+					{
+						layer: propertyFL,
+						searchFields: ["PropName"],
+						displayField: "PropName",
+						exactMatch: false,
+						maxSuggestions: 1000,
+						outFields: ["PropName"],
+						name: "CPW Properties (STL, SWA, SFU, or WWA)",
+						placeholder: "Search CPW Properties"
+					},
+					{
+						layer: gmuFL,
+						searchFields: ["GMUID"],
+						displayField: "GMUID",
+						exactMatch: false,
+						maxResults: 6,
+						maxSuggestions: 100,
+						minSuggestCharacters: 1,
+						outFields: ["GMUID"],
+						name: "GMUs",
+						placeholder: "Search GMUs"
+					},
+					{
+						layer: forestFL,
+						searchFields: ["MapName"],
+						displayField: "MapName",
+						exactMatch: false,
+						outFields: ["MapName"],
+						name: "Forest or Grassland",
+						placeholder: "Search Forests/Grasslands"
+					},
+					{
+						layer: wildernessFL,
+						searchFields: ["NAME"],
+						displayField: "NAME",
+						exactMatch: false,
+						outFields: ["NAME"],
+						name: "Wilderness",
+						placeholder: "Search Wildernesses"
 					}
+				]
 				});
-				var propertyFL = new FeatureLayer({
-					url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3",
-					popupTemplate: {
-						// autocasts as new PopupTemplate()
-						title: "{PropName}",
-						overwriteActions: true
-					  }
+				searchWidget.on("select-result", function(event){
+				//alert("clicked");
 				});
-				var gmuFL = new FeatureLayer({
-					url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/4",
-					popupTemplate: {
-						// autocasts as new PopupTemplate()
-						title: "GMU {GMUID}",
-						overwriteActions: true
-					  }
+				searchWidget.goToOverride = function(view, goToParams) {
+				// Don't zoom in, we will handle it below
+				return null;
+				};
+				searchWidget.on("search-complete", function(event){
+				// The results are stored in the event Object[]
+				// Highlight and label the result for 10 seconds
+				const obj = event.results[0];
+				var newExtent = obj.results[0].extent;
+				var pt;
+				for(var i=0; i<obj.results.length; i++){
+					if (obj.results[i].feature.geometry.type === "point"){
+						require(["esri/geometry/Point"],function(Point){
+							pt = new Point(obj.results[i].feature.geometry.x, obj.results[i].feature.geometry.y, obj.results[i].feature.geometry.spatialReference);
+							addTempPoint(pt);
+							addTempLabel(pt, obj.results[i].name);
+						});
+					}
+					else if (obj.results[i].feature.geometry.type === "polygon"){
+						addTempPolygon(obj.results[i].feature);
+						if (this.activeSource.layer.title.indexOf("GMU")>-1)
+							addTempLabel(obj.results[i].feature, "GMU "+obj.results[i].name); // label each polygon
+						else addTempLabel(obj.results[i].feature, obj.results[i].name); // label each polygon
+						var thisExtent = obj.results[i].feature.geometry.extent;
+						// making a union of the polygon extents  
+						newExtent = newExtent.union(thisExtent);
+					}
+				}
+				if (obj.results[0].feature.geometry.type === "point")
+					view.goTo({
+						center: pt,
+						zoom: 11
+					});
+				else
+					view.extent = newExtent;
 				});
-				var forestFL = new FeatureLayer({
-					url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5",
-					popupTemplate: {
-						// autocasts as new PopupTemplate()
-						title: "{MapName}",
-						overwriteActions: true
-					  }
-				});
-				var wildernessFL = new FeatureLayer({
-					url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/4",
-					popupTemplate: {
-						// autocasts as new PopupTemplate()
-						title: "{NAME}",
-						overwriteActions: true
-					  }
-				});
-				const searchWidget = new Search({
-					view: view,
-					includeDefaultSources:false, // include ESRI geocode service "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer"
-					searchAllEnabled:false, // if true has drop down list of sources includeing ESRI's
-					popupEnabled:true,
-					locationEnabled:true, // Adds option to go to current location
-					maxResults: 6,
-					maxSuggestions: 50,
-					suggestionsEnabled: true,
-					minSuggestCharacters: 2,
-					sources: [
-							{
-								url: myFindService, //https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer 
-								singleLineFieldName: "SingleLine",
-								outFields: ["*"],
-								name: "Colorado Places",
-								placeholder: "Search Colorado Places",
-								zoomScale: 72224,
-								resultSymbol: {
-									type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-									url: "/assets/images/i_flag.png",
-									size: 24,
-									width: 24,
-									height: 24,
-									xoffset: 0,
-									yoffset: -12
-								},
-								// maybe parse results here for multiple found, weld and boulder county, fish species.
-								// if polygon change resultSymbol
-								  /*getSuggestions: (params) => {
-									return testData.then((data) => {
-									  var results = [];
-									  var toSearch = params.suggestTerm;
-									  data = data["allIBLocations"]["data"];
-								
-									  for(var i=0; i<data.length; i++) {
-										if(data[i]["name"].indexOf(toSearch)!=-1) {
-										  results.push(data[i]);
-										}
-									  }
-									  return results.map((feature) => {
-										return {
-										  key: "name",
-										  text: feature.name,
-										  sourceIndex: params.sourceIndex
-										};
-									  });
-									});
-								  },
-								  getResults: (params) => {
-									return testData.then((data) => {
-									  var results = [];
-									  var toSearch = params.suggestResult.text;
-									  data = data["allIBLocations"]["data"];
-									  for(var i=0; i<data.length; i++) {
-										if(data[i]["name"].indexOf(toSearch)!=-1) {
-										  results.push(data[i]);
-										}}
-									  
-									  const searchResults = results.map((feature) => {
-										console.log(feature)
-										const graphic = new Graphic({
-										  geometry: new Point({
-											latitude: feature.geoCode.latitude,
-											longitude: feature.geoCode.longitude
-										  }),
-										  attributes: feature.address
-										});
-										const buffer = geometryEngine.geodesicBuffer(
-										  graphic.geometry,
-										  100,
-										  "meters"
-										);
-										const searchResult = {
-										  extent: buffer.extent,
-										  feature: graphic,
-										  name: feature["name"]
-										};
-										return searchResult;
-									  });
-									  return searchResults;
-									});
-								}*/
-							},
-							{
-								layer: countyFL,
-								searchFields: ["COUNTYNAME"],
-								displayField: "COUNTYNAME",
-								exactMatch: false,
-								outFields: ["COUNTYNAME"],
-								name: "Counties",
-								placeholder: "Search Counties"
-							},
-							{
-								layer: propertyFL,
-								searchFields: ["PropName"],
-								displayField: "PropName",
-								exactMatch: false,
-								maxSuggestions: 1000,
-								outFields: ["PropName"],
-								name: "CPW Properties (STL, SWA, SFU, or WWA)",
-								placeholder: "Search CPW Properties"
-							},
-							{
-								layer: gmuFL,
-								searchFields: ["GMUID"],
-								displayField: "GMUID",
-								exactMatch: false,
-								maxResults: 6,
-								maxSuggestions: 100,
-								minSuggestCharacters: 1,
-								outFields: ["GMUID"],
-								name: "GMUs",
-								placeholder: "Search GMUs"
-							},
-							{
-								layer: forestFL,
-								searchFields: ["MapName"],
-								displayField: "MapName",
-								exactMatch: false,
-								outFields: ["MapName"],
-								name: "Forest or Grassland",
-								placeholder: "Search Forests/Grasslands"
-							},
-							{
-								layer: wildernessFL,
-								searchFields: ["NAME"],
-								displayField: "NAME",
-								exactMatch: false,
-								outFields: ["NAME"],
-								name: "Wilderness",
-								placeholder: "Search Wildernesses"
-							}
-						]
-						/*resultGraphic: new Polygon({
-							symbol: highlightSymbol
-						})*/
-				  });
-				  searchWidget.on("search-complete", function(event){
-					//alert(event.results);
-				  });
-				  searchWidget.on("select-result", function(event){
-					//alert("clicked");
-				  });
-				  // Adds the search widget below other elements in
-				  // the top left corner of the view
-				  view.ui.add(searchWidget, {
-					position: "top-right",
-					index: 2
-				  });
-				//});	
+				// Adds the search widget below other elements in
+				// the top left corner of the view
+				view.ui.add(searchWidget, {
+				position: "top-right",
+				index: 2
+			});	
 		}
 		//********************
 		//  Add OverviewMap
@@ -2107,7 +2051,248 @@ else*/
 */
 
 
-				
+	function zoomToQueryParams(){
+		// Zoom to extent on startup if specified on url
+		if (queryObj.extent && queryObj.extent != "") {
+			var extArr = [];
+			if (Object.prototype.toString.call(queryObj.extent) === '[object Array]')
+				extArr = queryObj.extent[0].split(",");
+			else
+				extArr = queryObj.extent.split(",");
+			var prj;
+			if (queryObj.prj && queryObj.prj != ""){
+				prj = queryObj.prj;
+			}
+			else {
+				// check for lat long
+				if (extArr[0] < 0 && extArr[0] > -200) {
+					prj = 4326;
+				} else
+					prj = 26913;
+			}
+			ext = new Extent({
+					"xmin": parseFloat(extArr[0]),
+					"ymin": parseFloat(extArr[1]),
+					"xmax": parseFloat(extArr[2]),
+					"ymax": parseFloat(extArr[3]),
+					"spatialReference": {
+						"wkid": parseInt(prj)
+					}
+				});
+			var params = new ProjectParameters();
+			params.geometries = [ext];
+			params.outSpatialReference = new SpatialReference(wkid);
+			GeometryService.project(geometryService,params).then((newExt) => {
+				initExtent = newExt[0];
+				view.extent = initExtent;
+			}).catch ( (error) => {
+				let msg = "There was a problem converting the extent read from the URL to Web Mercator projection. extent=" + extArr[0] + ", " + extArr[1] + ", " + extArr[2] + ", " + extArr[3] + "  prj=" + prj + "  " + error.message;
+				alert(msg, "URL Extent Error", error);
+			});
+		// Use initextent read from config.xml file
+		} else {
+			initExtent = new Extent({
+					"xmin": parseFloat(ext[0]),
+					"ymin": parseFloat(ext[1]),
+					"xmax": parseFloat(ext[2]),
+					"ymax": parseFloat(ext[3]),
+					"spatialReference": {
+						"wkid": wkid
+					}
+				});
+			view.extent = initExtent;
+		}
+		
+		// Zoom to a place on startup
+		if (queryObj.place && queryObj.place != "") {
+			var place = queryObj.place.replace("%20", " ");
+			if (queryObj.prj && queryObj.prj != ""){
+				settings = {
+					XYProjection: queryObj.prj
+				};
+			}
+			// check if it is a xy coordinate
+			var digits = "0123456789-";
+			if (digits.indexOf(place.substring(0, 1)) > -1 && place.indexOf(",") > -1) {
+				handleCoordinate(place);
+			}
+			else
+				searchWidget.search(place);
+		}
+		
+		// Zoom to a keyword and value on startup
+		if (queryObj.keyword && queryObj.keyword != "") {
+			if (!queryObj.value || queryObj.value == "")
+				alert("When &keyword is used on the URL, there must be a &value also.", "URL Keyword/Value Error");
+			else {
+				require(["esri/rest/query", "esri/rest/support/Query"], function (query, Query) {
+					var urlFile = app + "/url.xml?v=" + ndisVer;
+					var xmlurl = createXMLhttpRequest();
+					xmlurl.onreadystatechange = function () {
+						if (xmlurl.readyState == 4 && xmlurl.status === 200) {
+							var xmlDoc = createXMLdoc(xmlurl);
+							var layer = xmlDoc.getElementsByTagName("layer");
+							for (var i = 0; i < layer.length; i++) {
+								if (!layer[i].getElementsByTagName("keyword")[0] || !layer[i].getElementsByTagName("keyword")[0].firstChild)
+									alert("Missing tag keyword or blank, in " + app + "/url.xml file.", "Data Error");
+								if (queryObj.keyword == layer[i].getElementsByTagName("keyword")[0].firstChild.nodeValue)
+									break;
+							}
+							if (i == layer.length)
+								alert("Keyword [" + queryObj.keyword + "] is not defined in " + app + "/url.xml file.", "Data Error");
+							else {
+								if (!layer[i].getElementsByTagName("url")[0] || !layer[i].getElementsByTagName("url")[0].firstChild)
+									alert("Missing tag url or blank, in " + app + "/url.xml file for keyword: " + queryObj.keyword + ".", "Data Error");
+								if (!layer[i].getElementsByTagName("expression")[0] || !layer[i].getElementsByTagName("expression")[0].firstChild)
+									alert("Missing tag expression, in " + app + "/url.xml file for keyword: " + queryObj.keyword, "Data Error");
+								else {
+									var expr = layer[i].getElementsByTagName("expression")[0].firstChild.nodeValue.replace("[value]", queryObj.value);
+									
+									const params = new Query({
+										returnGeometry: true,
+										where: expr
+									});
+									  query.executeQueryJSON(layer[i].getElementsByTagName("url")[0].firstChild.nodeValue, params).then((response) =>  {
+										if (response.features.length == 0) {
+											gotoLocation(queryObj.value, true);
+										} else {
+											// Zoom to point or polygon
+											require(["esri/geometry/Point", "esri/Graphic"],
+											 function (Point, Graphic) {
+												var pt;
+												if (response.geometryType === "point") {
+													var level = 8; // 4-21-17 Updated lods, used to be 14
+													if (layer[i].getElementsByTagName("mapscale")[0] && layer[i].getElementsByTagName("mapscale")[0].firstChild)
+														level = parseInt(layer[i].getElementsByTagName("mapscale")[0].firstChild.nodeValue);
+													// 4-21-17 Updated lods, used to be 19
+													if (level > 11) {
+														level = 8; // 4-21-17 Updated lods, used to be 14
+													}
+													pt = new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference);
+													// zoom to point
+													view.goTo({
+														center: pt,
+														zoom: level
+													});
+													// add point symbol
+													addTempPoint(pt);
+													if (queryObj.label && queryObj.label != "") {
+														// add label view.graphics
+														addTempLabel(pt,queryObj.label);
+													}
+												} else if (response.geometryType === "polygon") {
+													var union=false;
+													if (layer[i].getElementsByTagName("union")[0] && layer[i].getElementsByTagName("union")[0].firstChild &&
+														layer[i].getElementsByTagName("union")[0].firstChild.nodeValue.toLowerCase() === "true"){
+															union=true;
+													}
+													// zoom to extent of first feature
+													if (!union){
+														pt = response.features[0].geometry.centroid;
+														view.extent = response.features[0].geometry.extent;
+														addTempPolygon(response.features[0]);
+													}
+
+													// zoom to extent of all features 1-14-19
+													else{
+														var newExtent = response.features[0].geometry.extent;//new Extent(response.features[0].geometry.getExtent());
+														//var largestArea = 0;
+														//var indexLgArea = 0; // feature index for the largest area to center the label over
+														for (var j = 0; j < response.features.length; j++) { 
+															var thisExtent = response.features[j].geometry.extent;
+															// center label over largest polygon
+															/*area = thisExtent.width * thisExtent.height;
+															if (area > largestArea){
+																largestArea = area;
+																indexLgArea = j;
+															}*/
+															// making a union of all polygon extents
+															newExtent = newExtent.union(thisExtent);
+															// highlight polygons
+															addTempPolygon(response.features[j]);
+															// label each polygon
+															if (queryObj.label && queryObj.label != "") {
+																// add label to view.graphics
+																addTempLabel(response.features[j],queryObj.label);
+															}
+														}
+														view.extent = newExtent;
+														//pt = response.features[indexLgArea].geometry.extent.center;
+													}	
+
+													
+												} else {
+													// not a point or polygon
+													view.extent = response.features[0].geometry.extent;
+													//map.setExtent(response.features[0].geometry.getExtent(), true);
+													poly[0] = new Graphic({
+														geometry: view.extent,
+														symbol: polySymbol
+													});
+													view.graphics.add(poly[0]);
+													setTimeout(function(){
+														view.graphics.remove(poly[0]);
+													},10000);
+													pt = view.extent.center;
+													if (queryObj.label && queryObj.label != "") {
+														addTempLabel(pt,queryObj.label,12);
+													}
+												}
+											});
+										}
+									}).catch ( (error) => {
+										if (error.responseText) {
+											alert("Error: Failed to zoom to keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message + error.responseText, "URL Keyword/Value Error", error);
+										} else {
+											alert("Error: Failed to zoom to keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message, "URL Keyword/Value Error", error);
+										}
+									});
+								}
+							}
+						} else if (xmlurl.status === 404)
+							alert("Missing url.xml file in " + app + " directory.", "Data Error");
+						else if (xmlurl.readyState === 4 && xmlurl.status === 500)
+							alert("Error: had trouble reading " + app + "/url.xml file in readConfig.js.", "Data Error");
+					};
+					xmlurl.open("GET", urlFile, true);
+					xmlurl.send(null);
+				});
+			}
+		}
+		if (queryObj.map && queryObj.map != "") {
+			if (!queryObj.value || queryObj.value == "" || !queryObj.field || queryObj.field == "")
+				alert("When &map is used on the URL, there must also be an &field and &value.", "URL Map/Value Error");
+			else {
+				require(["esri/request", "esri/tasks/QueryTask", "esri/tasks/query"], function (esriRequest, QueryTask, Query) {
+					var queryTask = new QueryTask(queryObj.map);
+					var query = new Query();
+					if (Number(queryObj.value))
+						query.where = queryObj.field + "=" + queryObj.value;
+					else
+						query.where = "UPPER(" + queryObj.field + ") LIKE UPPER('" + queryObj.value + "')";
+					query.returnGeometry = true;
+					queryTask.execute(query, function (response) {
+						// Zoom to point or polygon
+						require(["esri/geometry/Point", "esri/graphicsUtils"], function (Point, graphicsUtils) {
+							if (response.features.length == 0)
+								alert("Cannot zoom to " + queryObj.value + ". The feature was not found in " + queryObj.map + " for field " + queryObj.field, "URL Map/Value Error");
+							else {
+								if (response.geometryType == "esriGeometryPoint")
+									map.centerAndZoom(new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference), 8);
+								else
+									map.setExtent(response.features[0].geometry.getExtent(), true);
+							}
+						});
+					}, function (error) {
+						if (error.responseText)
+							alert("Error: QueryTask failed for map=" + queryObj.map + " " + error.message + error.responseText, "URL Map/Value Error", error);
+						else
+							alert("Error: QueryTask failed for map=" + queryObj.map + " " + error.message, "URL Map/Value Error", error);
+					});
+				});
+			}
+		}
+	}			
 				
 				// Load listener function for when the first or base layer has been successfully added
 				view.when(() => {
@@ -2197,6 +2382,8 @@ else*/
 					//view.ui.add(locateBtn, {
 					//	position: "top-left"
 					//});
+
+					zoomToQueryParams();
 				});
 			});
 		}
@@ -2417,228 +2604,7 @@ else*/
 						hideLoading();
 					
 					
-						// Zoom to extent on startup if specified on url
-						if (queryObj.extent && queryObj.extent != "") {
-							var extArr = [];
-							if (Object.prototype.toString.call(queryObj.extent) === '[object Array]')
-								extArr = queryObj.extent[0].split(",");
-							else
-								extArr = queryObj.extent.split(",");
-							var prj;
-							if (queryObj.prj && queryObj.prj != ""){
-								prj = queryObj.prj;
-							}
-							else {
-								// check for lat long
-								if (extArr[0] < 0 && extArr[0] > -200) {
-									prj = 4326;
-								} else
-									prj = 26913;
-							}
-							ext = new Extent({
-									"xmin": parseFloat(extArr[0]),
-									"ymin": parseFloat(extArr[1]),
-									"xmax": parseFloat(extArr[2]),
-									"ymax": parseFloat(extArr[3]),
-									"spatialReference": {
-										"wkid": parseInt(prj)
-									}
-								});
-							var params = new ProjectParameters();
-							params.geometries = [ext];
-							params.outSR = new SpatialReference(wkid);
-							GeometryService.project(geometryService,params, function (newExt) {
-								initExtent = newExt[0];
-								view.extent = initExtent;
-							}, function (error) {
-								alert("There was a problem converting the extent read from the URL to Web Mercator projection. extent=" + extArr[0], ", " + extArr[1] + ", " + extArr[2] + ", " + extArr[3] + "  prj=" + prj + "  " + error.message, "URL Extent Error", error);
-							});
-						// Use initextent read from config.xml file
-						} else {
-							initExtent = new Extent({
-									"xmin": parseFloat(ext[0]),
-									"ymin": parseFloat(ext[1]),
-									"xmax": parseFloat(ext[2]),
-									"ymax": parseFloat(ext[3]),
-									"spatialReference": {
-										"wkid": wkid
-									}
-								});
-							view.extent = initExtent;
-						}
 						
-						// Zoom to a place on startup
-						if (queryObj.place && queryObj.place != "") {
-							var place = queryObj.place.replace("%20", " ");
-							if (queryObj.prj && queryObj.prj != "")
-								settings = {
-									XYProjection: queryObj.prj
-								};
-							gotoLocation(place, true);
-						}
-						
-						// Zoom to a keyword and value on startup
-						if (queryObj.keyword && queryObj.keyword != "") {
-							if (!queryObj.value || queryObj.value == "")
-								alert("When &keyword is used on the URL, there must be a &value also.", "URL Keyword/Value Error");
-							else {
-								require(["esri/request", "esri/rest/query", "esri/rest/support/Query"], function (esriRequest, query, Query) {
-									var urlFile = app + "/url.xml?v=" + ndisVer;
-									var xmlurl = createXMLhttpRequest();
-									xmlurl.onreadystatechange = function () {
-										if (xmlurl.readyState == 4 && xmlurl.status === 200) {
-											var xmlDoc = createXMLdoc(xmlurl);
-											var layer = xmlDoc.getElementsByTagName("layer");
-											for (var i = 0; i < layer.length; i++) {
-												if (!layer[i].getElementsByTagName("keyword")[0] || !layer[i].getElementsByTagName("keyword")[0].firstChild)
-													alert("Missing tag keyword or blank, in " + app + "/url.xml file.", "Data Error");
-												if (queryObj.keyword == layer[i].getElementsByTagName("keyword")[0].firstChild.nodeValue)
-													break;
-											}
-											if (i == layer.length)
-												alert("Keyword [" + queryObj.keyword + "] is not defined in " + app + "/url.xml file.", "Data Error");
-											else {
-												if (!layer[i].getElementsByTagName("url")[0] || !layer[i].getElementsByTagName("url")[0].firstChild)
-													alert("Missing tag url or blank, in " + app + "/url.xml file for keyword: " + queryObj.keyword + ".", "Data Error");
-												if (!layer[i].getElementsByTagName("expression")[0] || !layer[i].getElementsByTagName("expression")[0].firstChild)
-													alert("Missing tag expression, in " + app + "/url.xml file for keyword: " + queryObj.keyword, "Data Error");
-												else {
-													var expr = layer[i].getElementsByTagName("expression")[0].firstChild.nodeValue.replace("[value]", queryObj.value);
-													
-													const params = new Query({
-														returnGeometry: true,
-														where: expr
-													});
-          											query.executeQueryJSON(layer[i].getElementsByTagName("url")[0].firstChild.nodeValue, params).then((response) =>  {
-														if (response.features.length == 0) {
-															gotoLocation(queryObj.value, true);
-														} else {
-															// Zoom to point or polygon
-															require(["esri/geometry/Point", "esri/Graphic"],
-															 function (Point, Graphic) {
-																var pt;
-																if (response.geometryType === "point") {
-																	var level = 8; // 4-21-17 Updated lods, used to be 14
-																	if (layer[i].getElementsByTagName("mapscale")[0] && layer[i].getElementsByTagName("mapscale")[0].firstChild)
-																		level = parseInt(layer[i].getElementsByTagName("mapscale")[0].firstChild.nodeValue);
-																	// 4-21-17 Updated lods, used to be 19
-																	if (level > 11) {
-																		level = 8; // 4-21-17 Updated lods, used to be 14
-																	}
-																	pt = new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference);
-																	// zoom to point
-																	view.goTo({
-																		center: pt,
-																		zoom: level
-																	});
-																	// add point symbol
-																	addTempPoint(pt);
-																	if (queryObj.label && queryObj.label != "") {
-																		// add label view.graphics
-																		addTempLabel(pt,queryObj.label,12);
-																	}
-																} else if (response.geometryType === "polygon") {
-																	var union=false;
-																	if (layer[i].getElementsByTagName("union")[0] && layer[i].getElementsByTagName("union")[0].firstChild &&
-																		layer[i].getElementsByTagName("union")[0].firstChild.nodeValue.toLowerCase() === "true"){
-																			union=true;
-																	}
-																	// zoom to extent of first feature
-																	if (!union){
-																		pt = response.features[0].geometry.centroid;
-																		view.extent = response.features[0].geometry.extent;
-																		addTempPolygon(response.features[0]);
-																	}
-
-																	// zoom to extent of all features 1-14-19
-																	else{
-																		var newExtent = response.features[0].geometry.extent;//new Extent(response.features[0].geometry.getExtent());
-																		for (var j = 0; j < response.features.length; j++) { 
-																			var thisExtent = response.features[j].geometry.extent;
-																			// making a union of extent or previous feature and current feature.  
-																			newExtent = newExtent.union(thisExtent);
-																			// highlight polygons
-																			addTempPolygon(response.features[j]);
-																		}
-																		view.extent = newExtent;
-																		pt = newExtent.center;
-																	}	
-
-																	if (queryObj.label && queryObj.label != "") {
-																		// add label to view.graphics
-																		addTempLabel(pt,queryObj.label,12);
-																	}
-																} else {
-																	// not a point or polygon
-																	view.extent = response.features[0].geometry.extent;
-																	//map.setExtent(response.features[0].geometry.getExtent(), true);
-																	poly[0] = new Graphic({
-																		geometry: view.extent,
-																		symbol: polySymbol
-																	});
-																	view.graphics.add(poly[0]);
-																	setTimeout(function(){
-																		view.graphics.remove(poly[0]);
-																	},10000);
-																	pt = view.extent.center;
-																	if (queryObj.label && queryObj.label != "") {
-																		addTempLabel(pt,queryObj.label,12);
-																	}
-																}
-															});
-														}
-													}).catch ( (error) => {
-														if (error.responseText) {
-															alert("Error: Failed to zoom to keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message + error.responseText, "URL Keyword/Value Error", error);
-														} else {
-															alert("Error: Failed to zoom to keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message, "URL Keyword/Value Error", error);
-														}
-													});
-												}
-											}
-										} else if (xmlurl.status === 404)
-											alert("Missing url.xml file in " + app + " directory.", "Data Error");
-										else if (xmlurl.readyState === 4 && xmlurl.status === 500)
-											alert("Error: had trouble reading " + app + "/url.xml file in readConfig.js.", "Data Error");
-									};
-									xmlurl.open("GET", urlFile, true);
-									xmlurl.send(null);
-								});
-							}
-						}
-						if (queryObj.map && queryObj.map != "") {
-							if (!queryObj.value || queryObj.value == "" || !queryObj.field || queryObj.field == "")
-								alert("When &map is used on the URL, there must also be an &field and &value.", "URL Map/Value Error");
-							else {
-								require(["esri/request", "esri/tasks/QueryTask", "esri/tasks/query"], function (esriRequest, QueryTask, Query) {
-									var queryTask = new QueryTask(queryObj.map);
-									var query = new Query();
-									if (Number(queryObj.value))
-										query.where = queryObj.field + "=" + queryObj.value;
-									else
-										query.where = "UPPER(" + queryObj.field + ") LIKE UPPER('" + queryObj.value + "')";
-									query.returnGeometry = true;
-									queryTask.execute(query, function (response) {
-										// Zoom to point or polygon
-										require(["esri/geometry/Point", "esri/graphicsUtils"], function (Point, graphicsUtils) {
-											if (response.features.length == 0)
-												alert("Cannot zoom to " + queryObj.value + ". The feature was not found in " + queryObj.map + " for field " + queryObj.field, "URL Map/Value Error");
-											else {
-												if (response.geometryType == "esriGeometryPoint")
-													map.centerAndZoom(new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference), 8);
-												else
-													map.setExtent(response.features[0].geometry.getExtent(), true);
-											}
-										});
-									}, function (error) {
-										if (error.responseText)
-											alert("Error: QueryTask failed for map=" + queryObj.map + " " + error.message + error.responseText, "URL Map/Value Error", error);
-										else
-											alert("Error: QueryTask failed for map=" + queryObj.map + " " + error.message, "URL Map/Value Error", error);
-									});
-								});
-							}
-						}
 					
 				} 
 				// if missing file

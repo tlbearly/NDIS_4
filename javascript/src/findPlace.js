@@ -1,9 +1,9 @@
-var findCombo;
-var findStore;
-var emptyStore;
+//var findCombo;
+//var findStore;
+//var emptyStore;
 var lodLevel = 6; // 4-19-17 Updated lods. Used to be 9.
-var findObj = null;
-function findPlaceInit() {
+//var findObj = null;
+/*function findPlaceInit() {
 	require(["dojo/store/Memory", "dijit/form/ComboBox",
 	"dojo/dom","dijit/registry"], 
 	function (Memory, ComboBox, dom, registry) {
@@ -33,12 +33,6 @@ function findPlaceInit() {
 					registry.byId("findCombo").closeDropDown(true);
 				},
 				onChange : gotoLocation
-				/*style : {
-					width : "350px",
-					borderRadius : "5px 0 0 5px",
-					borderStyle : "inset",
-					padding : "5px 45px 5px 25px"
-				}*/
 			}, "findCombo");
 		findCombo.startup();
 		var findBtn = document.createElement("img");
@@ -46,13 +40,6 @@ function findPlaceInit() {
 		findBtn.setAttribute("onClick", "gotoLocation()");
 		findBtn.setAttribute("style", "width:20px;height:20px;position:absolute;top:6px;right:395px");
 		document.getElementById("findBtnSpan").appendChild(findBtn);
-		/* X button is calling onchange event for findCombo!!! So not working.
-		var xBtn = document.getElementById("findX");
-		xBtn.onclick = function(){
-			registry.byId("findCombo").set("value", "");
-			registry.byId("findCombo").set("store", emptyStore);
-			registry.byId("findCombo").closeDropDown(true);
-		};*/
 		function titleCase(str) {
 			 // Capitalize words at the beginning and after a space or /
 			 words = str.toLowerCase().split(' ');
@@ -132,7 +119,8 @@ function findPlaceInit() {
 			XMLHttpRequest1.send();
 		}
 	});
-}
+}*/
+// moved to utilFuncs.js
 function handleCoordinate(label) {
 	require(["esri/geometry/SpatialReference", "esri/geometry/Point", "esri/Graphic", "dojo/domReady!"], function (SpatialReference, Point, Graphic) {
 		var point;
@@ -199,10 +187,16 @@ function handleCoordinate(label) {
 			point = new Point(pointY, pointX, inSR);
 			coordGraphic = new Graphic(point);
 			outSR = new SpatialReference(wkid);
-			geometryService.project([coordGraphic.geometry], outSR, function (feature) {
-				_displayXYPoint(feature[0], label);
-				_clearAndZoom(feature[0], lodLevel);
-			}, function (err) {
+			geometryService.project([coordGraphic.geometry], outSR).then( (feature) => {
+				addTempPoint(feature[0]);
+				addTempLabel(feature[0],label);
+				view.goTo({
+					target: feature[0],
+					zoom: lodLevel
+				});
+				//_displayXYPoint(feature[0], label);
+				//_clearAndZoom(feature[0], lodLevel);
+			}).catch ( (err) => {
 				alert("Error projecting point. " + err.message, "Warning");
 			});
 			return;
@@ -215,10 +209,16 @@ function handleCoordinate(label) {
 			point = new Point(pointX, pointY, inSR);
 			coordGraphic = new Graphic(point);
 			outSR = new SpatialReference(wkid);
-			geometryService.project([coordGraphic.geometry], outSR, function (feature) {
-				_displayXYPoint(feature[0], label);
-				_clearAndZoom(feature[0], lodLevel);
-			}, function (err) {
+			geometryService.project([coordGraphic.geometry], outSR).then ( (feature) => {
+				addTempPoint(feature[0]);
+				addTempLabel(feature[0],label);
+				view.goTo({
+					target: feature[0],
+					zoom: lodLevel
+				});
+				//_displayXYPoint(feature[0], label);
+				//_clearAndZoom(feature[0], lodLevel);
+			}).catch( (err)=> {
 				alert("Error projecting point. " + err.message, "Warning");
 			});
 			return;
@@ -230,10 +230,16 @@ function handleCoordinate(label) {
 			point = new Point(pointX, pointY, inSR);
 			coordGraphic = new Graphic(point);
 			outSR = new SpatialReference(wkid);
-			geometryService.project([coordGraphic.geometry], outSR, function (feature) {
-				_displayXYPoint(feature[0], label);
-				_clearAndZoom(feature[0], lodLevel);
-			}, function (err) {
+			geometryService.project([coordGraphic.geometry], outSR).then ( (feature) => {
+				addTempPoint(feature[0]);
+				addTempLabel(feature[0],label);
+				view.goTo({
+					target: feature[0],
+					zoom: lodLevel
+				});
+				//_displayXYPoint(feature[0], label);
+				//_clearAndZoom(feature[0], lodLevel);
+			}).catch ( (err) => {
 				alert("Error projecting point. " + err.message, "Warning");
 			});
 			return;
@@ -245,7 +251,7 @@ function handleCoordinate(label) {
 	});
 }
 
-function zoomToFindLocation(label, x, y) {
+/*function zoomToFindLocation(label, x, y) {
 	var point;
 	require(["esri/geometry/Point"], function (Point) {
 		point = new Point(x, y, map.spatialReference);
@@ -357,11 +363,15 @@ function zoomToFindLocation(label, x, y) {
 					// Sometimes it is found in GNIS but not the boundary mapservice. If not found zoom to the GNIS point.
 					if (results.features.length == 0) {
 						//alert("Boundary for "+label+" not found. Zooming to point.","Note");
-						_clearAndZoom(point, lodLevel);
+						view.goTo({
+							target: point,
+							zoom: lodLevel
+						});
+						//_clearAndZoom(point, lodLevel);
 						_displayXYPoint(point, label);
 					}
 					else {
-						_clearAndZoom(null,-1); // just clear, do not zoom in
+						//_clearAndZoom(null,-1); // just clear, do not zoom in
 						_highlightPolygonResults(results, label, point);
 					}
 				}, function(error){
@@ -374,13 +384,19 @@ function zoomToFindLocation(label, x, y) {
 		}
 		// Not a boundary
 		else {
-			_clearAndZoom(point, lodLevel);
-			_displayXYPoint(point, label);
+			addTempPoint(point);
+			addTempLabel(point, label);
+			view.goTo({
+				target: point,
+				zoom: lodLevel
+			});
+			//_clearAndZoom(point, lodLevel);
+			//_displayXYPoint(point, label);
 		}
 	});
-}
+}*/
 
-function loadFindBoundaries(label, x, y){
+/*function loadFindBoundaries(label, x, y){
 	// read url.xml to get boundaries for polygons to highlight, create findObj.
 	try {
 		var xmlhttp = createXMLhttpRequest();
@@ -464,9 +480,9 @@ function loadFindBoundaries(label, x, y){
 	catch(e){
 		alert("Problem in findPlace.js/loadFindBoundaries, error message: "+e.message,"Code Error",e);
 	}
-}
+}*/
 
-function _clearAndZoom(point, lodLevel) {
+/*function _clearAndZoom(point, lodLevel) {
 	try {
 		require(["dijit/registry","dijit/focus"],function(registry,focusUtil){
 			if (point) {
@@ -474,19 +490,17 @@ function _clearAndZoom(point, lodLevel) {
 					target: point,
 					zoom: lodLevel
 				}); 
-				//map.centerAndZoom(point, lod);
 			}
 			if (!registry.byId("findCombo"))
 				return;
 			registry.byId("findCombo").set("store", emptyStore);
 			registry.byId("findCombo").set("value", "");
-			//focusUtil.curNode && focusUtil.curNode.blur(); // TODO what does this do??????
 		});
 	} catch (e) {
 		alert(e.message, "findPlace.js _clearAndZoom", "Code Error", e);
 	}
-}
-function _highlightPolygonResults(results, label, point) {
+}*/
+/*function _highlightPolygonResults(results, label, point) {
 	require(["dojo/_base/Color", "esri/symbols/SimpleLineSymbol", "esri/layers/FeatureLayer", "esri/layers/GraphicsLayer", "esri/Graphic" ],
 	    function (Color, SimpleLineSymbol, FeatureLayer, GraphicsLayer, Graphic) {
 		// Sometimes it is found in GNIS but not the boundary mapservice. If not found zoom to the GNIS point.
@@ -508,19 +522,10 @@ function _highlightPolygonResults(results, label, point) {
 		};
 			
 		label=label.replace(/''/g, "'");
-		/*var searchGraphicsLayer = new GraphicsLayer();
-		var searchGraphicsLayer = new FeatureLayer();
-		searchGraphicsLayer.id = "searchgraphics" + searchGraphicsCounter;
-		searchGraphicsCount.push(searchGraphicsLayer.id);
-		searchGraphicsCounter++;*/
 
 		const borderGraphic=[];
 		// TODO add label to polygon must use feature service!!
 		for (var i = 0; i < results.features.length; i++) {
-			/*view.graphics.add(new Graphic({
-				geometry:results.features[i].geometry,
-				symbol: highlightSymbol
-			}));*/
 			borderGraphic.push(new Graphic({
 				geometry:results.features[i].geometry,
 				symbol: highlightSymbol,
@@ -528,10 +533,6 @@ function _highlightPolygonResults(results, label, point) {
 					NAME: label
 				}
 			}));
-			/*searchGraphicsLayer.add(new Graphic({
-				geometry:results.features[i].geometry,
-				symbol: highlightSymbol
-			}));*/
 		}
 		// Goto extent of polygon
 		view.goTo({
@@ -559,8 +560,10 @@ function _highlightPolygonResults(results, label, point) {
 		}, 4000);
 		hideLoading();
 	});
-}
-function _displayXYPoint(point, label) {
+}*/
+
+// use utilFuncs.js addTempPoint and addTempLabel instead
+/*function _displayXYPoint(point, label) {
 	require(["esri/symbols/PictureMarkerSymbol", "esri/Graphic", "esri/layers/GraphicsLayer"], function (PictureMarkerSymbol, Graphic, GraphicsLayer) {
 		var symbol = new PictureMarkerSymbol("assets/images/i_flag.png", 40, 40);
 		var searchGraphicsLayer = new GraphicsLayer();
@@ -574,7 +577,7 @@ function _displayXYPoint(point, label) {
 		document.getElementById("findClear").style.filter = "alpha(opacity=100)";
 		hideLoading();
 	});
-}
+}*/
 function gotoLocation() {
 	// Zoom to find a place location on startup or from find a place search box
 	var value;
@@ -594,7 +597,7 @@ function gotoLocation() {
 	if (typeof ga === "function") ga('send', 'event', "find_place", "click", "Find a Place", "1");
 	if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Find a Place'});
 	// if selected from drop down suggestion list
-	if (!calledFromURL && findCombo && findCombo.item && findCombo.item.label) {
+	/*if (!calledFromURL && findCombo && findCombo.item && findCombo.item.label) {
 		showLoading();
 		// Selected from list built below with findAddressCandidates
 		if (findCombo.item.location) {
@@ -647,10 +650,10 @@ function gotoLocation() {
 		}
 	}
 	// Clicked Search button or pressed return. Select the first match.
-	else {
+	else {*/
 		showLoading();
 		var found = false;
-		if (!calledFromURL) {
+		/*if (!calledFromURL) {
 			for (var i = 0; i < findCombo.store.data.length; i++) {
 				var label = findCombo.store.data[i].label;
 				//if (!label) label = findCombo.store.data[i].address;
@@ -702,22 +705,22 @@ function gotoLocation() {
 		}
 		
 		// Not found in drop down list
-		if (!found) {
+		if (!found) {*/
 			// strip off (<county name> County)
 			if (value.indexOf("County)") > -1)
 				value = value.substr(0, value.indexOf(" ("));
 			// In GNIS Region countains county name (e.g. Larimer), PlaceName contains just the name, Address contains name, county name (e.g. Fort Collins, Larimer)
 			var url;
-			if (!calledFromURL)
+			/*if (!calledFromURL)
 				url = myFindService + "/findAddressCandidates?f=json&outFields=Region,PlaceName&Address=" + findCombo.get('value');
-			else
+			else*/
 				url = myFindService + "/findAddressCandidates?f=json&outFields=Region,PlaceName&Address=" + value;
 			var XMLHttpRequest4 = createXMLhttpRequest();
 			XMLHttpRequest4.onreadystatechange = function () {
 				if (XMLHttpRequest4.readyState == 4 && XMLHttpRequest4.status == 200) {
 					try {
 						var dataArr = JSON.parse(XMLHttpRequest4.response).candidates;
-						if (!calledFromURL && dataArr.length > 1) {
+						/*if (!calledFromURL && dataArr.length > 1) {
 							dataArr.sort(sortArrayOfObj("address"));
 							var indexArr = []; // array of places that are not National Forest/County that need to be removed if value was National Forest or County.
 							dataArr.forEach(function (item, index, obj) {
@@ -752,9 +755,10 @@ function gotoLocation() {
 								findCombo.loadAndOpenDropDown();
 								hideLoading();
 							});
-						}
+						}*/
 						// Only one match
-						else if (dataArr.length > 0) {
+						//else
+						if (dataArr.length > 0) {
 							// remove ", county name"
 							var arr = dataArr[0].address.split(",");
 							arr.splice(arr.length-1,1);
@@ -784,6 +788,6 @@ function gotoLocation() {
 			}
 			XMLHttpRequest4.open("GET", url, true);
 			XMLHttpRequest4.send();
-		}
-	}
+		//}
+	//}
 }
