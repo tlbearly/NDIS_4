@@ -22,7 +22,7 @@
             { name: "dojox", location: location.pathname.replace(/\/[^/]+$/, '') +"/Dojo/dojo-release-1.17.3/dojox" },
             //{ name: "dgrid1", location: "/../../3.42/dgrid1"},
             //{ name: "dstore", location: "../../3.42/dstore"},
-            { name:"javascript", location: location.pathname.replace(/\/[^/]+$/, '') +"/javascript"}
+            { name:"javascript", location: location.pathname.replace(/\/[^/]+$/, '') +"/javascript/src"}  /* TODO for live remove /src */
           ]
       };
     </script>
@@ -52,7 +52,7 @@
     <!-- For Debugging -->
     <script>
       var jsVer = Date.now();
-      var jsVer = "l";
+      var jsVer = "1s";
       var path = "javascript/src";
       document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '" async><\/script>');
@@ -68,7 +68,7 @@
       //document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
         document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '" async><\/script>');
         //document.write('<script type="text/javascript" src="' + path + '/basemapGallery.js?v=' + jsVer + '"><\/script>');
-      document.write('<script type="text/javascript" src="' + path + '/myBasemapGallery.js?v=' + jsVer + '"><\/script>');
+      // moved to readConfig.js document.write('<script type="text/javascript" type="module" src="' + path + '/myBasemapGallery.js?v=' + jsVer + '"><\/script>');
       //document.write('<script type="text/javascript" src="' + path + '/resourceReport.js?v=' + jsVer + '"><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/search.js?v=' + jsVer + '"><\/script>');
     </script>

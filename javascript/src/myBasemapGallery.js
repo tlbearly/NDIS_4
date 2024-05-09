@@ -1,6 +1,6 @@
 //
 // Basemaps Gallery
-//          
+//        Moved to readConfig.js because could not load on mobile!!!!!!! 
 class My_BasemapGallery {
 
     constructor(){
