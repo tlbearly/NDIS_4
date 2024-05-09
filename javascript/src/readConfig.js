@@ -15,7 +15,6 @@ var layerObj; // holds layer id, visiblelayers, visible when read from url &laye
 function lookupAddress() {
 	require(["dojo/dom"], function(dom){
 		// Google Analytics count how many times Address is clicked on
-		if (typeof ga === "function")ga('send', 'event', "address", "click", "Address", "1");	
 		if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Address'});
 
 		var addr = dom.byId("streetTxt").value;
@@ -173,6 +172,7 @@ function readConfig() {
 		openTOCgroups=[];
 		var tries={}; // number of times we have tried to load each map layer
 		var loadedFromCfg; // true when the layer has loaded and set the visiblelayers when setting layers from URL
+		var labelFromURL = false;
 
 		// adjust title for mobile
         if (screen.width < 768){
@@ -1015,7 +1015,7 @@ else*/
 					widgetStr += label;
 					if (label == "Map Layers & Legend") {
 						var tocPane = new TitlePane({
-							title: "<img id='tocIcon' role='presentation' alt='map layers icon' src='assets/images/i_layers.png'/> Map Layers & Legend",
+							title: "<img id='tocIcon' role='presentation' alt='map layers icon' src='assets/images/i_layers.png'/> Map Layers",
 							open: preload,
 							content: document.getElementById("tocContent")
 							 //"<div id='tocContent' style='position:relative'><img id='tocHelpBtn' role='button' alt='map layers help' class='help_icon help_icon_dialog' src='assets/images/i_help.png'></div>"
@@ -1031,13 +1031,13 @@ else*/
 						});
 						
 						// Basemaps
-						document.getElementById("basemapContent").appendChild(new My_BasemapGallery());
+						/*document.getElementById("basemapContent").appendChild(new My_BasemapGallery());
 		
 						// Legend
 						let legendWidget = new Legend({
 							view: view,
 							container: document.getElementById("legendContent")
-						});
+						});*/
 					
 						layerList.when(() => {
 							// hide toc items
@@ -1320,12 +1320,11 @@ else*/
 				}
 				dom.byId("links").innerHTML = linkStr;
 				// Add Google Analytics tracking
-				if (document.getElementById("licenseLink") && typeof ga === "function"){
+				if (document.getElementById("licenseLink")){
 					document.getElementById("licenseLink").addEventListener("click",function(){
 						// open CPW buy license page and count how many times it is clicked on
 						// Google Analytics count how many times Buy License is clicked on
 						window.open(licenseURL, "_new");
-						if(typeof ga === "function")ga("send","event","buy_license","click","Buy License","1");
 						if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Buy License'});
 
 					});
@@ -1423,11 +1422,6 @@ else*/
 			});
 			var forestFL = new FeatureLayer({
 				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5"
-				/*popupTemplate: {
-					// autocasts as new PopupTemplate()
-					title: "{MapName}",
-					overwriteActions: true
-					}*/
 			});
 			var wildernessFL = new FeatureLayer({
 				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/4"
@@ -1437,10 +1431,11 @@ else*/
 					overwriteActions: true
 					}*/
 			});
+			
 			searchWidget = new Search({
 				view: view,
 				includeDefaultSources:false, // include ESRI geocode service "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer"
-				searchAllEnabled:false, // if true has drop down list of sources includeing ESRI's
+				searchAllEnabled:true, // if true has drop down list of sources includeing ESRI's
 				popupEnabled:false,
 				locationEnabled:false, // Adds option to go to current location
 				resultGraphicEnabled:false, // Disable ESRI's graphic symbol, we will handle this below
@@ -1448,6 +1443,7 @@ else*/
 				maxSuggestions: 50,
 				suggestionsEnabled: true,
 				minSuggestCharacters: 2,
+				allPlaceholder: "Search",
 				sources: [
 					{
 						url: myFindService, //https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer 
@@ -1462,7 +1458,7 @@ else*/
 						displayField: "COUNTYNAME",
 						exactMatch: false,
 						outFields: ["COUNTYNAME"],
-						name: "Counties",
+						name: "County Boundaries (Douglas)",
 						placeholder: "Search Counties"
 					},
 					{
@@ -1472,7 +1468,7 @@ else*/
 						exactMatch: false,
 						maxSuggestions: 1000,
 						outFields: ["PropName"],
-						name: "CPW Properties (STL, SWA, SFU, or WWA)",
+						name: "CPW Properties Boundaries (STL, SWA, SFU, or WWA)",
 						placeholder: "Search CPW Properties"
 					},
 					{
@@ -1484,7 +1480,7 @@ else*/
 						maxSuggestions: 100,
 						minSuggestCharacters: 1,
 						outFields: ["GMUID"],
-						name: "GMUs",
+						name: "GMU Boundaries (38)",
 						placeholder: "Search GMUs"
 					},
 					{
@@ -1493,7 +1489,7 @@ else*/
 						displayField: "MapName",
 						exactMatch: false,
 						outFields: ["MapName"],
-						name: "Forest or Grassland",
+						name: "Forest or Grassland Boundaries",
 						placeholder: "Search Forests/Grasslands"
 					},
 					{
@@ -1502,14 +1498,19 @@ else*/
 						displayField: "NAME",
 						exactMatch: false,
 						outFields: ["NAME"],
-						name: "Wilderness",
+						name: "Wilderness Boundaries",
 						placeholder: "Search Wildernesses"
+					},
+					{
+						url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/",
+						singleLineFieldName: "SingleLine",
+						outFields: ["*"],
+						name: "Address",
+						placeholder: "Search Address"
 					}
 				]
 				});
-				searchWidget.on("select-result", function(event){
-				//alert("clicked");
-				});
+				
 				searchWidget.goToOverride = function(view, goToParams) {
 				// Don't zoom in, we will handle it below
 				return null;
@@ -1517,27 +1518,66 @@ else*/
 				searchWidget.on("search-complete", function(event){
 				// The results are stored in the event Object[]
 				// Highlight and label the result for 10 seconds
-				const obj = event.results[0];
+
+				// Check if no results were found for all layers
+				var noResults = true;
+				for (var i=0; i<event.results.length; i++){
+					if(event.results[i].results.length != 0){
+						noResults = false;
+						break;
+					}
+				}
+				if (noResults){
+					alert(event.searchTerm+" was not found. Please try your search again.","Note");
+					return;
+				}
+				// Find which source layer matches name exactly or up to the comma. eg. Fort Collins, Larimer
+				var index = 0;
+				for (var i=0; i<event.results.length; i++){
+					if (event.results[i].results.length == 0) continue;
+					var name = event.results[i].results[0].name.toLowerCase();
+					if (event.searchTerm.toLowerCase() === name.substring(0,name.indexOf(",")) ||
+						event.searchTerm.toLowerCase() === name) {
+						index = i;
+						break;
+					}
+				}
+				const obj = event.results[index];
 				var newExtent = obj.results[0].extent;
 				var pt;
-				for(var i=0; i<obj.results.length; i++){
+				for(i=0; i<obj.results.length; i++){
 					if (obj.results[i].feature.geometry.type === "point"){
 						require(["esri/geometry/Point"],function(Point){
 							pt = new Point(obj.results[i].feature.geometry.x, obj.results[i].feature.geometry.y, obj.results[i].feature.geometry.spatialReference);
 							addTempPoint(pt);
-							addTempLabel(pt, obj.results[i].name);
+							if (labelFromURL){
+								addTempLabel(pt, queryObj.label);
+								labelFromURL = false;
+							}
+							else addTempLabel(pt, obj.results[i].name);
 						});
 					}
 					else if (obj.results[i].feature.geometry.type === "polygon"){
 						addTempPolygon(obj.results[i].feature);
-						if (this.activeSource.layer.title.indexOf("GMU")>-1)
-							addTempLabel(obj.results[i].feature, "GMU "+obj.results[i].name); // label each polygon
+						if (labelFromURL){
+							addTempLabel(obj.results[i].feature, queryObj.label);
+							labelFromURL = false;
+						}
+						else if (obj.results[i].feature.sourceLayer.title.indexOf("GMU")>-1)
+							addTempLabel(obj.results[i].feature, "GMU "+obj.results[i].name); // label each GMU polygon
+						else if (obj.results[i].feature.sourceLayer.title.indexOf("County")>-1){
+							var label = obj.results[i].name.toLowerCase();
+							var ch = label.substring(0,1).toUpperCase();
+							label = ch+label.substring(1)+" County";
+							addTempLabel(obj.results[i].feature, label); // label each county polygon
+						}
 						else addTempLabel(obj.results[i].feature, obj.results[i].name); // label each polygon
 						var thisExtent = obj.results[i].feature.geometry.extent;
 						// making a union of the polygon extents  
 						newExtent = newExtent.union(thisExtent);
 					}
 				}
+				this.clear();
 				if (obj.results[0].feature.geometry.type === "point")
 					view.goTo({
 						center: pt,
@@ -1564,7 +1604,7 @@ else*/
 			});
 
 			const overviewDiv = document.getElementById("overviewDiv");
-			
+			const overviewContainer = document.getElementById("overviewContainer");
 			overviewMap = new MapView({
 				container: "overviewDiv",
 				map: ovMap,
@@ -1579,15 +1619,13 @@ else*/
 			});
 			const ovExpand = new Expand({
 				view: view,
-				content: overviewDiv,
+				content: overviewContainer,
 				id: "overviewBtn",
 				expandTooltip: "Overview Map",
 				expandIconClass: "esri-icon-overview-arrow-bottom-right",
-				collapseIconClass: "esri-collapse__icon esri-expand__icon--expanded esri-icon-collapse",
 				label: "Show Overview"
 				});
 			view.ui.add(ovExpand, "top-left");
-			overviewMap.on("click",function(){alert('ov');});
 
 			// set up initial extent on overview map
 			extentDebouncer = promiseUtils.debounce(() => {
@@ -1616,7 +1654,18 @@ else*/
             }
           });
           overviewMap.graphics.add(extentGraphic);
-          
+		  document.getElementById("OVtitle").style.display = "block";
+         /* overviewDiv.style.border="1px solid gray";
+		  overviewDiv.style.display="flex";
+		  overviewDiv.style.flexDirection="column";
+		  var title = document.createElement("h3");
+		  title.className = "dialogTitle";
+		  title.style.margin = 0;
+		  title.style.padding = "10px";
+		  title.innerHTML = "Overview Map";
+		  overviewDiv.insertBefore(title,overviewDiv.firstChild);*/
+		  
+
          // Disable all zoom gestures on the overview map
           overviewMap.popup.dockEnabled = true;
           // Removes the zoom action on the popup
@@ -1654,7 +1703,7 @@ else*/
             if (event.action === "start") {
                 // if this is the starting of the drag, do a hitTest
                 overviewMap.hitTest(event).then(resp => {
-                    if (resp.results[0].graphic && resp.results[0].graphic.geometry && resp.results[0].graphic.geometry.type === 'extent'){
+                    if (resp.results.length > 0 && resp.results[0].graphic && resp.results[0].graphic.geometry && resp.results[0].graphic.geometry.type === 'extent'){
                       event.stopPropagation();
                       dragging=true;
                       console.log("start dragging"); 
@@ -1764,7 +1813,7 @@ else*/
             }
           );
 
-		  overviewDiv.style.border="1px solid gray";
+		  //overviewDiv.style.border="1px solid gray";
         }
 
 		
@@ -2050,7 +2099,6 @@ else*/
 
 */
 
-
 	function zoomToQueryParams(){
 		// Zoom to extent on startup if specified on url
 		if (queryObj.extent && queryObj.extent != "") {
@@ -2116,8 +2164,12 @@ else*/
 			if (digits.indexOf(place.substring(0, 1)) > -1 && place.indexOf(",") > -1) {
 				handleCoordinate(place);
 			}
-			else
+			else{
+				if (place.toLowerCase().indexOf("gmu ") == 0) place = place.substring(4);
+				if (place.toLowerCase().indexOf(" county") > -1) place = place.substring(0,place.length-7);
+				if (queryObj.label)labelFromURL = true;
 				searchWidget.search(place);
+			}
 		}
 		
 		// Zoom to a keyword and value on startup
@@ -2338,17 +2390,53 @@ else*/
 						expandIconClass: "esri-icon-legend"
 					});
 					view.ui.add(legendExpand, "top-right");
+					// add a title bar
+					legendExpand.when(() =>{
+						var title = document.createElement("h3");
+						title.className = "dialogTitle";
+						title.style.margin = 0;
+						title.style.padding = "10px";
+						title.style.position = "sticky";
+						title.style.top = "0px";
+						title.style.position = "-webkit-sticky";
+						title.style.zIndex = 1;
+						title.innerHTML = "Legend";
+						const legendWidget = document.getElementsByClassName("esri-legend")[0];
+						legendWidget.insertBefore(title,legendWidget.firstChild);
+					});
+					
 
 
 					// Add Basemap Gallery
-					let basemap = new My_BasemapGallery();
-					const basemapExpand = new Expand({
-						view,
-						content: basemap,
-						expandTooltip: "Basemap",
-						expandIconClass: "esri-icon-basemap"
-					});
-					view.ui.add(basemapExpand, "top-right");
+					try{
+						alert("creating basemaps");
+						let basemap = new My_BasemapGallery();
+						
+						alert("created basemaps");
+						const basemapExpand = new Expand({
+							view,
+							content: basemap,
+							expandTooltip: "Basemap",
+							expandIconClass: "esri-icon-basemap"
+						});
+						view.ui.add(basemapExpand, "top-right");
+						// add a title bar
+						basemapExpand.when(() =>{
+							var title = document.createElement("h3");
+							title.className = "dialogTitle";
+							title.style.margin = 0;
+							title.style.padding = "10px";
+							title.style.position = "sticky";
+							title.style.top = "0px";
+							title.style.position = "-webkit-sticky";
+							title.style.zIndex = 1;
+							title.innerHTML = "Basemaps";
+							const basemapWidget = document.getElementById("bmGallery");
+							basemapWidget.insertBefore(title,basemapWidget.firstChild);
+						});
+					}catch (e){
+						alert("Problem creating basemaps. Error message: "+e.getMessage, "Error");
+					}
 
 
 					// Add Scalebar
@@ -2360,10 +2448,7 @@ else*/
 					});
 					
 					view.ui.add(scalebar, "bottom-left");
-					//view.ui.add(scalebar, {
-					//	position: "bottom-left"
-					//});
-
+					
 					// Home
 					const homeBtn = new Home({
 						view: view,

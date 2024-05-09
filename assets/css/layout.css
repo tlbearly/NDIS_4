@@ -1,4 +1,5 @@
 ﻿/* CSS file # used for id=<name> . used for class=<name> :hover must not have a space */
+html, body {margin: 0; height: 100%; overflow: hidden}
 body{			
 	font-family:Helvetica, Arial, sans-serif;
 	font-size: small;
@@ -6,14 +7,14 @@ body{
 	display:flex;
 	flex-flow:column;
 	width:calc(100vw - 2px);
-	height:calc(100vh - 2px);;
+	height:calc(100vh - 2px);
 	border:1px inset aliceblue;
 	padding: 0;
 	margin: 0;
 	box-sizing: border-box;
-	overflow-x: hidden !important;/* try to stop scrolling to browser url on android */
-    overflow-y: hidden !important;/* "" */
-	position: relative;/* "" */
+	/*overflow-x: hidden !important;/* try to stop scrolling to browser url on android */
+    /*overflow-y: hidden !important;/* "" */
+	position: relative;
 }
 
 #header {

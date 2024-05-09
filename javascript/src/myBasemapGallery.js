@@ -4,8 +4,11 @@
 class My_BasemapGallery {
 
     constructor(){
+        alert("call setupLayers");
+        try{
         // create basemap services
         this.setupLayers();
+        alert("after setupLayers");
         this.menu =  document.createElement("ul");
         this.bmGallery = document.createElement("div");
         this.bmGallery.style.backgroundColor = "#fff";
@@ -16,6 +19,7 @@ class My_BasemapGallery {
         this.bmGallery.id = "bmGallery";
 
         // add basemap layers
+        alert("before add basemap");
         this.add("streets","Streets","assets/images/streets_thumb.jpg",true);
         this.add("aerial","Aerial Photo","assets/images/aerial_thumb.jpg",false);
         this.add("topo","USGS Scanned Topo","assets/images/USA_topo.png",false);
@@ -23,6 +27,9 @@ class My_BasemapGallery {
         this.add("imagery_topo","Aerial Photo with USGS Contours","assets/images/aerial_topo.png",false);
         this.add("topo2","ESRI Digital Topo","assets/images/topo2_thumb.jpg",false);
         return this.bmGallery;
+        }catch (e) {
+            alert("Error in myBasemapGallery. "+e.getMessage, "Error");
+        }
     }
 
     setupLayers(){
@@ -33,7 +40,7 @@ class My_BasemapGallery {
         "esri/layers/FeatureLayer"
         ], (Basemap,VectorTileLayer,MapImageLayer,FeatureLayer)  => {
             var layer;
-
+alert("in myBasemap");
             // World Streets Vector with Hillshade
             //var layer1 = new VectorTileLayer({url:"https://tiledbasemaps.arcgis.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer"});//requires username and password
             layer = new VectorTileLayer({url:"https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"});

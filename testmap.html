@@ -52,7 +52,7 @@
     <!-- For Debugging -->
     <script>
       var jsVer = Date.now();
-      var jsVer = "ab";
+      var jsVer = "l";
       var path = "javascript/src";
       document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '" async><\/script>');
@@ -82,9 +82,8 @@
             setCookie('prj', registry.byId('settings_xy_proj').value);
         });
         // Send widget click event, but not on startup!
-        if (typeof ga === 'function' || typeof gtag === 'function'){
+        if (typeof gtag === 'function'){
             if (initSettingsXYProj){
-                if (typeof ga === 'function')ga('send', 'event', "settings_xy_proj", "click", "Settings XY Proj", "1");
                 if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Settings XY Proj'});
             }
             initSettingsXYProj=true;
@@ -380,7 +379,7 @@
           <div class="dialogContent">
                 <a id="tocHelp" target="help">Click here to view help video.</a><br/><br/> Set what maps are visible. Click on the right arrow icon to open a group of maps or to show it's legend. Click on the down arrow icon to close this group. Place
                 a check mark in the box beside the maps you would like to make visible. Note that if the group's checkbox is unchecked then no layers in this group will be visible. If the map name is greyed out, then it is not visible at this map
-                scale. To see a greyed out map zoom in or out on the main map. To view the legend check the Show Legend checkbox.<br/><br/>
+                scale. To see a greyed out map zoom in or out on the main map.<br/><br/>
                 <a id="mapDescFile" target="descriptions">Click here for map descriptions.</a>
           </div>
         </div>
@@ -531,23 +530,27 @@ with it. To shorten it uncheck some boxes below:</span><br/>
               <!--div id="tocDiv" style="overflow:auto;"></div-->
               
               <div id="tocPane" class="pane_container">
-                <div id="tocContent" style="width:100%;height:100%;;position:relative;">
+                <div id="tocContent" style="width:100%;height:100%;position:relative;">
+                  <img id='tocHelpBtn' role='button' alt='map layers help' class='help_icon help_icon_dialog' src='assets/images/i_help.png'>
+                  <div id="layersContent"></div>
+                </div> 
+              </div>
+              <!--div id="tocPane" class="pane_container">
+                <div id="tocContent" style="width:100%;height:100%;position:relative;">
                   <img id='tocHelpBtn' role='button' alt='map layers help' class='help_icon help_icon_dialog' src='assets/images/i_help.png'>
                   <div id="tocTabs" data-dojo-type="dijit/layout/TabContainer" style="width:100%" doLayout="false">
                     <div id="layers_Pane" data-dojo-type="dijit/layout/ContentPane" title="Layers" data-dojo-props="selected:true">
                       <div id="layersContent"></div>
                     </div>
-                    <!-- LEGEND -->
                     <div id="legend_Pane" data-dojo-type="dijit/layout/ContentPane" title="Legend">
                       <div id="legendContent"></div>
                     </div>
-                    <!-- BASEMAPS -->
                     <div id="basemap_Pane" data-dojo-type="dijit/layout/ContentPane" title="Basemaps">
                       <div id="basemapContent"></div>
                     </div>
                   </div>
                  </div> 
-              </div>
+              </div-->
               
               <!-- REPORT WIDGET -->
               <!-- position relative for resizeHandle to work-->
@@ -958,7 +961,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
 
         <!-- Overview -->
         <!--button id="overviewBtn" class="myBtn esri-icon-overview-arrow-bottom-left" style="right:3px;width:32px;height:32px;align-items:center;justify-content:center;display:flex;" onclick="toggleOverview()"></button-->
-        <div id="overviewDiv"><div id="extentDiv"></div></div>
+        <div id="overviewContainer"><h3 id="OVtitle" class="dialogTitle" style="padding:10px;display:none;">Overview Map</h3><div id="overviewDiv"><div id="extentDiv"></div></div></div>
         
         <!-- Map -->
         <map id="mapDiv" alt="interactive map of Colorado">
@@ -1000,35 +1003,22 @@ with it. To shorten it uncheck some boxes below:</span><br/>
           </div>
           <div id="owner" style="position: relative; display: block; text-align:center;font-size:x-small;"><a href="https://cpw.state.co.us" style="color: black; text-decoration: none;" title="Colorado Parks and Wildlife home page" target="_blank">© Colorado Parks and Wildlife</a></div>
       </footer>
-      <script>
-        /* Add Google Analytics Stats */
-        (function(i, s, o, g, r, a, m) {
-            i['GoogleAnalyticsObject'] = r;
-            i[r] = i[r] || function() {
-                (i[r].q = i[r].q || []).push(arguments)
-            }, i[r].l = 1 * new Date();
-            a = s.createElement(o),
-                m = s.getElementsByTagName(o)[0];
-            a.async = 1;
-            a.src = g;
-            m.parentNode.insertBefore(a, m)
-        })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
-        /* Create the ID for tracking and pass the app name for reporting */
-        ga('create', 'UA-102394177-2', {
-            cookieFlags: 'max-age=7200;secure;samesite=none'
-        });
-        /* Custom Dimension Value to pass app name. Set this up in Google Analytics in Admin/Property/Custom Definitions/Custom Dimension/New Custom Dimension/
-            give it a variable name to use on the reports, save it, view it again and it will generate the javascript below. */
-        var theApp;
-        if (document.location.search == "") theApp = "huntingatlas";
-        else {
-            var end = document.location.search.indexOf('&');
-            if (end == -1) end = document.location.search.length;
-            theApp = document.location.search.substring(5, end).toLowerCase();
-        }
-        ga('set', 'dimension1', theApp);
-        ga('send', 'pageview');
-        /* End Google Analytics Stats */
-    </script>  
+      <!-- Add Google Analytics 4 Stats for G-KZGSCS9DMG Live Site or G-SPF3WKXMYJ Test Site ndis-2020-dev -->
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-SPF3WKXMYJ&l=GTMdataLayer"></script>
+        <script>
+            window.GTMdataLayer = window.GTMdataLayer || [];
+            function gtag() {
+                GTMdataLayer.push(arguments);
+            }
+            gtag('js', new Date());
+            // Custom Dimension Values to pass. Set this up in Google Analytics 4 in Admin/Custom Definitions. https://analytics.google.com/analytics
+            // live: G-KZGSCS9DMG, dev: G-SPF3WKXMYJ
+            gtag('config', 'G-SPF3WKXMYJ', {
+                cookie_flags: 'max-age=7200;secure;samesite=none',
+                'app_name': app.toLowerCase()
+            });
+        </script>
+        <!-- End Google Analytics 4 -->
   </body>
 </html>

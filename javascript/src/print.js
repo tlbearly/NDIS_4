@@ -147,16 +147,16 @@ function grayOutLegend(format){
 }
 
 function printMap(){
-  require([
+    require([
         "esri/rest/print", "esri/rest/support/PrintTemplate", "esri/rest/support/PrintParameters",
         "esri/Graphic", "esri/geometry/Point",
-        "esri/rest/support/LegendLayer", "esri/layers/GraphicsLayer", "dojo/dom", "dijit/registry"
+        "esri/rest/support/LegendLayer", "esri/layers/GraphicsLayer", "esri/renderers/visualVariables/support/visualVariableUtils", "esri/arcade", "dojo/dom", "dijit/registry"
       ], function(
       print, PrintTemplate, PrintParameters,
        Graphic, Point,
-      LegendLayer, GraphicsLayer, dom, registry) {
-		  // FUNCTIONS
-		  function printResult(result){
+      LegendLayer, GraphicsLayer, visualVariableUtils, arcade, dom, registry) {
+		// FUNCTIONS
+		function printResult(result){
 			// 1-22-19 tlb  Add Google Analytics stats for georef printing 
 			var i;
 			var format = dom.byId("format");
@@ -181,7 +181,7 @@ function printMap(){
 			// Add map services used
 			var mapservices = "";
 			for (i=0; i<map.layers.items.length; i++){
-				switch ( map.layers.items[i]){
+				switch ( map.layers.items[i].id){
 					case "Motor Vehicle Use Map":
 						mapservices += "M";
 						break;
@@ -211,35 +211,7 @@ function printMap(){
 					'basemap':mapBasemap
 				});
 			}	
-			if (typeof ga === "function"){
-				var label="Print "; // function
-				switch(maptype){
-					case "pdf":
-						label += "PDF";
-						break;
-					case "geopdf":
-						label += "geoPDF";
-						break;
-					case "jpg":
-						label += "JPG";
-						break;
-					case "geotiff":
-						label += "geoTIFF";
-						break;
-					case "gif":
-						label += "GIF";
-						break;
-				}
-				var custom = {
-				'metric1':value,
-				'dimension2':pagesize,
-				'dimension3':mapservices,
-				'dimension4':mapscale,
-				'dimension5':maptype
-			};
-			var action = dom.byId("size").options[dom.byId("size").selectedIndex].innerHTML;
-			ga('send', 'event', category, action, label, value, custom);
-		}
+		
 
 			console.log("printing to "+result.url);
 			if (result.url.indexOf('tif') > -1 || result.url.indexOf('svgz') > -1){
