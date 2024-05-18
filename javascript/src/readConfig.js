@@ -8,150 +8,6 @@ var addressGraphicsCount = []; // store names of graphics layers used to display
 var addressGraphicsCounter = 0;
 var layerObj; // holds layer id, visiblelayers, visible when read from url &layer=...
 
-
-// *********************
-//   Address Functions
-// *********************							
-function lookupAddress() {
-	require(["dojo/dom"], function(dom){
-		// Google Analytics count how many times Address is clicked on
-		if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Address'});
-
-		var addr = dom.byId("streetTxt").value;
-		// protect against xss attacks
-		var regexp=/([^a-zA-Z0-9 \-\',\.()])/g; 
-		if (regexp.test(addr)) {
-			addr=addr.replace(regexp,""); // clean it
-			dom.byId("streetTxt").value=addr;
-			alert("Illegal characters were removed from the address.","Warning");
-			return;
-		}
-
-		var city = dom.byId("cityTxt").value;
-		// protect against xss attacks
-		regexp=/([^a-zA-Z0-9 \-\'()])/g; 
-		if (regexp.test(city)) {
-			city=city.replace(regexp,""); // clean it
-			dom.byId("cityTxt").value = city;
-			alert("Illegal characters were removed from the city.","Warning");
-			return;
-		}
-
-		var zip = dom.byId("zipTxt").value;
-		// protect against xss attacks
-		regexp=/([^0-9 \-])/g; 
-		if (regexp.test(zip)) {
-			zip=zip.replace(regexp,""); // clean it
-			dom.byId("zipTxt").value = zip;
-			alert("Illegal characters were removed from the zip code.","Warning");
-			return;
-		}
-		
-		if (addr!=="" && city!=="") {
-			require(["esri/geometry/Extent"],function(Extent){
-				showLoading();
-				dom.byId("addressLoading").style.display = "block";
-				var address = {
-					"Address": addr,
-					"City": city,
-					"Region": "CO",
-					"Postal": zip
-				};
-				locator.outSpatialReference = map.spatialReference;
-				var ext = new Extent({
-					"xmin": -12350000,
-					"ymin": 4250000,
-					"xmax": -11150000,
-					"ymax": 5250000,
-					"spatialReference": {
-						"wkid": wkid
-					}
-				});
-				var options = {
-					address: address,
-					searchExtent: ext
-				};
-				locator.addressToLocations(options,onAddressResults,onAddressFault);
-			});
-		}else{
-			hideLoading();
-			dom.byId("addressLoading").style.display = "none";
-			alert("Street and City are required fields.","Warning");
-		}
-	});
-}
-function onAddressResults(evt) {
-	try{
-		require(["dojo/dom","esri/symbols/SimpleMarkerSymbol", "esri/symbols/PictureMarkerSymbol", "esri/graphic", "esri/symbols/Font", "esri/symbols/TextSymbol", "dojo/_base/Color"], function (dom, SimpleMarkerSymbol, PictureMarkerSymbol, Graphic, Font, TextSymbol, Color) {
-			hideLoading();
-			dom.byId("addressLoading").style.display = "none";
-			var candidate;
-			var symbol = new PictureMarkerSymbol("assets/images/i_address.png", 30, 30);
-			var geom;
-			evt.every(function (candidate) {
-				if (candidate.score > 40) {
-					var addressGraphicsLayer;
-					require(["esri/layers/GraphicsLayer", "dojo/_base/Color"], function (GraphicsLayer, Color) {
-						geom = candidate.location;
-						addressGraphicsLayer = new GraphicsLayer();
-						addressGraphicsLayer.id = "addressgraphics" + addressGraphicsCounter;
-						addressGraphicsCount.push(addressGraphicsLayer.id);
-						addressGraphicsCounter++;
-						addressGraphicsLayer.add(new Graphic(geom, symbol));
-						var displayText = candidate.address;
-						var font = new Font("10pt", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLD, "Helvetica");
-						var yellow = new Color([255, 255, 153, 255]);
-						var textSymbol = new TextSymbol(displayText, font, new Color("#000000"));
-						textSymbol.setOffset(0, -23);
-						var highlight1 = new esri.symbol.TextSymbol(displayText, font, yellow);
-						highlight1.setOffset(1, -25);
-						var highlight2 = new esri.symbol.TextSymbol(displayText, font, yellow);
-						highlight2.setOffset(0, -24);
-						var highlight3 = new esri.symbol.TextSymbol(displayText, font, yellow);
-						highlight3.setOffset(0, -22);
-						var highlight4 = new esri.symbol.TextSymbol(displayText, font, yellow);
-						highlight4.setOffset(-1, -21);
-						var highlight5 = new esri.symbol.TextSymbol(displayText, font, yellow);
-						highlight5.setOffset(2, -23);
-						var highlight6 = new esri.symbol.TextSymbol(displayText, font, yellow);
-						highlight6.setOffset(-2, -23);
-						addressGraphicsLayer.add(new esri.Graphic(geom, highlight1));
-						addressGraphicsLayer.add(new esri.Graphic(geom, highlight2));
-						addressGraphicsLayer.add(new esri.Graphic(geom, highlight3));
-						addressGraphicsLayer.add(new esri.Graphic(geom, highlight4));
-						addressGraphicsLayer.add(new esri.Graphic(geom, highlight5));
-						addressGraphicsLayer.add(new esri.Graphic(geom, highlight6));
-						addressGraphicsLayer.add(new Graphic(geom, textSymbol));
-						map.addLayer(addressGraphicsLayer);
-						return false; //break out of loop after one candidate with score greater than 40 is found.
-					});
-				}
-			});
-			if (geom !== undefined) {
-				map.centerAndZoom(geom, 6); // 4-21-17 Updated lods, used to be 12.
-				return true;
-			} else {
-				alert("Address was not found.", "Note");
-				return false;
-			}
-		});
-	} catch (e) {
-		alert("Error looking up address: " + e.message, "Code Error", e);
-		return false;
-	}
-}
-function onAddressFault(err) {
-	require(["dojo/dom"], function (dom) {
-		hideLoading();
-		dom.byId("addressLoading").style.display = "none";
-		alert("Error occurred searching for address. Address service may be down. Service name is: " + locator.url + ". " + err.message, "Code Error", err);
-	});
-}
-function clearAddress() {
-	if (addressGraphicsCount.length == 0)
-		return;
-	map.getLayer(addressGraphicsCount.pop()).clear();
-}
 //**********************
 // Read config.xml file
 //**********************
@@ -173,6 +29,7 @@ function readConfig() {
 		var tries={}; // number of times we have tried to load each map layer
 		var loadedFromCfg; // true when the layer has loaded and set the visiblelayers when setting layers from URL
 		var labelFromURL = false;
+		var basemapExpand;
 
 		// adjust title for mobile
         if (screen.width < 768){
@@ -183,28 +40,139 @@ function readConfig() {
 			}
 		}
 
+		setupBasemapLayers();
+
 		// ------------------
 		//  Basemaps Gallery
 		// ------------------
+		function setupBasemapLayers(){
+			require([
+			"esri/Basemap",
+			"esri/layers/VectorTileLayer",
+			"esri/layers/MapImageLayer",
+			"esri/layers/FeatureLayer"
+			], (Basemap,VectorTileLayer,MapImageLayer,FeatureLayer)  => {
+				var layer;
+				// Old world streets
+				layer = new MapImageLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"});
+				streets = new Basemap({
+					baseLayers:[layer],
+					title:"Streets",
+					id:"streets",
+					thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
+				});
+
+				// World Streets Vector with Hillshade
+				//var layer1 = new VectorTileLayer({url:"https://tiledbasemaps.arcgis.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer"});//requires username and password
+				/*layer = new VectorTileLayer({url:"https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"});
+				streets = new Basemap({
+					baseLayers:[layer],
+					title:"Streets",
+					id:"streets",
+					thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
+				});*/
+
+				/*esri jsapi 4 examples
+				let vtlLayer = new VectorTileLayer({
+				// URL to the style of vector tiles
+					url: "https://www.arcgis.com/sharing/rest/content/items/4cf7e1fb9f254dcda9c8fbadb15cf0f8/resources/styles/root.json"
+				});
+
+				let vtlLayer = new VectorTileLayer({
+				// URL to the vector tile service
+					url: "https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"
+				});*/
+				
+				
+				// Old Streets
+				/*let streetsLayer = new VectorTileLayer({url:"https://www.arcgis.com/sharing/rest/content/items/b266e6d17fc345b498345613930fbd76/resources/styles/root.json"});
+				let streets = new Basemap({
+					baseLayers:[streetsLayer],
+					title:"Streets",
+					id:"streets",
+					thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
+				});*/
+
+				// Aerial Photo
+				var layers=[];
+				layer = new MapImageLayer({
+					url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+				});
+				layers.push(layer);
+				layer = new VectorTileLayer({
+					url: "https://www.arcgis.com/sharing/rest/content/items/30d6b8271e1849cd9c3042060001f425/resources/styles/root.json"
+				});
+				layers.push(layer);
+				aerial = new Basemap({
+					baseLayers:layers,
+					title:"Aerial Photo",
+					id:"aerial",
+					thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
+				});
+
+				// Add USGS Digital Topo back in. ESRI removed it 6-30-19
+				// try id: f33a34de3a294590ab48f246e99958c9 esri nat geo
+				layer = new MapImageLayer({
+					//url: "https://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"  // no topo
+					url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+				});
+				natgeo = new Basemap({
+					baseLayers:[layer],
+					title:"USGS Digital Topo",
+					id:"natgeo",
+					thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/6d9fa6d159ae4a1f80b9e296ed300767/info/thumbnail/thumbnail.jpeg"
+				});
+
+				// USGS Scanned Topo
+				// thumbnail moved no longer esists: //"https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg"
+				layer=new MapImageLayer({
+					url:"https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer",
+					dpi:300
+				});
+				topo = new Basemap({
+					baseLayers:[layer],
+					title:"USGS Scanned Topo",
+					id:"topo",
+					thumbnailUrl:"assets/images/USA_topo.png"
+				});
+
+				// Aerial with Topos
+				layer=new MapImageLayer({url:"https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer",dpi:300});
+				imagery_topo = new Basemap({
+				baseLayers:[layer],
+				title:"Aerial Photo with USGS Contours",
+				id: "imagery_topo",
+				dpi:300,
+				thumbnailUrl:"assets/images/aerial_topo.png"
+				});
+
+				// ESRI Digital Topo
+				layer=new MapImageLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"});
+				// old thumb thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/30e5fe3149c34df1ba922e6f5bbf808f/info/thumbnail/ago_downloaded.jpg"
+				topo2 = new Basemap({
+				baseLayers:[layer],
+				title:"ESRI Digital Topo",
+				id:"topo2",
+				thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/588f0e0acc514c11bc7c898fed9fc651/info/thumbnail/topo_thumb_b2wm.jpg"
+				});
+			});
+		}
+
 		class My_BasemapGallery {
 
 			constructor(){
-				alert("call setupLayers");
 				try{
 				// create basemap services
-				this.setupLayers();
-				alert("after setupLayers");
+				//this.setupLayers();
 				this.menu =  document.createElement("ul");
 				this.bmGallery = document.createElement("div");
 				this.bmGallery.style.backgroundColor = "#fff";
-				this.bmGallery.style.width = "300px";
 				this.bmGallery.className ="esri-legend";
 				this.bmGallery.appendChild(this.menu);
 				this.menu.role = "menu";
 				this.bmGallery.id = "bmGallery";
 
 				// add basemap layers
-				alert("before add basemap");
 				this.add("streets","Streets","assets/images/streets_thumb.jpg",true);
 				this.add("aerial","Aerial Photo","assets/images/aerial_thumb.jpg",false);
 				this.add("topo","USGS Scanned Topo","assets/images/USA_topo.png",false);
@@ -215,111 +183,6 @@ function readConfig() {
 				}catch (e) {
 					alert("Error in myBasemapGallery. "+e.getMessage, "Error");
 				}
-			}
-
-			setupLayers(){
-				require([
-				"esri/Basemap",
-				"esri/layers/VectorTileLayer",
-				"esri/layers/MapImageLayer",
-				"esri/layers/FeatureLayer"
-				], (Basemap,VectorTileLayer,MapImageLayer,FeatureLayer)  => {
-					var layer;
-		alert("in myBasemap");
-					// World Streets Vector with Hillshade
-					//var layer1 = new VectorTileLayer({url:"https://tiledbasemaps.arcgis.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer"});//requires username and password
-					layer = new VectorTileLayer({url:"https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"});
-					streets = new Basemap({
-						baseLayers:[layer],
-						title:"Streets",
-						id:"streets",
-						thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
-					});
-
-					/*esri jsapi 4 examples
-					let vtlLayer = new VectorTileLayer({
-					// URL to the style of vector tiles
-						url: "https://www.arcgis.com/sharing/rest/content/items/4cf7e1fb9f254dcda9c8fbadb15cf0f8/resources/styles/root.json"
-					});
-
-					let vtlLayer = new VectorTileLayer({
-					// URL to the vector tile service
-						url: "https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"
-					});*/
-					
-					
-					// Old Streets
-					/*let streetsLayer = new VectorTileLayer({url:"https://www.arcgis.com/sharing/rest/content/items/b266e6d17fc345b498345613930fbd76/resources/styles/root.json"});
-					let streets = new Basemap({
-						baseLayers:[streetsLayer],
-						title:"Streets",
-						id:"streets",
-						thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
-					});*/
-
-					// Aerial Photo
-					var layers=[];
-					layer = new MapImageLayer({
-						url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
-					});
-					layers.push(layer);
-					layer = new VectorTileLayer({
-						url: "https://www.arcgis.com/sharing/rest/content/items/30d6b8271e1849cd9c3042060001f425/resources/styles/root.json"
-					});
-					layers.push(layer);
-					aerial = new Basemap({
-						baseLayers:layers,
-						title:"Aerial Photo",
-						id:"aerial",
-						thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
-					});
-
-					// Add USGS Digital Topo back in. ESRI removed it 6-30-19
-					// try id: f33a34de3a294590ab48f246e99958c9 esri nat geo
-					layer = new MapImageLayer({
-						//url: "https://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"  // no topo
-						url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
-					});
-					natgeo = new Basemap({
-						baseLayers:[layer],
-						title:"USGS Digital Topo",
-						id:"natgeo",
-						thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/6d9fa6d159ae4a1f80b9e296ed300767/info/thumbnail/thumbnail.jpeg"
-					});
-
-					// USGS Scanned Topo
-					// thumbnail moved no longer esists: //"https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg"
-					layer=new MapImageLayer({
-						url:"https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer",
-						dpi:300
-					});
-					topo = new Basemap({
-						baseLayers:[layer],
-						title:"USGS Scanned Topo",
-						id:"topo",
-						thumbnailUrl:"assets/images/USA_topo.png"
-					});
-
-					// Aerial with Topos
-					layer=new MapImageLayer({url:"https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer",dpi:300});
-					imagery_topo = new Basemap({
-					baseLayers:[layer],
-					title:"Aerial Photo with USGS Contours",
-					id: "imagery_topo",
-					dpi:300,
-					thumbnailUrl:"assets/images/aerial_topo.png"
-					});
-
-					// ESRI Digital Topo
-					layer=new MapImageLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"});
-					// old thumb thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/30e5fe3149c34df1ba922e6f5bbf808f/info/thumbnail/ago_downloaded.jpg"
-					topo2 = new Basemap({
-					baseLayers:[layer],
-					title:"ESRI Digital Topo",
-					id:"topo2",
-					thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/588f0e0acc514c11bc7c898fed9fc651/info/thumbnail/topo_thumb_b2wm.jpg"
-					});
-				});
 			}
 
 			add(id, title, thumbnail, selected){
@@ -344,7 +207,6 @@ function readConfig() {
 				label.innerHTML=title;
 				label.id=id;
 				basemap.appendChild(label);
-				//this.bmGallery.appendChild(basemap);
 				this.menu.appendChild(basemap);
 			}
 			toggleBasemap(event){
@@ -352,6 +214,7 @@ function readConfig() {
 				document.getElementsByClassName("bmSelected")[0].className = "bmUnselected";
 				document.getElementById(name).className = "bmSelected";
 				map.basemap = window[name]; // get variable
+				basemapExpand.expanded = false;
 			}
 		}
 
@@ -362,7 +225,6 @@ function readConfig() {
 		function addGraphicsAndLabels() {
 			try {
 				var sr;
-				var regexp;
 				if (!queryObj.prj || queryObj.prj == "")
 					sr = new SpatialReference(102100);
 				else
@@ -500,18 +362,31 @@ function readConfig() {
 								title: id,
 								id: id,
 								visible: layer.getAttribute("visible") == "true"
+								// Example popup template for each sublayer
+								/*sublayers: [{
+									id: 0,
+									popupTemplate: {
+									  title: "{COUNTY}",
+									  content: "{POP2007} people lived in this county in 2007"
+									}
+								  }]*/
 							});
 					} 
 					// FeatureServer tlb 9/28/20
-					else if (layer.getAttribute("url").toLowerCase().indexOf("featureserver") > -1){
-							myLayer = new FeatureLayer({
-								url: layer.getAttribute("url"),
-								opacity: Number(layer.getAttribute("alpha")),
-								title: id,
-								id: id,
-								visible: layer.getAttribute("visible") == "true",
-								legendEnabled: true
-							});
+					else if (layer.getAttribute("url").toLowerCase().indexOf("featureserver") > -1){	
+						myLayer = new FeatureLayer({
+							url: layer.getAttribute("url"),
+							opacity: Number(layer.getAttribute("alpha")),
+							title: id,
+							id: id,
+							visible: layer.getAttribute("visible") == "true",
+							legendEnabled: true
+						});
+						// identify popup template
+						if (layer.getAttribute("popup_fields") && layer.getAttribute("popup_labels")){
+							const template = addPopupTemplate(layer.getAttribute("label"),layer.getAttribute("popup_fields").split(","),layer.getAttribute("popup_labels").split(","));
+							if (template != null) myLayer.popupTemplate = template;
+						}
 					}
 					else {
 						alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit readConfig.js line 600 to add new type.");
@@ -705,7 +580,7 @@ console.log("url="+layer.getAttribute("url"));
 				ids = ids.reverse();
 				return ids;
 			}
-			function addGroupLayer(groupName, vis, opacity, radio, featureservice, portal, layerIds, layerVis, layerNames){
+			function addGroupLayer(groupName, vis, opacity, radio, featureservice, portal, layerIds, layerVis, layerNames,popupFields,popupLabels){
 				// Creates a group and adds feature service layers in layerVis. Returns the GroupLayer
 				// groupName: string, name of this group
 				// vis: boolean, is this group visible?
@@ -714,6 +589,8 @@ console.log("url="+layer.getAttribute("url"));
 				// layerIds: array of integers, or string "10-15,17", id of each layer
 				// layerVis: array of true, false for visibility of each layer
 				// layerNames: array of strings, names of each layer
+				// popupFields: field names in the feature service to display in identify popup template
+				// popupLabels: labels for above fields
 				var visMode = "independent";
 				if(radio) visMode="exclusive";
 				vis = vis.toLowerCase() === "true";
@@ -773,11 +650,11 @@ console.log("url="+layer.getAttribute("url"));
 					tries[groupLayer.title+ids[i]]=0;
 					// use layer names from config.xml 
 					if (layerNames != null){
-						createSubGroupLayer(groupLayer,featureservice,vis,ids[i],layerNames[i]);
+						createSubGroupLayer(groupLayer,featureservice,vis,ids[i],layerNames[i],popupFields,popupLabels);
 					} 
 					// Use feature service layer names 
 					else {
-						createSubGroupLayer(groupLayer,featureservice,vis,ids[i],null);
+						createSubGroupLayer(groupLayer,featureservice,vis,ids[i],null,popupFields,popupLabels);
 					}
 				}
 				return groupLayer;
@@ -789,19 +666,33 @@ console.log("url="+layer.getAttribute("url"));
 				var layer = event.layer;
 				tries[layer.parent.title+layer.id]++;
 				setTimeout(function(){
+
+var popupFields = [];
+var popupLabels = [];
+for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+	if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group") === layer.parent.title){
+		//layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
+		if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields")){
+			popupFields = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields").split(",");
+			popupLabels = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_labels").split(",");
+		}
+		break;
+	}
+}
 //debug
 console.log("trying to load layer again: "+layer.parent.title+" "+layer.id);
-/*if (layer.id == 1900) {
+/* layer.id is not a number!!!!! not working
+if (layer.id == 1900) {
 	tries[layer.parent.title+"19"]=1;
-	createSubGroupLayer(layer.parent,layer.url,layer.visible,19,layer.title);
-}
-else*/
-					createSubGroupLayer(layer.parent,layer.url,layer.visible,layer.id,layer.title);
+	
+	//createSubGroupLayer(layer.parent,layer.url,layer.visible,19,layer.title,popupFields,popupLabels);
+}*/
+					createSubGroupLayer(layer.parent,layer.url,layer.visible,layer.id,layer.title,popupFields,popupLabels);
 					layer.parent.remove(layer);
 				},30000);
 				
 			}
-			function createSubGroupLayer(groupLayer,url,visible,id,title){		
+			function createSubGroupLayer(groupLayer,url,visible,id,title,popupFields,popupLabels){		
 				var fsUrl;
 				if (url[url.length-1]==="/")
 					fsUrl = url + id;
@@ -820,6 +711,11 @@ else*/
 						//id: id, // do not use id, let it create this on it's own
 						legendEnabled: true
 					});
+					// identify popup template
+					if (popupFields && popupLabels){
+						const template = addPopupTemplate(title,popupFields,popupLabels);
+						if (template != null) subGroupLayer.popupTemplate = template;
+					}
 				}
 				else{
 					subGroupLayer = new FeatureLayer({
@@ -828,6 +724,7 @@ else*/
 						//id: id, // do not use id, let it create this on it's own
 						legendEnabled: true
 					});
+
 					// Wait until layer loads then the title will be assigned. Then remove feature service name from the title (eg. "CPWSpeciesData -")
 					subGroupLayer.on("layerview-create", function(event){
 						var layer = event.layerView.layer;
@@ -838,6 +735,11 @@ else*/
 							fsName += " - ";
 						var title = layer.title.substr(fsName.length);
 						layer.title = title;
+						// identify popup template
+						if (popupFields && popupLabels){
+							const template = addPopupTemplate(title,popupFields,popupLabels);
+							if (template != null) subGroupLayer.popupTemplate = template;
+						}
 						console.log("sub group layer loaded: "+layer.parent.title+" "+title+" url="+fsUrl);
 					});
 				}
@@ -892,6 +794,38 @@ else*/
 					});
 				}
 				groupLayer.add(subGroupLayer);
+			}
+			function addPopupTemplate(title,popupFields,popupLabels){
+				// For feature services can add an identify popup template
+				// in config.xml layer tag add: popup_fields="field1,field2,..."
+                //    popup_labels="label1,label2,..."
+				if (popupFields.length > 0){
+					const template ={
+						// autocasts as new PopupTemplate()
+						title: title,
+						content: [{
+							type: "fields"
+						}]
+					}
+					
+					var fieldInfos = [];
+					for (var j=0; j<popupFields.length;j++){
+						if (popupFields[j] && popupLabels[j]){
+							var info = {
+								fieldName: popupFields[j],
+								label: popupLabels[j]
+							}
+							fieldInfos.push(info);
+						} else {
+							alert("Error in config.xml missing popup_fields or popup_labels for layer "+title);
+							return null;
+						}
+					}
+					template.content[0].fieldInfos = fieldInfos;
+					return template;
+				}else {
+					return null;
+				}
 			}
 	  
 			//-----------
@@ -966,6 +900,8 @@ else*/
 			var groupLayers = [];
 			var groupName;
 			var regexp = /([^a-zA-Z0-9 \-,\._\/:])/g;
+			var popupFields = [];
+			var popupLabels = [];
 			for (i = 0; i < layer.length; i++) {	
 				var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null,portal=null;				
 				// group layer with or without sub layers
@@ -1013,10 +949,14 @@ else*/
 							}
 							if (layer[i].getAttribute("layerName"))
 								layerNames = layer[i].getAttribute("layerNames").replace(regexp,"");
+							if (layer[i].getAttribute("popup_fields"))
+								popupFields = layer[i].getAttribute("popup_fields").split(",");
+							if (layer[i].getAttribute("popup_labels"))
+								popupLabels = layer[i].getAttribute("popup_labels").split(",");
 						}
 						
 						// returns a GroupLayer with feature layers added to to it. Use for group layer Elk and feature layers species data for elk.
-						groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,radio,url,portal,layerIds,layerVis,layerNames)};
+						groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,radio,url,portal,layerIds,layerVis,layerNames,popupFields,popupLabels)};
 						if (parentGroupName != null && parentGroupName != "")
 							groupLayers[parentGroupName].layer.add(groupLayers[groupName].layer);
 						else
@@ -1027,6 +967,8 @@ else*/
 				}
 				// sub layer in parent group
 				else if (layer[i].getAttribute("label") && layer[i].getAttribute("parentGroup")) {
+					var popupFields=[];
+					var popupLabels=[];
 					//console.log("loading layer "+layer[i].getAttribute("label")+" into group "+layer[i].getAttribute("parentGroup")+" i="+i);
 					var label="";
 					if (layer[i].getAttribute("parentGroup") && layer[i].getAttribute("parentGroup") != "")
@@ -1055,6 +997,8 @@ else*/
 						alert("Missing visible attribute in layer, "+groupName+", in "+app+"/config.xml file.", "Data Error");
 						continue;
 					}
+					if (layer[i].getAttribute("popup_fields")) popupFields = layer[i].getAttribute("popup_fields").split(",");
+					if (layer[i].getAttribute("popup_labels")) popupLabels = layer[i].getAttribute("popup_labels").split(",");
 					var fsLayer = new FeatureLayer({
 						visible: layerVis === "true",
 						url: url,
@@ -1063,13 +1007,18 @@ else*/
 						layerId: label,
 						id: label
 					});
+					// identify popup template
+					if (popupFields && popupLabels){
+						const template = addPopupTemplate(label,popupFields,popupLabels);
+						if (template != null) fsLayer.popupTemplate = template;
+					}
+
 					if (groupLayers[parentGroupName])
 						groupLayers[parentGroupName].layer.add(fsLayer);
 					else alert("Error in "+app+"/config.xml file. parentGroup name of "+parentGroupName+" does not exist. Must have a layer with group="+parentGroupName);
 				}
 				// root layer
 				else if (layer[i].getAttribute("label")) {
-					
 					tries[layer[i].getAttribute("label")] = 0;
 					// DEBUG make it fail
 					//layer[i].setAttribute("url",layer[i].getAttribute("url")+"oooo");
@@ -1077,7 +1026,6 @@ else*/
 					createLayer(layer[i]);
 				}		
 			}
-
 			addWidgets();
 		}
 
@@ -1773,10 +1721,10 @@ else*/
 		function addOverviewMap(){
 			// Create another Map, to be used in the overview "view"
 			const ovMap = new Map({
-				basemap: "streets-vector"
+				basemap: window["topo2"] //"streets-vector"
 			});
 
-			const overviewDiv = document.getElementById("overviewDiv");
+			//const overviewDiv = document.getElementById("overviewDiv");
 			const overviewContainer = document.getElementById("overviewContainer");
 			overviewMap = new MapView({
 				container: "overviewDiv",
@@ -2007,16 +1955,16 @@ else*/
 					// displayGraphicsOnPan=false for IE may speed up pans
 					//			basemap: "streets",
 					// 	sliderLabels: labels,
-					mapBasemap = "streets-vector";
+					mapBasemap = window["streets"]; //streets-vector";
 					if (queryObj.layer && queryObj.layer != "") {
 						var basemapArr = queryObj.layer.substring(0, queryObj.layer.indexOf("|")).split(",");
 							// old version used 0,1,2|... and first one was selected basemap.
 							if (basemapArr[0] == 0)
-								mapBasemap = "streets-vector";
+								mapBasemap = window["streets"]; //"streets-vector";
 							else if (basemapArr[0] == 1)
-								mapBasemap = "hybrid";
+								mapBasemap = window["aerial"];
 							else if (basemapArr[0] == 2)
-								mapBasemap = "topo-vector";
+								mapBasemap = window["topo"];
 							else
 								mapBasemap = basemapArr[0];
 							basemapArr = null;
@@ -2537,12 +2485,12 @@ else*/
 					// checks immediately after initialization
 					// Equivalent to watchUtils.init()
 					reactiveUtils.watch(
-						() => view.zoom,
-						() => {
+						() => view?.extent?.xmin,
+						(xmin) => {
 							showMapScale(parseInt(view.scale));
 						},
 						{
-						initial: true
+							initial: true
 					});
 					  
 					// Show hide loading image
@@ -2582,13 +2530,8 @@ else*/
 
 					// Add Basemap Gallery
 					try{
-						alert("creating basemaps");
-						//const My_BasemapGallery = require('javascript/myBasemapGallery.js')
-						//import { nameMy_BasemapGallery} from 'javascript/myBasemapGallery.js';
 						let basemap = new My_BasemapGallery();
-						
-						alert("created basemaps");
-						const basemapExpand = new Expand({
+						basemapExpand = new Expand({
 							view,
 							content: basemap,
 							expandTooltip: "Basemap",

@@ -162,12 +162,21 @@ body{
 	display:none;
 	position:relative;/*for help button to show up*/
 }
+.esri-expand--auto .esri-expand__container--expanded{
+	z-index: 2!important; /* hide map scale behind panel */
+}
 #bmGallery{
 	background-color: #fff;
 	min-height: 200px;
 	overflow-y: auto;
-	height: calc(100vh - 250px);
-    max-height: 425px;
+	
+}
+@media only screen and (min-width: 1200px){
+	#bmGallery{
+		height: calc(100vh - 250px);
+    	max-height: 470px;
+		min-width: 300px;
+	}
 }
 #bmGallery ul{
 	list-style: none;text-align: center;display:flex;padding-left:0;flex-flow: wrap;justify-content: center;
