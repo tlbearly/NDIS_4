@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1"/> <!--,user-scalable=no" /-->
     <meta charset="utf-8" />
     <title>Test ArcGIS API for JavaScript 4.29</title>
 
@@ -52,7 +52,7 @@
     <!-- For Debugging -->
     <script>
       var jsVer = Date.now();
-      //var jsVer = "1w";
+      var jsVer = "2z";
       var path = "javascript/src";
       document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '" async><\/script>');
@@ -60,7 +60,7 @@
       document.write('<script type="text/javascript" src="' + path + '/utilFuncs.js?v=' + jsVer + '" async><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/bookmark.js?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/disclaimer.js?v=' + jsVer + '" async><\/script>');
-      //v4        document.write('<script type="text/javascript" src="' + path + '/draw.js?v=' + jsVer + '"><\/script>');
+     // document.write('<script type="text/javascript" src="' + path + '/draw.js?v=' + jsVer + '"><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/gmu.js?v=' + jsVer + '"><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
@@ -314,7 +314,7 @@
           <h3 class="dialogTitle">Disclaimer</h3>
           <div class="dialogContent">
             <div id="disclaimerContent"></div>
-            <input id="showDisclaimer" class="largeCheckbox" type="checkbox" onClick="setCookie('noDisclaimer',this.checked)" /> Do not show again. (This is stored in a cookie in your browser history.)<br/><br/>
+            <input id="showDisclaimer" class="largeCheckbox" type="checkbox" onClick="setCookie('noDisclaimer',this.checked)" /> <label for="showDisclaimer">Do not show again. (This is stored in a cookie in your browser history.)</label><br/><br/>
             <p style="text-align: center;">
               <button class="dialogButton" onClick="hide('disclaimer');if (document.getElementById('showDisclaimer').checked){setCookie('noDisclaimer',1);}">Agree</button>
               <button class="dialogButton" onClick="loadPage('https://cpw.state.co.us/')">Disagree</button>
@@ -323,14 +323,16 @@
         </div>
 
         <!-- XY Coordinate Format Dialog -->
-        <div id="xyCoordsDialog" class="dialog" style="display:block;">
-          <h3 class="dialogTitle">Change XY Display Format</h3>
-          <select id="xycoords_combo" size="4" onChange="toggleCoordsDialog();setCookie('xycoords',document.getElementById('xycoords_combo').value);document.getElementById('settings_xycoords_combo').value=this.value;" style="width:100%;">
+        <div id="xyCoordsDialog" class="dialog" style="display:block;width:250px;" title="Change XY Display Format">
+          <h3 class="dialogTitle">Change XY Display Format <button class="myBtn" style="float:right;" onclick="toggleCoordsDialog()">X</button></h3>
+          <div class="dialogContent">
+          <select id="xycoords_combo" size="4" style="margin-top:11px;overflow-y:auto;width:100%;" onChange="toggleCoordsDialog();setCookie('xycoords',document.getElementById('xycoords_combo').value);document.getElementById('settings_xycoords_combo').value=this.value;" style="width:100%;">
             <option value="mercator">WGS84 Web Mercator</option>
             <option value="geo">Decimal Degrees</option>
             <option value="dms" selected>Degrees, Minutes, Seconds</option>
             <option value="dm">Degrees, Decimal Minutes</option>
           </select>
+          </div>
         </div>
 
         <!-- Error Message -->
@@ -338,7 +340,7 @@
           <h3 id="errorDialogTitle" class="dialogTitle">Error Message <button class="myBtn" style="float:right;" onclick="hide('errorDialog')">X</button></h3>  
           <div class="dialogContent" style="max-height:80vh">
             <div id="errMsg" class="dijitDialogPaneContentArea"></div>
-            <div align="center"><button onClick="hide('errorDialog');document.getElementById('errMsg').innerHTML='';" data-dojo-type="dijit/form/Button" role="presentation" type="button">Close</button></div>
+            <div align="center"><button onClick="hide('errorDialog');document.getElementById('errMsg').innerHTML='';" data-dojo-type="dijit/form/Button" type="button">Close</button></div>
           </div>
         </div>
 
@@ -563,7 +565,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                       <p>Step 2: Adjust report area.</p>
                       <p style="padding-left:35px;"><input id="reportDistCbo"/><span id="reportDistLabel"></span><br/></p>
                       <p>Step 3: Show print preview.</p>
-                      <p style="padding-left:35px;"><button id="reportPrintBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button">Print Preview</button> <button id="reportCancelBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button">Cancel</button></p>
+                      <p style="padding-left:35px;"><button id="reportPrintBtn" data-dojo-type="dijit/form/Button" type="button">Print Preview</button> <button id="reportCancelBtn" data-dojo-type="dijit/form/Button" type="button">Cancel</button></p>
                       <p align="center"><a href="https://get.adobe.com/reader/" target="pdf_reader">Get Adobe Reader</a> &nbsp;&nbsp;&nbsp;<a href="https://www.foxitsoftware.com/Secure_PDF_Reader/" target="pdf_reader">Get Foxit Reader</a></p>
                   </div>
               </div>
@@ -571,7 +573,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                 <!-- FEATURE SEARCH WIDGET -->
                 <!--style="visibility:hidden;position:relative;" data-dojo-type="dijit/TitlePane" tooltip="Click to open/close Feature Search panel" title="<img id='searchIcon' alt='feature search icon' src='assets/images/i_search.png'/> Feature Search"
                     open="false" -->
-                <div id="searchDiv" class="pane_container" onclick="if (!openedFeatureSearch) {openedFeatureSearch=true;searchInit();}">
+                <div id="searchDiv" class="pane_container" onclick="if (!openedFeatureSearch) {openedFeatureSearch=true;}"> <!--{openedFeatureSearch=true;searchInit();}"-->
                     <div id="searchContent" style="height:270px;position:relative;min-height:0px;width:100%;min-width:100%;max-width:100%;">
                       <img id="searchHelpBtn" role="button" alt="Feature Search Help" class="help_icon help_icon_dialog" src="assets/images/i_help.png">  
                       <img id="searchLoadingImg" alt="loading icon" src="assets/images/loading.gif" style="position:absolute; right:50%; top:50%; z-index:100;display:none;" />
@@ -601,8 +603,8 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                                         <label id="sectionLabel" for="searchSec">Section: <input id="searchSec"/></label><br/><br/>
                                     </div>
                                     <div style="float:right">
-                                        <button id="searchBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="" title="search for features">Search</button>
-                                        <br/><button id="searchRemoveBtn" data-dojo-type="dijit/form/Button" role="presentation" type="button" title="remove highlighted features">Remove</button>
+                                        <button id="searchBtn" data-dojo-type="dijit/form/Button" type="button" onClick="" title="search for features">Search</button>
+                                        <br/><button id="searchRemoveBtn" data-dojo-type="dijit/form/Button" type="button" title="remove highlighted features">Remove</button>
                                     </div>
                                 </div>
                                 <div id="graphic_Pane" data-dojo-type="dijit/layout/ContentPane" title="Graphical Search">
@@ -631,7 +633,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                 </div>
 
                 <!-- Print Dialog -->
-                <div id="printDiv" class="pane_container" title="Click to open/close Print panel" title="<img id='printIcon' alt='print icon' src='assets/images/i_print.png'/> Print" open="false">
+                <div id="printDiv" class="pane_container" title="Click to open/close Print panel" title="<img id='printIcon' alt='print icon' role='presentation' src='assets/images/i_print.png'/> Print" open="false">
                 
                 <div id="printContent" style="position: relative;">
                   <img id="printHelpBtn" role="button" alt="Print Help" class="help_icon help_icon_dialog" src="assets/images/i_help.png">
@@ -674,7 +676,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                           <label for="printLegend">Include legend:</label> <input id="printLegend" type="checkbox"/><br/><br/>
                       </div>
                       <div>
-                        <button id="print_button" data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="printMap()">Print</button> <img id="printLoading" style="vertical-align:bottom; display:none;" src="assets/images/loading.gif"/><br/><br/>
+                        <button id="print_button" data-dojo-type="dijit/form/Button" role="Presentation" type="button" onClick="printMap()">Print</button> <img id="printLoading" style="vertical-align:bottom; display:none;" src="assets/images/loading.gif"/><br/><br/>
                         <hr>
                         <p style="font-weight: bold;">Exported Files:</p>
                         <span id="printMapLink">Exported files will appear here.</span><br/><br/>
@@ -701,9 +703,9 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                         <input id="zipTxt" name="zipTxt" size="10">
                     </div><br><br>
                     <p style="text-align: center;clear:both;">
-                        <button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="lookupAddress()">Find</button>
-                        <button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="require(['dojo/dom'],function(dom){dom.byId('streetTxt').value='';dom.byId('cityTxt').value='';dom.byId('zipTxt').value='';});" title="Clear address form">Reset</button>
-                        <button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="clearAddress()" title="Remove last address image from the map.">Remove</button>
+                        <button data-dojo-type="dijit/form/Button" role="Presentation" type="button" onClick="lookupAddress()">Find</button>
+                        <button data-dojo-type="dijit/form/Button" role="Presentation" type="button" onClick="require(['dojo/dom'],function(dom){dom.byId('streetTxt').value='';dom.byId('cityTxt').value='';dom.byId('zipTxt').value='';});" title="Clear address form">Reset</button>
+                        <button data-dojo-type="dijit/form/Button" role="Presentation" type="button" onClick="clearAddress()" title="Remove last address image from the map.">Remove</button>
                         <span id="addressLoading" style="display:none;">Loading...</span></p>
                 </div>
                 <div data-dojo-type="dojox.layout.ResizeHandle" data-dojo-props="targetId:'addressDiv',activeResize:true,intermediateChanges:true"></div>
@@ -771,7 +773,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                                               <tr>
                                                   <td>Long W:</td>
                                                   <td><input id="pointXdd" type="text"/></td>
-                                                  <td rowspan="2"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawPoint()">Draw</button></td>
+                                                  <td rowspan="2"><button data-dojo-type="dijit/form/Button" role="Presentation" type="button" onClick="drawPoint()">Draw</button></td>
                                               </tr>
                                           </tbody>
                                       </table>
@@ -798,7 +800,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                                                   <td><input id="pointXdeg" size="3" type="text"/></td>
                                                   <td><input id="pointXmin" size="3" type="text"/></td>
                                                   <td><input id="pointXsec" size="5" type="text"/></td>
-                                                  <td rowspan="2"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawPoint()">Draw</button></td>
+                                                  <td rowspan="2"><button data-dojo-type="dijit/form/Button" role="Presentation" type="button" onClick="drawPoint()">Draw</button></td>
                                               </tr>
                                           </tbody>
                                       </table>
@@ -822,7 +824,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                                                   <td>Long W:</td>
                                                   <td><input id="pointXddm" size="3" type="text"/></td>
                                                   <td><input id="pointXmindm" size="5" type="text"/></td>
-                                                  <td rowspan="2"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawPoint()">Draw</button></td>
+                                                  <td rowspan="2"><button data-dojo-type="dijit/form/Button" role="Presentation" type="button" onClick="drawPoint()">Draw</button></td>
                                               </tr>
                                           </tbody>
                                       </table>
@@ -843,7 +845,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                                               <tr>
                                                   <td>Northing:</td>
                                                   <td><input id="pointY" type="text"/></td>
-                                                  <td rowspan="2"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawPoint()">Draw</button></td>
+                                                  <td rowspan="2"><button data-dojo-type="dijit/form/Button" role="Presentation" type="button" onClick="drawPoint()">Draw</button></td>
                                               </tr>
                                           </tbody>
                                       </table>
@@ -851,10 +853,10 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                               </div>
                               <div id="multixyDiv" style="display:none;vertical-align:middle;">
                                   <span style="color:gray">For example: <span id="multixyInstruct">40.24,103,39.3456,104.4</span></span>
-                                  <textarea id="pointsXY" style="vertical-align:middle;" rows="4" cols="30"></textarea><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawMultiPoint()" style="vertical-align:middle;">Draw</button>
+                                  <textarea id="pointsXY" style="vertical-align:middle;" rows="4" cols="30"></textarea><button data-dojo-type="dijit/form/Button" role="Presentation" type="button" onClick="drawMultiPoint()" style="vertical-align:middle;">Draw</button>
                               </div>
                               <div id="locationDiv" style="display:none;text-align:center;">
-                                  <button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="drawCurrentLocation()" style="vertical-align:middle;">Draw</button>
+                                  <button data-dojo-type="dijit/form/Button" role="Presentation" type="button" onClick="drawCurrentLocation()" style="vertical-align:middle;">Draw</button>
                               </div>
                           </div>
                       </div>
@@ -912,7 +914,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                         <div id="textStyleDiv"></div><br/><br/>
                         <form>
                             <label for="drawlabel">Label: </label><input id="drawlabel" type="text"/>
-                            <button data-dojo-type="dijit/form/Button" role="presentation" type="reset" title="clear label form">Clear</button>
+                            <button data-dojo-type="dijit/form/Button" role="Presentation" type="reset" title="clear label form">Clear</button>
                         </form>
                     </div>
                   </div>
@@ -933,7 +935,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                       <div id="bmAddPane" data-dojo-type="dijit/layout/ContentPane" title="Add Bookmark">
                           <span>Add current map as a bookmark named:</span><br/><br/>
                           <input id="bookmarkName" type="text" style="width:100%" /><br/><br/>
-                          <p style="text-align: center;"><button data-dojo-type="dijit/form/Button" role="presentation" type="button" onClick="addBookmark()">Add Bookmark</button></p>
+                          <p style="text-align: center;"><button data-dojo-type="dijit/form/Button" role="Presentation" type="button" onClick="addBookmark()">Add Bookmark</button></p>
                       </div>
                   </div><br/>
                 </div>
@@ -981,7 +983,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
       </main>
       
       <footer id="footer">
-          <div id="mapscale" style="color:#000;">Map Scale 1: 
+          <div id="mapscale" style="color:#000;"><label for="mapscaleList">Map Scale 1: 
             <select id="mapscaleList" onchange="setMapScale(this)" style="color: black">
               <option style="text-align:right" value="9244649">9M</option>
               <option style="text-align:right" value="4622324">4M</option>
@@ -995,7 +997,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
               <option style="text-align:right" value="9028">10k</option>
               <option style="text-align:right" value="2257">2k</option>
               <option style="text-align:right" value="1128">1k</option>
-          </select></div>
+          </select></label></div>
           
           <!-- Display mouse coordinates -->
           <div id="xycoords" style="flex-grow:3;text-align:center;justify-content:center;white-space:nowrap;cursor:pointer;color:#000;padding:0 1px;height:100%;">

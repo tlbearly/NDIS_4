@@ -17,7 +17,7 @@
 //	<expression> The where query.
 //  <union> Set to true for polygons where you want to zoom to the union of all of
 //     the polygons. If this tag is not used, it will zoom to boundary of the first polygon found.
-//  <mapscale>  For a point you can set how far to zoom in.
+//  <mapscale>  For a point you can set how far to zoom in. 24000 or level
 //		5 = 1:250k
 //		6 = 1:100k
 //		7 = 1:50k
@@ -28,16 +28,6 @@
 //		12 = 1:2k
 //		13 = 1:1k
 //
-//		Old values
-//		11 = 1:250k
-//		12 = 1:100k
-//		13 = 1:50k
-//		14 = 1:24k default
-//		15 = 1:18k
-//		16 = 1:10k
-//		17 = 1:4.5k
-//		18 = 1:2k
-//		19 = 1:1k
 // An example url would look like this:
 //		 .../index.asp?keyword=county&value=larimer
 //		 or
@@ -134,7 +124,7 @@
 		<keyword>poi</keyword>
 		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0</url>
 		<expression>UPPER(Name)=UPPER('[value]')</expression>
-		<mapscale>10</mapscale>
+		<mapscale>50000</mapscale>
 	</layer>
 	<!-- forest boundary one polygon, uses Support map boundaries, Forest Service map -->
 	<layer>

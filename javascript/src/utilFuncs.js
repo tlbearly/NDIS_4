@@ -51,7 +51,7 @@
 			var inSR,
 			pointX,
 			pointY;
-			const lodLevel = 10;
+			const lodLevel = 24000; //10;
 			if (label.indexOf(":") > 0) {
 				var pos,
 				pos2;
@@ -115,7 +115,8 @@
 				GeometryService.project(geometryService,params).then( (feature) => {
 					view.goTo({
 						target: feature[0],
-						zoom: lodLevel
+						scale: lodLevel
+						//zoom: lodLevel
 					});
 					addTempPoint(feature[0]);
 					addTempLabel(feature[0],label);
@@ -137,7 +138,8 @@
 				GeometryService.project(geometryService,params).then( (feature) => {
 					view.goTo({
 						target: feature[0],
-						zoom: lodLevel
+						scale: lodLevel
+						//zoom: lodLevel
 					});
 					addTempPoint(feature[0]);
 					addTempLabel(feature[0],label);
@@ -158,7 +160,8 @@
 				GeometryService.project(geometryService,params).then( (feature) => {
 					view.goTo({
 						target: feature[0],
-						zoom: lodLevel
+						scale: lodLevel
+						//zoom: lodLevel
 					});
 					addTempPoint(feature[0]);
 					addTempLabel(feature[0],label);
@@ -536,13 +539,17 @@
 	  }
 	  
 	  // Drawing
-	  function addTempLabel(point, label, fontSize){
+	  function addTempLabel(point, label, fontSize, fade1){
 		// Add text at a point. Fade out after 10 seconds.
 		// point: Point, label: text, fontSize: int
 		// if point is a polygon use the centroid
+		// fade: should it fade away? default is true
 		require(["esri/symbols/TextSymbol","esri/Graphic"], function (TextSymbol, Graphic) {
+			var shouldFade = true;
 			if (arguments.length == 2) fontSize = 11;
 			else fontSize = arguments[2];
+			if (arguments.length == 4) shouldFade = false;
+			
 			label=label.replace(/''/g, "'");
 			let textSymbol = new TextSymbol({
 				text: label,
@@ -564,18 +571,20 @@
 			view.graphics.add(pointText);
 			let fade = 1.0; // starting transparency
 			let width = pointText.symbol.haloSize / 4;
-			setTimeout(function(){
-				let tim = setInterval(function(){
-					fade = fade - 0.25;
-					pointText.symbol.color.a = fade;
-					pointText.symbol.haloSize = pointText.symbol.haloSize - width;
-					pointText.symbol.haloColor.a = fade;
-					if (fade == 0) {
-						clearTimeout(tim);
-						view.graphics.remove(pointText);
-					}
-				},2000);
-			},5000);
+			if (shouldFade){
+				setTimeout(function(){
+					let tim = setInterval(function(){
+						fade = fade - 0.25;
+						pointText.symbol.color.a = fade;
+						pointText.symbol.haloSize = pointText.symbol.haloSize - width;
+						pointText.symbol.haloColor.a = fade;
+						if (fade == 0) {
+							clearTimeout(tim);
+							view.graphics.remove(pointText);
+						}
+					},2000);
+				},5000);
+			}
 		});
 	  }
 	  function addTempPoint(pt){

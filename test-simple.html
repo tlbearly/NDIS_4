@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+    <meta charset="utf-8" />
+    <title>Test ArcGIS API for JavaScript 4.29</title>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css" async="true"/>
+    <script src="https://js.arcgis.com/4.29/"></script>
+    <style>
+        html,
+        body,
+        #viewDiv {
+          padding: 0;
+          margin: 0;
+          height: 100%;
+          width: 100%;
+        }
+      </style>
+    <script>
+        require(["esri/config", "esri/Map", "esri/views/MapView", "esri/Basemap",
+			"esri/layers/VectorTileLayer",
+			"esri/layers/MapImageLayer","esri/geometry/Extent","esri/widgets/BasemapToggle"], 
+            function(esriConfig, Map, MapView, Basemap, VectorTileLayer, MapImageLayer, Extent, BasemapToggle) {
+  
+                //esriConfig.apiKey = "YOUR_API_KEY";
+  
+                let layer = new MapImageLayer({
+                        //url: "https://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"  // no topo
+                        url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+                    });
+                let natgeo = new Basemap({
+                    baseLayers:[layer],
+                    title:"USGS Digital Topo",
+                    id:"natgeo",
+                    thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/6d9fa6d159ae4a1f80b9e296ed300767/info/thumbnail/thumbnail.jpeg"
+                });
+
+                const map = new Map({
+                basemap: natgeo //"streets-vector" // basemap styles service
+                });
+                let initExtent = new Extent({
+                    "xmin":-12350000,
+                    "ymin": 4250000,
+                    "xmax": -11150000,
+                    "ymax": 5250000,
+                    "spatialReference": {
+                        "wkid": 102100
+                    }
+                });
+                
+                const view = new MapView({
+                map: map,
+                //center: [-105.66, 38.95], // Longitude, latitude
+                extent: initExtent,
+                container: "viewDiv" // Div element
+            });
+            view.extent = initExtent;
+
+            
+            view.when(() => {
+                // Add a basemap toggle widget to toggle between basemaps
+                const toggle = new BasemapToggle({
+                    visibleElements: {
+                    title: true
+                    },
+                    view: view,
+                    nextBasemap: "streets-vector"
+                });
+
+                // Add widget to the top right corner of the view
+                view.ui.add(toggle, "top-right");
+            });
+        });
+    </script>
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>

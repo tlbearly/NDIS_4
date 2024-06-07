@@ -1,7 +1,7 @@
 var toolbar;
 var labelPoint;
 var drawText=false;
-function drawInit() {
+/*function drawInit() {
   require (["dojo/dom",
 	"dijit/registry",
 	"dojo/_base/lang",
@@ -545,8 +545,8 @@ function drawInit() {
 	  }
     }
  });
-}
-
+}*/
+/*
 function addPointSymbol(geometry) {
 	require (["dijit/registry","esri/symbols/SimpleLineSymbol",
 	"esri/symbols/SimpleMarkerSymbol","esri/graphic","dojo/_base/Color"], 
@@ -1395,11 +1395,11 @@ function addRects(rects,sr){
 		poly = null;
 	});
 }
-
+*/
 function addLabels(labels,sr){
 	// &text=x|y|text|font|font size|color|bold as t or f|italic as t or f|underline as t or f
 	// font, color, bold, italic, and underline are not used in this version. They default to Helvetica, black, bold
-	require (["esri/graphic","esri/layers/GraphicsLayer","esri/geometry/Point"], function (Graphic, GraphicsLayer, Point) {
+	require (["esri/Graphic","esri/geometry/Point"], function (Graphic, Point) {
 		var semiColon = /;/g;
 		var min = /\\'/g;
 		var sec = /\\"/g;
@@ -1407,19 +1407,19 @@ function addLabels(labels,sr){
 		var point, textItems, labelPoint;
 		for (i=0; i<textArr.length; i++){
 			textItems = textArr[i].split("|");
-			drawTextGraphicsLayer = new GraphicsLayer();
-			drawTextGraphicsLayer.id = "drawtextgraphics"+drawTextGraphicsCounter;
-			drawTextGraphicsCount.push(drawTextGraphicsLayer.id);
-			drawTextGraphicsCounter++;
-			document.getElementById("clearText").style.visibility = "visible";
+			//drawTextGraphicsLayer = new GraphicsLayer();
+			//drawTextGraphicsLayer.id = "drawtextgraphics"+drawTextGraphicsCounter;
+			//drawTextGraphicsCount.push(drawTextGraphicsLayer.id);
+			//drawTextGraphicsCounter++;
+			//document.getElementById("clearText").style.visibility = "visible";
 			
 			var fontsize = textItems[4];
 			textItems[2]=textItems[2].replace(semiColon,",").replace(min,"'").replace(sec,"\"");
 			var label = decodeURIComponent(textItems[2]);
 			point = new Point(parseFloat(textItems[0]), parseFloat(textItems[1]), sr);
 			labelPoint = new Graphic(point);
-			addLabel(labelPoint, label, drawTextGraphicsLayer, fontsize);
-			map.addLayer(drawTextGraphicsLayer);
+			addLabel(labelPoint, label, fontsize, false);
+			//map.addLayer(drawTextGraphicsLayer);
 			//console.log("added label: "+label+" fontsize="+fontsize+" x="+textItems[0]+" y="+textItems[1]);
 		}
 		textArr = null;

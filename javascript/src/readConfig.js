@@ -1701,8 +1701,8 @@ if (layer.id == 1900) {
 				this.clear();
 				if (obj.results[0].feature.geometry.type === "point")
 					view.goTo({
-						center: pt,
-						zoom: 11
+						target: pt,
+						scale: 24000
 					});
 				else
 					view.extent = newExtent;
@@ -2120,6 +2120,7 @@ if (layer.id == 1900) {
 
 
 
+
 				// 3-21-22
 				// load legend/layer list. Fires after one layer is added to the map using the map.addLayer method.
 /*					var toc;
@@ -2334,18 +2335,27 @@ if (layer.id == 1900) {
 											 function (Point, Graphic) {
 												var pt;
 												if (response.geometryType === "point") {
-													var level = 8; // 4-21-17 Updated lods, used to be 14
-													if (layer[i].getElementsByTagName("mapscale")[0] && layer[i].getElementsByTagName("mapscale")[0].firstChild)
+													var level = 24000; // 4-21-17 Updated lods, used to be 14
+													if (layer[i].getElementsByTagName("mapscale")[0] && layer[i].getElementsByTagName("mapscale")[0].firstChild){
 														level = parseInt(layer[i].getElementsByTagName("mapscale")[0].firstChild.nodeValue);
-													// 4-21-17 Updated lods, used to be 19
-													if (level > 11) {
-														level = 8; // 4-21-17 Updated lods, used to be 14
+														if (level < 1000){
+															switch (level){
+																case (7):
+																	level = 50000
+																case (6):
+																	level = 100000
+																case (5):
+																	level = 250000
+																default:
+																	level = 24000
+															}
+														}
 													}
 													pt = new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference);
 													// zoom to point
 													view.goTo({
-														center: pt,
-														zoom: level
+														target: pt,
+														scale: level
 													});
 													// add point symbol
 													addTempPoint(pt);
@@ -2362,7 +2372,7 @@ if (layer.id == 1900) {
 													// zoom to extent of first feature
 													if (!union){
 														pt = response.features[0].geometry.centroid;
-														view.extent = response.features[0].geometry.extent;
+														view.extent = response.features[0].geometry.extent.clone().expand(1.5);
 														addTempPolygon(response.features[0]);
 													}
 
@@ -2389,7 +2399,7 @@ if (layer.id == 1900) {
 																addTempLabel(response.features[j],queryObj.label);
 															}
 														}
-														view.extent = newExtent;
+														view.extent = newExtent.clone().expand(1.5);
 														//pt = response.features[indexLgArea].geometry.extent.center;
 													}	
 
@@ -2436,24 +2446,40 @@ if (layer.id == 1900) {
 			if (!queryObj.value || queryObj.value == "" || !queryObj.field || queryObj.field == "")
 				alert("When &map is used on the URL, there must also be an &field and &value.", "URL Map/Value Error");
 			else {
-				require(["esri/request", "esri/tasks/QueryTask", "esri/tasks/query"], function (esriRequest, QueryTask, Query) {
-					var queryTask = new QueryTask(queryObj.map);
-					var query = new Query();
+				//require(["esri/request", "esri/tasks/QueryTask", "esri/tasks/query"], function (esriRequest, QueryTask, Query) {
+				require(["esri/rest/query", "esri/rest/support/Query"], function (query, Query) {
+					var expr;	
+					//var queryTask = new QueryTask(queryObj.map);
+					//var query = new Query();
 					if (Number(queryObj.value))
-						query.where = queryObj.field + "=" + queryObj.value;
+						expr = queryObj.field + "=" + queryObj.value;
 					else
-						query.where = "UPPER(" + queryObj.field + ") LIKE UPPER('" + queryObj.value + "')";
-					query.returnGeometry = true;
-					queryTask.execute(query, function (response) {
+						expr = "UPPER(" + queryObj.field + ") LIKE UPPER('" + queryObj.value + "')";
+					const params = new Query({
+						returnGeometry: true,
+						where: expr
+					});
+					query.executeQueryJSON(queryObj.map, params).then((response) =>  {
+
+					//queryTask.execute(query, function (response) {
 						// Zoom to point or polygon
-						require(["esri/geometry/Point", "esri/graphicsUtils"], function (Point, graphicsUtils) {
+						require(["esri/geometry/Point"], function (Point) {
 							if (response.features.length == 0)
 								alert("Cannot zoom to " + queryObj.value + ". The feature was not found in " + queryObj.map + " for field " + queryObj.field, "URL Map/Value Error");
 							else {
-								if (response.geometryType == "esriGeometryPoint")
-									map.centerAndZoom(new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference), 8);
-								else
-									map.setExtent(response.features[0].geometry.getExtent(), true);
+								if (response.geometryType == "point"){
+									let pt = new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference);
+									view.goTo({
+										target: pt,
+										scale: 24000
+									});
+									addTempPoint(pt);
+									//map.centerAndZoom(new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference), 8);
+								}
+								else  {
+									view.extent = response.features[0].geometry.extent.clone().expand(1.5);
+									addTempPolygon(response.features[0]);
+								}
 							}
 						});
 					}, function (error) {
@@ -2500,6 +2526,9 @@ if (layer.id == 1900) {
 					showMapScale(view.scale);
 					addMapLayers();
 
+					addOverviewMap();
+					addFindPlace();
+					
 					// Add Legend
 					let legend = new Legend({
 						view: view
@@ -2582,11 +2611,13 @@ if (layer.id == 1900) {
 			
 					// Add the locate widget to the top left corner of the view
 					view.ui.add(locateBtn, "top-left");
-					//view.ui.add(locateBtn, {
-					//	position: "top-left"
-					//});
 
+					
+						addPrint();
+						
 					zoomToQueryParams();
+					addGraphicsAndLabels();
+					hideLoading();
 				});
 			});
 		}
@@ -2801,14 +2832,6 @@ if (layer.id == 1900) {
 					}
 						
 						addMap();
-						addOverviewMap();
-						addFindPlace();
-						addPrint();
-						hideLoading();
-					
-					
-						
-					
 				} 
 				// if missing file
 				else if (xmlhttp.status === 404) {
