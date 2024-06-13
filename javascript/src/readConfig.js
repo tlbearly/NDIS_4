@@ -19,10 +19,10 @@ function readConfig() {
 	 "esri/geometry/SpatialReference", "esri/Graphic", "esri/Map", "esri/views/MapView","esri/widgets/Print","esri/geometry/Extent",
 	 "esri/widgets/Home", "esri/widgets/Expand", "esri/widgets/LayerList", "esri/widgets/Legend",   "esri/widgets/Locate", "esri/widgets/Search", "esri/widgets/ScaleBar", "esri/widgets/Slider", "esri/rest/support/ProjectParameters",
 	 "esri/symbols/SimpleFillSymbol", "dijit/form/CheckBox", "dijit/layout/ContentPane", "dijit/TitlePane", "dijit/layout/TabContainer", "esri/symbols/SimpleLineSymbol",
-	 "esri/arcade", "esri/layers/support/arcadeUtils", "dojo/sniff"], 
+	 "esri/arcade", "esri/layers/support/arcadeUtils", "dojo/sniff","esri/widgets/Sketch","esri/layers/GraphicsLayer"], 
 	 function (dom, ioquery, promiseUtils, reactiveUtils, GroupLayer, SubtypeGroupLayer, MapImageLayer, FeatureLayer, WMSLayer, GeometryService, SpatialReference,
 		Graphic, Map, MapView, Print, Extent, Home, Expand, LayerList, Legend, Locate, Search, ScaleBar, Slider, ProjectParameters, SimpleFillSymbol, CheckBox,
-		ContentPane, TitlePane, TabContainer, SimpleLineSymbol, arcade, arcadeUtils, has) {
+		ContentPane, TitlePane, TabContainer, SimpleLineSymbol, arcade, arcadeUtils, has, Sketch, GraphicsLayer) {
 		var xmlDoc; // config.xml document json
 		var ext;
 		openTOCgroups=[];
@@ -54,23 +54,23 @@ function readConfig() {
 			], (Basemap,VectorTileLayer,MapImageLayer,FeatureLayer)  => {
 				var layer;
 				// Old world streets
-				layer = new MapImageLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"});
-				streets = new Basemap({
-					baseLayers:[layer],
-					title:"Streets",
-					id:"streets",
-					thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
-				});
-
-				// World Streets Vector with Hillshade
-				//var layer1 = new VectorTileLayer({url:"https://tiledbasemaps.arcgis.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer"});//requires username and password
-				/*layer = new VectorTileLayer({url:"https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"});
+				/*layer = new MapImageLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"});
 				streets = new Basemap({
 					baseLayers:[layer],
 					title:"Streets",
 					id:"streets",
 					thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
 				});*/
+
+				// World Streets Vector with Hillshade
+				//var layer1 = new VectorTileLayer({url:"https://tiledbasemaps.arcgis.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer"});//requires username and password
+				layer = new VectorTileLayer({url:"https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"});
+				streets = new Basemap({
+					baseLayers:[layer],
+					title:"Streets",
+					id:"streets",
+					thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
+				});
 
 				/*esri jsapi 4 examples
 				let vtlLayer = new VectorTileLayer({
@@ -1251,9 +1251,9 @@ if (layer.id == 1900) {
 							loadjscssfile("javascript/hb1298.js", "js");
 						}
 					}*/ 
-					else if (label.indexOf("Resource Report") > 0) {
+					else if (label.indexOf("Report") > 0) {
 						var reportPane = new TitlePane({
-							title: "<img id='reportIcon' role='presentation' alt='resrouce report icon' src='assets/images/i_table.png'/> "+label,
+							title: "<img id='reportIcon' role='presentation' alt='report icon' src='assets/images/i_table.png'/> "+label,
 							open: preload,
 							content: document.getElementById("reportContent")
 						});
@@ -1329,13 +1329,17 @@ if (layer.id == 1900) {
 						
 						// Test new V4 sketch widtet
 						// create a new sketch widget
-						/*const graphicsLayer = new GraphicsLayer();
+						let drawTitle = document.createElement("h3");
+						drawTitle.innerText = "ESRI default Sketch tool";
+						document.getElementById('drawContent').appendChild(drawTitle);
+						const graphicsLayer = new GraphicsLayer();
 						map.add(graphicsLayer);
 						const sketch = new Sketch({
 							view,
-							layer: graphicsLayer
+							layer: graphicsLayer,
+							container: document.getElementById('drawContent')
 						});
-						document.getElementById("drawDiv").appendChild(sketch);*/
+						
 					} else if (label == "Bookmark") {
 						var bookmarkPane = new TitlePane({
 							title: "<img id='bookmarkIcon' role='presentation' alt='bookmark icon' src='assets/images/i_bookmark.png'/> "+label,
@@ -1410,12 +1414,10 @@ if (layer.id == 1900) {
 				// Hide widgets
 				if (widgetStr.indexOf("Map Layers & Legend") == -1)
 					dom.byId("tocPane").style.display = "none";
-				else if (widgetStr.indexOf("Resource Report") == -1)
+				else if (widgetStr.indexOf("Report") == -1)
 					dom.byId("reportDiv").style.display = "none";
 				else if (widgetStr.indexOf("Feature Search") == -1)
 					dom.byId("searchDiv").style.display = "none";
-				else if (widgetStr.indexOf("Address") == -1)
-					dom.byId("addressDiv").style.display = "none";
 				else if (widgetStr.indexOf("Draw, Label, & Measure") == -1)
 					dom.byId("drawDiv").style.display = "none";
 				else if (widgetStr.indexOf("Bookmark") == -1)
@@ -1721,7 +1723,7 @@ if (layer.id == 1900) {
 		function addOverviewMap(){
 			// Create another Map, to be used in the overview "view"
 			const ovMap = new Map({
-				basemap: window["topo2"] //"streets-vector"
+				basemap: window["streets"]
 			});
 
 			//const overviewDiv = document.getElementById("overviewDiv");
@@ -1955,12 +1957,12 @@ if (layer.id == 1900) {
 					// displayGraphicsOnPan=false for IE may speed up pans
 					//			basemap: "streets",
 					// 	sliderLabels: labels,
-					mapBasemap = window["streets"]; //streets-vector";
+					mapBasemap = window["streets"];
 					if (queryObj.layer && queryObj.layer != "") {
 						var basemapArr = queryObj.layer.substring(0, queryObj.layer.indexOf("|")).split(",");
 							// old version used 0,1,2|... and first one was selected basemap.
 							if (basemapArr[0] == 0)
-								mapBasemap = window["streets"]; //"streets-vector";
+								mapBasemap = window["streets"];
 							else if (basemapArr[0] == 1)
 								mapBasemap = window["aerial"];
 							else if (basemapArr[0] == 2)
@@ -2491,8 +2493,10 @@ if (layer.id == 1900) {
 				});
 			}
 		}
-	}			
-				
+	}
+	
+	// disable popup so we can manually open it
+	view.popupEnabled = false;
 				// Load listener function for when the first or base layer has been successfully added
 				view.when(() => {
 					// Update mouse coordinates
@@ -2502,7 +2506,12 @@ if (layer.id == 1900) {
 					
 					// Identify
 					view.on('click', (event)=>{
-						//todo	****************			doIdentify();
+						view.popup.location = event.mapPoint;
+						view.popup.title = "Identify";
+						view.popup.content = "<p align='center'>Loading...</p>";
+						view.popup.visible = true;
+						view.openPopup();
+						doIdentify(event);
 						console.log("Identify");
 					});
 					
@@ -2525,10 +2534,9 @@ if (layer.id == 1900) {
 					// display current map scale
 					showMapScale(view.scale);
 					addMapLayers();
-
 					addOverviewMap();
 					addFindPlace();
-					
+
 					// Add Legend
 					let legend = new Legend({
 						view: view
@@ -2617,6 +2625,7 @@ if (layer.id == 1900) {
 						
 					zoomToQueryParams();
 					addGraphicsAndLabels();
+					readSettingsWidget(); // initialize Identify, found in identify.js      moved 6-13-24
 					hideLoading();
 				});
 			});

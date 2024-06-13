@@ -52,7 +52,7 @@
     <!-- For Debugging -->
     <script>
       var jsVer = Date.now();
-      var jsVer = "2z";
+      var jsVer = "4a";
       var path = "javascript/src";
       document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '" async><\/script>');
@@ -62,7 +62,7 @@
       document.write('<script type="text/javascript" src="' + path + '/disclaimer.js?v=' + jsVer + '" async><\/script>');
      // document.write('<script type="text/javascript" src="' + path + '/draw.js?v=' + jsVer + '"><\/script>');
       //v4        document.write('<script type="text/javascript" src="' + path + '/gmu.js?v=' + jsVer + '"><\/script>');
-      //v4        document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + jsVer + '"><\/script>');
+      document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
       //document.write('<script type="text/javascript" src="' + path + '/readConfig.js?v=' + jsVer + '"><\/script>');
@@ -102,7 +102,7 @@
       var printGeoServiceUrl; // set in readConfig.js from printservice tag in config.xml
       var map, geocoder, legendLayers = [];
       var initExtent, wkid, fullExtent;
-      var mapBasemap = "streets";
+      var mapBasemap = "streets-vector";
       var basemapGallery;
       var drawing = false; // flag to turn off identify if drawing
       var loading;

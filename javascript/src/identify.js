@@ -21,7 +21,7 @@ var irwin_to_inciweb_url = "";
 var firstClick = false; // 4-1-22
 var secondClick = false; // 4-1-22
 var lastIdentifyTime=0; // 4-1-22
-require(["esri/tasks/IdentifyParameters", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleFillSymbol", "esri/symbols/PictureMarkerSymbol",
+require(["esri/rest/support/IdentifyParameters", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleFillSymbol", "esri/symbols/PictureMarkerSymbol",
     "dojo/_base/Color"
 ], function(IdentifyParameters, SimpleLineSymbol, SimpleFillSymbol, PictureMarkerSymbol, Color) {
     //setup generic identify parameters
@@ -322,7 +322,7 @@ function readSettingsWidget() {
     xmlhttp.send();
 }
 
-function doIdentify(evt) {
+function doIdentify1(evt) {
     if (drawing) return; // If using Draw, Label, Measure widget return;
     // 3-30-22 Allow double click to zoom in. Don't show identify popup if time since last click was < a 1/4 second
     if (firstClick) secondClick = true;
@@ -351,16 +351,16 @@ function doIdentify(evt) {
     lastIdentifyTime = now;
     return;
 }
-function doIdentify2(evt){
-    if (map.infoWindow.isShowing){
+// 6-11/24 userd to be doIdentify2
+function doIdentify(evt){
+    /*if (map.infoWindow.isShowing){
         map.infoWindow.hide();
         map.infoWindow.setTitle("");
         hideLoading("");
         return;
-    }
-    require(["dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"],
-        function(domConstruct, query, dom, on) {
-            if (typeof ga === 'function')ga('send', 'event', "identify", "click", "Identify", "1");
+    }*/
+    require(["dojo/dom-construct", "dojo/query","dojo/domReady!"],
+        function(domConstruct, query) {
             if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Identify'});
             // Called for each map click or identify group change
             numDatabaseCalls = 0;
@@ -375,10 +375,10 @@ function doIdentify2(evt){
             }
             clickPoint = evt.mapPoint;
             // 10-19-20 if info window is showing, close it
-            map.infoWindow.hide();
+           /* map.infoWindow.hide();
             map.infoWindow.setTitle("Identify");
-            map.infoWindow.setContent("<p align='center'>Loading...</p>");
-            dom.byId("identifyPoint").innerHTML = "Loading click point...";
+            map.infoWindow.setContent("<p align='center'>Loading...</p>");*/
+            //dom.byId("identifyPoint").innerHTML = "Loading click point...";
 
             if (elevation_url) {
                 if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
@@ -394,7 +394,7 @@ function doIdentify2(evt){
                     }, query(".actionList", map.infoWindow.domNode)[0]);
                 }
             }
-            map.infoWindow.show(clickPoint);
+           // map.infoWindow.show(clickPoint);
             displayContent();
         });
 }
@@ -409,18 +409,20 @@ function setInfoWindowHeader() {
         title += ">" + identifyGroups[i] + "</option>";
     }
     title += "</select></span>";
-    map.infoWindow.setTitle(title);
+    view.popup.title = title;
+    //map.infoWindow.setTitle(title);
 }
 
 function displayContent() {
     // Loop through each layer found at the map click
-    require(["esri/tasks/IdentifyTask", "dojo/promise/all", "dojo/Deferred", "esri/tasks/query", "esri/tasks/QueryTask"], 
-    function(IdentifyTask, all, Deferred, Query, QueryTask) {
+    require(["esri/rest/query", "esri/rest/support/Query", "esri/rest/identify", "dojo/promise/all"], 
+    function(query, Query, Identify, all) {
         if (groupContent[identifyGroup]) {
             map.infoWindow.setContent(groupContent[identifyGroup]);
             hideLoading("");
             return;
         }
+
         var task;
         identifyParams.geometry = clickPoint; //evt.mapPoint;
         identifyParams.mapExtent = map.extent;
@@ -430,6 +432,7 @@ function displayContent() {
         var skip = -1; // if id_vis_only and the top layer is hidden this will be true
 
         var deferreds = [];
+        var params;
         for (var i = 0; i < identifyLayerIds[identifyGroup].length; i++) {
             var item = identifyLayerIds[identifyGroup][i];
             if (item) {
@@ -449,23 +452,38 @@ function displayContent() {
                         continue;
                     }
 
-                    task = new QueryTask(item.url);
-                    var query = new Query();
-                    if (identifyLayers[identifyGroup][identifyGroup].url === task.url)
-                        query.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
-                    else if (identifyLayers[identifyGroup]["Wildfire Incidents"].url === task.url){
-                        query.outFields = identifyLayers[identifyGroup]["Wildfire Incidents"].fields;
-                        query.distance =2;
-                        query.units = "miles";
+                    // new 6-12-24
+                    params = new Query({
+                        returnGeometry: true,
+                        geometry: clickPoint,
+                        spatialRelationship: "intersects",
+                        outSpatialReference: map.spatialReference
+                    });
+                    //task = new QueryTask(item.url);
+                    //var query = new Query();
+                    if (identifyLayers[identifyGroup][identifyGroup].url === item.url){
+                        //query.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
+                        params.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
+                    }
+                    else if (identifyLayers[identifyGroup]["Wildfire Incidents"].url === item.url){
+                        //query.outFields = identifyLayers[identifyGroup]["Wildfire Incidents"].fields;
+                        //query.distance =2;
+                        //query.units = "miles";
+                        params.outFields = identifyLayers[identifyGroup]["Wildfire Incidents"].fields;
+                        params.distance = 2;
+                        params.units = "miles";
                     }
                     else
                         alert("In SettingsWidget.xml tag Wildfire Perimeters folder, must contain layers with the following names: Wildfire Perimeters or Wildfire Incidents.", "Data Error");
-                    query.geometry = clickPoint;
-                    query.returnGeometry = true;
-                    query.spatialRelationship = "esriSpatialRelIntersects";
-                    query.outSpatialReference = map.spatialReference;
+                    //query.geometry = clickPoint;
+                    //query.returnGeometry = true;
+                    //query.spatialRelationship = "esriSpatialRelIntersects";
+                    //query.outSpatialReference = map.spatialReference;
                     skip = true;
-                    deferreds.push(task.execute(query, identifySuccess, handleQueryError));
+                
+                    deferreds.push(query.executeQueryJSON(item.url, params).then(identifySuccess).catch(handleQueryError));  // new 6-13-24
+                    
+                    //deferreds.push(task.execute(query, identifySuccess, handleQueryError));
                     continue;
                 }
                                     
@@ -483,12 +501,14 @@ function displayContent() {
 
                 // Show only visible items for identifyGroup when id_vis_only="true" in SettingsWidget.xml
                 // NOTE: IdentifyParameters option LAYER_OPTION_VISIBLE is supposed to do this but is not working 1-9-18
+                var url;
                 if (item.id_vis_only) {
                     //identifyParams.layerOption = IdentifyParameters.LAYER_OPTION_VISIBLE; // this is not working so get visible layers manually and set identifyParams.layerIds
                     // Get list of visible layers
-                    task = new IdentifyTask(item.vis_url);
+                    //task = new IdentifyTask(item.vis_url);
+
                     var layers = map.getLayersVisibleAtScale(map.getScale());
-                    var url = item.vis_url;
+                    url = item.vis_url;
                     if (item.vis_url[item.vis_url.length - 1] == "/") url = item.vis_url.substr(0, item.vis_url.length - 1);
 
                     var vis_layers = [];
@@ -519,7 +539,9 @@ function displayContent() {
                     }); // for each layer
                 } else {
                     skip = false;
-                    task = new IdentifyTask(item.url);
+                    url = item.url;
+                    //task = new IdentifyTask(item.url);
+                    
                 }
 
                 // remove Big Game GMU if this is identifying Bighorn or Goat GMU
@@ -529,8 +551,10 @@ function displayContent() {
                     if (index > -1) identifyParams.layerIds.splice(index, 1);
                 }
                 if (identifyParams.layerIds.length == 0) skip = true;
-                if (!skip)
-                    deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
+                if (!skip){
+                    deferreds.push(new Identify(url).then(identifySuccess).catch(handleQueryError)); // new 6-13-24
+                    // deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
+                }     
             }
         }
         // Add goat and sheep gmus
@@ -538,13 +562,15 @@ function displayContent() {
             if (gmu == "Bighorn GMU") {
                 identifyParams.tolerance = 1;
                 identifyParams.layerIds = [settings.sheepUrl.slice(settings.sheepUrl.lastIndexOf("/") + 1)];
-                task = new IdentifyTask(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1));
-                deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
+                //task = new IdentifyTask(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1));
+                //deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
+                deferreds.push(new Identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
             } else if (gmu == "Goat GMU") {
                 identifyParams.tolerance = 1;
                 identifyParams.layerIds = [settings.goatUrl.slice(settings.goatUrl.lastIndexOf("/") + 1)];
-                task = new IdentifyTask(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1));
-                deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
+                //task = new IdentifyTask(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1));
+                //deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
+                deferreds.push(new Identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
             }
         }
         if (deferreds && deferreds.length > 0) {
