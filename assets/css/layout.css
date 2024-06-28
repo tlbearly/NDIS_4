@@ -246,6 +246,17 @@ body{
 	font-weight:bold;
 }
 
+/* Identify Footer */
+.idFooter{
+	background-color: #bcd8f4;
+    background-image: linear-gradient(#fff 0, rgba(255, 255, 255, 0) 3px, rgba(255, 255, 255, .75) 100%);
+    padding: 5px;
+    margin: -5px -5px 0 -5px;
+    border-radius: 0 0 5px 5px;
+    -webkit-border-radius: 0 0 5px 5px;
+    border: 1px solid #ccc;
+}
+
 #xyCoordsDialog{
 	margin: 0 auto;
     z-index: 2;

@@ -14,21 +14,29 @@ function showGMUCombo(url,field) {
 			return;
 		}
 		// populate the gmu dropdown list
-		require (["esri/tasks/query", "esri/tasks/QueryTask"], 
-		function (Query, QueryTask) {
+		require (["esri/rest/query", "esri/rest/support/Query"], 
+		function (query, Query) {
 			try{
-				var queryTask = new QueryTask(gmu_url);
-				var query = new Query();
-				query.returnGeometry = false;
-				query.outFields = [gmu_field];
+				const params = new Query({
+					returnGeometry: false,
+					outFields: [gmu_field]
+				});
+
+
+				//var queryTask = new QueryTask(gmu_url);
+				//var query = new Query();
+				//query.returnGeometry = false;
+				//query.outFields = [gmu_field];
 				if (gmu_combo == "Goat GMU" || gmu_combo == "Bighorn GMU"){
-					query.where = "'" +gmu_field+ "' <> ''";
-					query.outFields.push("HUNTING");
+					params.where = "'" +gmu_field+ "' <> ''";
+					params.outFields.push("HUNTING");
 				}
 				else
-					query.where = gmu_field +" <> -1";
-				queryTask.execute(query,showResults,onLoadFault);
-				queryTask = null;
+					params.where = gmu_field +" <> -1";
+
+				query.executeQueryJSON(gmu_url, params).then(showResults).catch(onLoadFault);
+				//queryTask.execute(query,showResults,onLoadFault);
+				//queryTask = null;
 			}
 			catch (e) {
 				alert("Error occured while trying to show the GMU drop down: "+e.message+" in javascript/gmu.js showGMUCombo().","Code Error",e);
@@ -47,8 +55,8 @@ function onLoadFault(err){
 
 function showResults(results) {
 	try {
-		require (["dijit/form/ComboBox","dojo/store/Memory","esri/tasks/query", "esri/tasks/QueryTask"], 
-		function (ComboBox, Memory, Query, QueryTask) {
+		require (["dijit/form/ComboBox","dojo/store/Memory","esri/rest/query", "esri/rest/support/Query"], 
+		function (ComboBox, Memory, query, Query) {
 			var gmuArr = [];
 			var gmuData = [];
 			var result = [];
@@ -111,21 +119,25 @@ function showResults(results) {
 					if (value != "") {
 						showLoading();
 						this.reset();
-						var queryTask = new QueryTask(gmu_url);
-						query = new Query();
-						query.returnGeometry = true;
-						query.outFields = [gmu_field];
+						const params = new Query({
+							returnGeometry: true,
+							outFields: [gmu_field]
+						});
+						//var queryTask = new QueryTask(gmu_url);
+						//query = new Query();
+						//query.returnGeometry = true;
+						//query.outFields = [gmu_field];
 						if (gmu_combo == "Goat GMU" || gmu_combo == "Bighorn GMU"){
-							query.where = gmu_field +" = '"+value+"'";
-							query.outFields.push("HUNTING");
+							params.where = gmu_field +" = '"+value+"'";
+							params.outFields.push("HUNTING");
 						}
 						else
-							query.where = gmu_field +" = "+value;
+						params.where = gmu_field +" = "+value;
 						// Google Analytics count how many times GMU Combo is clicked on
-						if (typeof ga === "function")ga('send', 'event', "go_to_gmu", "click", "Go to GMU", "1");
 						if (typeof gtag === "function")gtag('event','widget_click',{'widget_name': 'Go to GMU'});
-						queryTask.execute(query,onResult,onFault);
-						queryTask = null;
+						query.executeQueryJSON(gmu_url, params).then(onResult).catch(onFault)
+						//queryTask.execute(query,onResult,onFault);
+						//queryTask = null;
 					}
 				},
 				required: false
@@ -160,7 +172,8 @@ function onResult(featureSet){
 			return;
 		}
 	}
-	map.setExtent(new esri.graphicsExtent(featureSet.features),true); // find the extent of the gmu, make it fit
+	view.extent = featureSet.features[0].geometry.extent; // find the extent of the gmu, make it fit
+	addTempPolygon(featureSet.features[0]);
 	hideLoading();
 }
 

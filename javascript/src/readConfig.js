@@ -1048,6 +1048,13 @@ if (layer.id == 1900) {
 			//     V Elk
 			//     > Moose
 			item.watch("visible", (event) => {
+				// set gmu species
+				if (item.title === "Bighorn" && item.visible == true)
+					gmu = "Bighorn GMU";
+				else if (item.title === "Mountain Goat" && item.visible == true)
+					gmu = "Goat GMU";
+				else
+					gmu = "Big Game GMU";
 				layerList.operationalItems.forEach((opLayer) => {
 					opLayer.children.forEach((layerView) => {
 						if ((item.parent && item.parent.title === layerView.parent.title) && (item.parent.visibilityMode === "exclusive")){
@@ -2514,6 +2521,44 @@ if (layer.id == 1900) {
 						doIdentify(event);
 						console.log("Identify");
 					});
+
+					// add popup actions
+					// When one of the action buttons are triggered, open the website or Directions widget.
+	reactiveUtils.on(
+		() => view.popup?.viewModel,
+		"trigger-action",
+		(event) => {
+			/*const selectedFeature = view.popup.viewModel.selectedFeature;
+			if (event.action.id === "open-site") {
+				// Get the 'Information' field attribute
+				let info = selectedFeature.attributes.WEBSITE;
+				// Make sure the 'Information' field value is not null
+				if (info) {
+					// Open up a new browser using the URL value in the 'Information' field
+					info = formatWebsite(info);
+					if (info !== "No site") {
+						window.open(info.trim());
+					}
+				}
+			} else*/ if (event.action.id === "directions") {
+				getDirections(view.popup.viewModel.location);
+				// Create a new RouteLayer for the Directions widget and add it to the map.
+				/*routeLayer = new RouteLayer();
+				directionsWidget.layer = routeLayer;
+				view.map.add(routeLayer);
+				// Add a stop with the current selected feature and a blank stop.
+				const start = new Stop({
+					name: selectedFeature.attributes.Title,
+					geometry: selectedFeature.geometry,
+				});
+				const end = new Stop();
+				directionsWidget.layer.stops = [start, end];
+				// Close the popup and open the directions widget
+				view.closePopup();
+				directionsExpand.expanded = true;*/
+			}
+		}
+	);
 					
 					// Watch for map scale change
 					// Providing `initial: true` in ReactiveWatchOptions

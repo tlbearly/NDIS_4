@@ -52,7 +52,7 @@
     <!-- For Debugging -->
     <script>
       var jsVer = Date.now();
-      var jsVer = "4a";
+      var jsVer = "5i";
       var path = "javascript/src";
       document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '" async><\/script>');
@@ -61,7 +61,7 @@
       //v4        document.write('<script type="text/javascript" src="' + path + '/bookmark.js?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/disclaimer.js?v=' + jsVer + '" async><\/script>');
      // document.write('<script type="text/javascript" src="' + path + '/draw.js?v=' + jsVer + '"><\/script>');
-      //v4        document.write('<script type="text/javascript" src="' + path + '/gmu.js?v=' + jsVer + '"><\/script>');
+      document.write('<script type="text/javascript" src="' + path + '/gmu.js?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/identify.js?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/maplink.js?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/print.js?v=' + jsVer + '"><\/script>');
@@ -76,10 +76,10 @@
     <script>
       function settingsXYProj(){
         require(['dijit/registry'],function(registry){
-            if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('settings_xy_proj').value);
-            registry.byId('help_xy_proj').set('value',registry.byId('settings_xy_proj').value);
-            settings.XYProjection=registry.byId('settings_xy_proj').value;
-            setCookie('prj', registry.byId('settings_xy_proj').value);
+            if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('settings_xycoords_combo').value);
+            //registry.byId('help_xy_proj').set('value',registry.byId('settings_xycoords_combo').value);
+            settings.XYProjection=registry.byId('settings_xycoords_combo').value;
+            setCookie('prj', registry.byId('settings_xycoords_combo').value);
         });
         // Send widget click event, but not on startup!
         if (typeof gtag === 'function'){
@@ -326,7 +326,7 @@
         <div id="xyCoordsDialog" class="dialog" style="display:block;width:250px;" title="Change XY Display Format">
           <h3 class="dialogTitle">Change XY Display Format <button class="myBtn" style="float:right;" onclick="toggleCoordsDialog()">X</button></h3>
           <div class="dialogContent">
-          <select id="xycoords_combo" size="4" style="margin-top:11px;overflow-y:auto;width:100%;" onChange="toggleCoordsDialog();setCookie('xycoords',document.getElementById('xycoords_combo').value);document.getElementById('settings_xycoords_combo').value=this.value;" style="width:100%;">
+          <select id="xycoords_combo" size="4" style="margin-top:11px;overflow-y:auto;width:100%;" onChange="toggleCoordsDialog();setCookie('xycoords',document.getElementById('xycoords_combo').value);" style="width:100%;">
             <option value="mercator">WGS84 Web Mercator</option>
             <option value="geo">Decimal Degrees</option>
             <option value="dms" selected>Degrees, Minutes, Seconds</option>
@@ -360,7 +360,7 @@
               <li>National Forest (for list of forests)</li>
               <li>National Grassland (for list of grasslands)</li>
               <li>County (for a list of counties)</li>
-              <li>A Point in the following format: <select id="help_xy_proj" data-dojo-type="dijit/form/Select" onChange="require(['dijit/registry'],function(registry){if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('help_xy_proj').value);registry.byId('settings_xy_proj').set('value',registry.byId('help_xy_proj').value);settings.XYProjection=registry.byId('help_xy_proj').value;setCookie('prj', registry.byId('help_xy_proj').value);});">
+              <li>A Point in the following format: <select id="help_xy_proj" data-dojo-type="dijit/form/Select" onChange="require(['dijit/registry'],function(registry){if (registry.byId('pointUnits'))registry.byId('pointUnits').set('value',registry.byId('help_xy_proj').value);registry.byId('settings_xycoords_combo').set('value',registry.byId('help_xy_proj').value);settings.XYProjection=registry.byId('help_xy_proj').value;setCookie('prj', registry.byId('help_xy_proj').value);});">
                 <option value="dd">Lat/Long decimal degrees as 40.1722,103.8336</option>
                 <option value="dms">Lat/Long degrees, minutes, seconds as 40:10:20,103:50:1</option>
                 <option value="dm">Lat/Long degrees, decimal minutes as 40:10.333,103:60.0167</option>
@@ -948,12 +948,26 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                   <img id='settingsHelpBtn' alt='Settings Help' role="button" class='help_icon help_icon_dialog' src='assets/images/i_help.png'/>
                   <input id='toolsMenuChkBox' class='largeCheckbox' onclick='javascript:showHideTools()' type='checkbox'/><label for='toolsMenuChkBox'>Show tools menu?</label>
                   <br><br>
-                  <label for="settings_xycoords_combo">XY Display Format:</label>
+                  <!--label for="settings_xycoords_combo">XY Display Format:</label>
                   <select id="settings_xycoords_combo" size="1" onchange="document.getElementById('xycoords_combo').value=this.value;setCookie('xycoords',this.value);">
                     <option value="mercator">WGS84 Web Mercator</option>
                     <option value="geo">Decimal Degrees</option>
                     <option value="dms" selected="">Degrees, Minutes, Seconds</option>
                     <option value="dm">Degrees, Decimal Minutes</option>
+                  </select><br-->
+
+                  <!-- default value is set in identify.js/readSettingsWidget -->
+                  <label for="settings_xycoords_combo" title="Set the coordinate format to use to display points.">Set coordinate format: </label>
+                  <select id="settings_xycoords_combo" name="settings_xycoords_combo" onChange="settingsXYProj()">
+                    <option value="dd">Lat/Long Decimal Degrees</option>
+                    <option value="dms">Lat/Long Degrees, Min, Sec</option>
+                    <option value="dm">Lat/Long Degrees, Decimal Min</option>
+                    <option value="32612">WGS84 UTM Zone 12N</option>
+                    <option value="32613">WGS84 UTM Zone 13N</option>
+                    <option value="26912">NAD83 UTM Zone 12N</option>
+                    <option value="26913">NAD83 UTM Zone 13N</option>
+                    <option value="26712">NAD27 UTM Zone 12N</option>
+                    <option value="26713">NAD27 UTM Zone 13N</option>
                   </select>
                 </div>
               </div>

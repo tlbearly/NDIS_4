@@ -63,8 +63,9 @@ function readSettingsWidget() {
                         settings = { "XYProjection": myPrj };
                     else
                         settings = { "XYProjection": xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue };
-                    registry.byId("settings_xy_proj").set("value", settings.XYProjection); // Settings Widget
-                    registry.byId("help_xy_proj").set("value", settings.XYProjection); // Find a Place Help				
+                    //registry.byId("settings_xycoords_combo").set("value", settings.XYProjection); // Settings Widget
+                    document.getElementById("settings_xycoords_combo").value = settings.XYProjection; // Settings Widget
+                    //registry.byId("help_xy_proj").set("value", settings.XYProjection); // Find a Place Help				
 
                     use_map_link = xmlDoc.getElementsByTagName("use_map_link")[0] && xmlDoc.getElementsByTagName("use_map_link")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
                     if (use_map_link) {
@@ -113,7 +114,19 @@ function readSettingsWidget() {
                     if (driving_directions) {
                         // Add a link into the InfoWindow Actions panel
                         // Get Directions
-                        domConstruct.create("a", {
+                        view.popup.actions = [
+                            /*{
+                                id: "open-site",
+                                className: "esri-icon-public",
+                                title: "Website",
+                            },*/
+                            {
+                                id: "directions",
+                                className: "esri-icon-directions2",
+                                title: "Get Directions"
+                            }
+                        ];
+                        /*domConstruct.create("a", {
                             "id": "dirLink",
                             "class": "action",
                             "innerHTML": "Get Directions",
@@ -121,20 +134,27 @@ function readSettingsWidget() {
                         }, query(".actionList", map.infoWindow.domNode)[0]);
                         // Register a function to be called when the user clicks on
                         // the above link
-                        on(dom.byId("dirLink"), "click", getDirections);
+                        on(dom.byId("dirLink"), "click", getDirections);*/
                     }
-                    on(query(".actionList .zoomTo")[0], "click", zoomToPt);
+                    /*on(query(".actionList .zoomTo")[0], "click", zoomToPt);
                     domConstruct.create("div", {
                         "class": "action",
                         "id": "identifyPoint",
                         "innerHTML": "Loading click point..."
-                    }, query(".actionList", map.infoWindow.domNode)[0]);
+                    }, query(".actionList", map.infoWindow.domNode)[0]);*/
                     if (xmlDoc.getElementsByTagName("elevation")[0] && xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue)
                         show_elevation = xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue == "true" ? 1 : 0;
                     if (show_elevation && xmlDoc.getElementsByTagName("elevation_url")[0]) {
                         if (xmlDoc.getElementsByTagName("elevation_url")[0].firstChild.nodeValue)
                             elevation_url = xmlDoc.getElementsByTagName("elevation_url")[0].firstChild.nodeValue;
                         else alert("Missing elevation_url tag in SettingsWidget.xml.", "Data Error");
+                        view.popup.actions.push( 
+                            {
+                                id: "elevation",
+                                className: "esri-icon-elevation",
+                                title: "Elevation: loading..."
+                            }
+                        );
                     }
                     // Read the Identify Groups from the folder tags
                     folder = xmlDoc.getElementsByTagName("folder");
@@ -302,7 +322,8 @@ function readSettingsWidget() {
                         }
                     }
                     // Call draw init here since it needs the XYprojection value which was read from user cookie or settingsWidget.xml
-                    drawInit();
+ // TODO drawing widget
+ //                 drawInit();
                 });
             } catch (e) {
                 alert("Error reading " + app + "/SettingsWidget.xml in javascript/identify.js readSettingsWidget(): " + e.message, "Data Error", e);
@@ -322,7 +343,7 @@ function readSettingsWidget() {
     xmlhttp.send();
 }
 
-function doIdentify1(evt) {
+/*function doIdentify1(evt) {
     if (drawing) return; // If using Draw, Label, Measure widget return;
     // 3-30-22 Allow double click to zoom in. Don't show identify popup if time since last click was < a 1/4 second
     if (firstClick) secondClick = true;
@@ -350,7 +371,7 @@ function doIdentify1(evt) {
     },250);
     lastIdentifyTime = now;
     return;
-}
+}*/
 // 6-11/24 userd to be doIdentify2
 function doIdentify(evt){
     /*if (map.infoWindow.isShowing){
@@ -380,7 +401,7 @@ function doIdentify(evt){
             map.infoWindow.setContent("<p align='center'>Loading...</p>");*/
             //dom.byId("identifyPoint").innerHTML = "Loading click point...";
 
-            if (elevation_url) {
+            /*if (elevation_url) {
                 if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
                     domConstruct.empty(query(".actionList #elevation", map.infoWindow.domNode)[0]);
                     domConstruct.place(
@@ -393,7 +414,7 @@ function doIdentify(evt){
                         "innerHTML": "Elevation: loading..."
                     }, query(".actionList", map.infoWindow.domNode)[0]);
                 }
-            }
+            }*/
            // map.infoWindow.show(clickPoint);
             displayContent();
         });
@@ -417,17 +438,19 @@ function displayContent() {
     // Loop through each layer found at the map click
     require(["esri/rest/query", "esri/rest/support/Query", "esri/rest/identify", "dojo/promise/all"], 
     function(query, Query, Identify, all) {
+        try{
         if (groupContent[identifyGroup]) {
-            map.infoWindow.setContent(groupContent[identifyGroup]);
+            view.poppup.content = groupContent[identifyGroup];
+            //map.infoWindow.setContent(groupContent[identifyGroup]);
             hideLoading("");
             return;
         }
 
-        var task;
         identifyParams.geometry = clickPoint; //evt.mapPoint;
-        identifyParams.mapExtent = map.extent;
-        identifyParams.width = map.width;
-        identifyParams.height = map.height;
+        identifyParams.mapExtent = view.extent;
+        identifyParams.width = view.width;
+        identifyParams.height = view.height;
+        identifyParams.layerOption = "top";
 
         var skip = -1; // if id_vis_only and the top layer is hidden this will be true
 
@@ -490,9 +513,9 @@ function displayContent() {
                 identifyParams.layerIds = item.ids.slice(); // make a copy of this array since we change it for bighorn or goat gmu
                 if (item.geometry != "polygon") {
                     // Used to be 15,10,5
-                    if (map.getScale() <= 36112)
+                    if (view.scale() <= 36112)
                         identifyParams.tolerance = 25;
-                    else if (map.getScale() <= 288895)
+                    else if (view.scale() <= 288895)
                         identifyParams.tolerance = 20;
                     else
                         identifyParams.tolerance = 10;
@@ -552,7 +575,7 @@ function displayContent() {
                 }
                 if (identifyParams.layerIds.length == 0) skip = true;
                 if (!skip){
-                    deferreds.push(new Identify(url).then(identifySuccess).catch(handleQueryError)); // new 6-13-24
+                    deferreds.push(Identify.identify(url,identifyParams).then(identifySuccess).catch(handleQueryError)); // new 6-13-24
                     // deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
                 }     
             }
@@ -564,13 +587,13 @@ function displayContent() {
                 identifyParams.layerIds = [settings.sheepUrl.slice(settings.sheepUrl.lastIndexOf("/") + 1)];
                 //task = new IdentifyTask(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1));
                 //deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
-                deferreds.push(new Identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
+                deferreds.push(Identify.identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
             } else if (gmu == "Goat GMU") {
                 identifyParams.tolerance = 1;
                 identifyParams.layerIds = [settings.goatUrl.slice(settings.goatUrl.lastIndexOf("/") + 1)];
                 //task = new IdentifyTask(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1));
                 //deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
-                deferreds.push(new Identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
+                deferreds.push(Identify.identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
             }
         }
         if (deferreds && deferreds.length > 0) {
@@ -585,10 +608,25 @@ function displayContent() {
             setInfoWindowHeader();
             displayInfoWindow();
         }
+    } catch (e){
+        alert("Problem trying to identify. Error message: "+e.message,"Warning");
+    }
     });
 }
 
-function identifySuccess(e) {}
+function identifySuccess(response) {
+    const results = response.results;
+
+    return results.map(function (result) {
+        // add popups
+        let feature = result.feature;
+        let layerName = result.layerName;
+
+        feature.attributes.layerName = layerName;
+    });
+
+    
+}
 
 function handleQueryError(e) {
     if (e.details)
@@ -613,7 +651,7 @@ function handleQueryResults(results) {
                 alert("Error in identify.js/handleQueryResults. IdentifyTask returned null.", "Data Error");
                 return;
             }
-            var title, title_subject;
+            var title;
             // Set info Content Header
             var tmpStr;
 	        var str = getIdentifyHeader(identifyGroup);
@@ -625,10 +663,12 @@ function handleQueryResults(results) {
                     var i;
                     if (results[0].features.length == 0 && results[1].features.length == 0){
                         title = "No " + identifyGroup;
-                        map.infoWindow.setTitle(title);
+                        view.popup.title = title;
+                        //map.infoWindow.setTitle(title);
                         getIdentifyFooter();
                         setInfoWindowHeader();
-                        map.infoWindow.setContent("No Wildfire Perimeters/Incidents at this point.<br/><br/>");
+                        view.popup.content = "No Wildfire Perimeters/Incidents at this point.<br/><br/>";
+                        //map.infoWindow.setContent("No Wildfire Perimeters/Incidents at this point.<br/><br/>");
                         groupContent[identifyGroup] = "No Wildfire Perimeters/Incidents at this point."; // cache 
                         displayElevation();
                         hideLoading("");
@@ -639,7 +679,8 @@ function handleQueryResults(results) {
                     if (results[0].features.length > 0)i=0;
                     else i=1;
                     title = results[i].features[0].attributes.IncidentName;
-                    map.infoWindow.setTitle(title);
+                    view.popup.title = title;
+                    //map.infoWindow.setTitle(title);
                     tmpStr = results[i].features[0].attributes.IncidentName + "</strong><div style='padding-left: 10px;'>";
                     // lookup irwinid to get incident report
                     var queryTask = new QueryTask(irwin_to_inciweb_url);//"https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/IRWIN_to_Inciweb_View/FeatureServer/0");
@@ -662,7 +703,8 @@ function handleQueryResults(results) {
                         str += "<div><strong>" + tmpStr;
                         groupContent[identifyGroup] = str; // cache content
                         setInfoWindowHeader();
-                        map.infoWindow.setContent(str);
+                        view.popup.content = str;
+                        //map.infoWindow.setContent(str);
                         getIdentifyFooter();
                         displayElevation();
                         hideLoading("");
@@ -783,8 +825,10 @@ function handleQueryResults(results) {
                                                         //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
                                                         str += "<div><strong>" + tmpStr;
                                                         groupContent[identifyGroup] = str; // cache content
-                                                        map.infoWindow.setContent(str);
-                                                        map.infoWindow.show(clickPoint);
+                                                        view.popup.content = str;
+                                                        view.openPopup();
+                                                        //map.infoWindow.setContent(str);
+                                                        //map.infoWindow.show(clickPoint);
                                                     }
                                                     features.push(r.feature);
                                                 }
@@ -846,8 +890,10 @@ function handleQueryResults(results) {
                                     //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
                                     str += "<div><strong>" + tmpStr;
                                     groupContent[identifyGroup] = str; // cache content
-                                    map.infoWindow.setContent(str);
-                                    map.infoWindow.show(clickPoint);
+                                    view.popup.content = str;
+                                    view.openPopup();
+                                    //map.infoWindow.setContent(str);
+                                    //map.infoWindow.show(clickPoint);
                                 }
                                 features.push(r.feature);
                             }
@@ -901,29 +947,34 @@ function getIdentifyHeader(name) {
 
 function getIdentifyFooter() {
     // Set XY click info
-    require(["dojo/dom", "dijit/registry", "esri/geometry/webMercatorUtils", "esri/SpatialReference", "esri/tasks/ProjectParameters", "esri/tasks/GeometryService"],
+    require(["dojo/dom", "dijit/registry", "esri/geometry/support/webMercatorUtils", "esri/geometry/SpatialReference", "esri/rest/support/ProjectParameters", "esri/rest/geometryService"],
         function(dom, registry, webMercatorUtils, SpatialReference, ProjectParameters, GeometryService) {
             try {
                 var geoPt;
-                if (registry.byId("settings_xy_proj").value === "dd") {
+                var myPrj = document.getElementById("settings_xycoords_combo").value;
+                if (myPrj === "dd") {
                     geoPt = webMercatorUtils.webMercatorToGeographic(clickPoint);
                     //dom.byId("identifyPoint").innerHTML = "Map clicked at (X/Y): " + geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5)+" W</br>&nbsp;&nbsp;&nbsp;&nbsp;Lat/Long Decimal Degrees";
-                    dom.byId("identifyPoint").innerHTML = "Lat Long: " + geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";
-                } else if (registry.byId("settings_xy_proj").value === "dms") {
+                    //dom.byId("identifyPoint").innerHTML = "Lat Long: " + geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";
+                    view.popup.content += "<div class='idFooter'>Lat Long: " + geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W</div>";
+                } else if (myPrj === "dms") {
                     geoPt = mappoint_to_dms(clickPoint, true);
                     //dom.byId("identifyPoint").innerHTML = "Map clicked at (X/Y): " + geoPt[0] + " N, " + geoPt[1]+" W</br>&nbsp;&nbsp;&nbsp;&nbsp;Lat/Long Degrees, Min, Sec";
-                    dom.byId("identifyPoint").innerHTML = "Lat Long: " + geoPt[0] + " N, " + geoPt[1] + " W";
-                } else if (registry.byId("settings_xy_proj").value === "dm") {
+                    //dom.byId("identifyPoint").innerHTML = "Lat Long: " + geoPt[0] + " N, " + geoPt[1] + " W";
+                    view.popup.content += "<div class='idFooter'>Lat Long: " + geoPt[0] + " N, " + geoPt[1] + " W</div>";
+                } else if (myPrj === "dm") {
                     geoPt = mappoint_to_dm(clickPoint, true);
                     //dom.byId("identifyPoint").innerHTML = "Map clicked at (X/Y): " + geoPt[0] + " N, " + geoPt[1]+" W</br>&nbsp;&nbsp;&nbsp;&nbsp;Lat/Long Degrees, Decimal Min";
-                    dom.byId("identifyPoint").innerHTML = "Lat Long: " + geoPt[0] + " N, " + geoPt[1] + " W";
+                    //dom.byId("identifyPoint").innerHTML = "Lat Long: " + geoPt[0] + " N, " + geoPt[1] + " W";
+                    view.popup.content += "<div class='idFooter'>Lat Long: " + geoPt[0] + " N, " + geoPt[1] + " W</div>";
                 } else { // utm
-                    var outSR = new SpatialReference(Number(registry.byId("settings_xy_proj").value));
+                    var outSR = new SpatialReference(Number(myPrj));
                     // converts point to selected projection
-                    var params = new ProjectParameters();
-                    params.geometries = [clickPoint];
-                    params.outSR = outSR;
-                    geometryService.project(params, function(feature) {
+                    var params = new ProjectParameters({
+                        outSpatialReference: outSR,
+                        geometries: [clickPoint]
+                    });
+                    GeometryService.project(geometryService,params).then( (feature) => {
                         var units;
                         if (outSR.wkid == 32612) units = "WGS84 UTM Zone 12N";
                         else if (outSR.wkid == 32613) units = "WGS84 UTM Zone 13N";
@@ -933,8 +984,9 @@ function getIdentifyFooter() {
                         else if (outSR.wkid == 26713) units = "NAD27 UTM Zone 13N";
                         else units = "unknown units";
                         //dom.byId("identifyPoint").innerHTML = "Map clicked at (X/Y): " + feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0)+"</br>&nbsp;&nbsp;&nbsp;&nbsp;"+units;
-                        dom.byId("identifyPoint").innerHTML = units + ": " + feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0);
-                    }, function(err) {
+                        //dom.byId("identifyPoint").innerHTML = units + ": " + feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0);
+                        view.popup.content += "<div class='idFooter'>"+ units + ": " + feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0)+"</div>";
+                    }).catch ( (err) => {
                         if (err.details)
                             alert("Problem projecting point. " + err.message + " " + err.details[0], "Warning");
                         else
@@ -950,8 +1002,9 @@ function getIdentifyFooter() {
 
 function changeIdentifyGroup(sel) {
     identifyGroup = sel.options[sel.selectedIndex].value;
-    map.infoWindow.setContent("<p align='center'>Loading...</p>");
-    //map.infoWindow.show(clickPoint);
+    view.popup.content = "<p align='center'>Loading...</p>";
+    //map.infoWindow.setContent("<p align='center'>Loading...</p>");
+
     features = [];
     numDatabaseCalls = 0;
     processedDatabaseCalls = 0;
@@ -972,36 +1025,33 @@ function displayInfoWindow() {
             if (identifyLayerIds[identifyGroup][0].id_vis_only) visible = "visible "; // 1-10-18 add word visible if identifying visible only
             if (identifyLayers[identifyGroup].desc) {
                 str = "<div><p style='font-style:italic;top:-15px;position:relative;'>" + identifyLayers[identifyGroup].desc + "</p>No " + visible + identifyGroup + " at this point.<br/><br/></div>";
-                map.infoWindow.setContent(str);
+                view.popup.content = str;
+                //map.infoWindow.setContent(str);
                 groupContent[identifyGroup] = str; // cache content
                 str = null;
             } else {
                 str = "<div>No " + visible + identifyGroup + " at this point.<br/><br/></div>";
-                map.infoWindow.setContent(str);
+                view.popup.content = str;
+                //map.infoWindow.setContent(str);
                 groupContent[identifyGroup] = str; // cache content
                 str = null;
             }
         }
         else {
             // tlb 6-8-18 added + "</div>" to the end of infowindow content for scrolling on ipad.
-            if (map.infoWindow._contentPane.innerHTML.indexOf("Loading") != -1){
+            // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+           /* if (map.infoWindow._contentPane.innerHTML.indexOf("Loading") != -1){
                 var str1 = map.infoWindow.map.infoWindow._contentPane.innerHTML+"</div>";
                 map.infoWindow.setContent(str1);
-            }
+            }*/
         }
 
         // Add elevation data
         displayElevation();
 
-        map.infoWindow.show(clickPoint);
-
-        /* place infoWindow. when anchor=auto seems to work, move pointer around.
-			require([
-"esri/dijit/InfoWindow", ... 
-], function(InfoWindow, ... ) {
-map.infoWindow.show(location, InfoWindow.ANCHOR_UPPERRIGHT);
-...
-});*/
+        view.openPopup();
+        //map.infoWindow.show(clickPoint);
         hideLoading("");
     }
 }
@@ -1010,80 +1060,50 @@ function displayElevation(){
     // use our raster map service
     if (elevation_url) {
         require(["esri/request"], function(esriRequest) {
-            var ext = '{"xmin":' + map.extent.xmin + ',"ymin":' + map.extent.ymin + ',"xmax":' + map.extent.xmax + ',"ymax":' + map.extent.ymax + ',"spatialReference":{"wkid":102100,"latestWkid":102100}}';
-            //map.extent.xmin+","+map.extent.ymin+","+map.extent.xmax+","+map.extent.ymax;
-            var layersRequest = esriRequest({
-                url: elevation_url + "/identify",
-                content: {
-                    f: "json",
+            var ext = '{"xmin":' + view.extent.xmin + ',"ymin":' + view.extent.ymin + ',"xmax":' + view.extent.xmax + ',"ymax":' + view.extent.ymax + ',"spatialReference":{"wkid":102100,"latestWkid":102100}}';
+            // find the index of the elevation action
+            var index=0;
+            for (var i=0; i<view.popup.actions.items.length; i++){
+                if (view.popup.actions.items[i].title.indexOf("Elevation")>-1){
+                    index = i;
+                    break;
+                }
+            }
+            var layersRequest = esriRequest(elevation_url + "/identify", {
+                responseType: "json",
+                query: {
                     geometry: JSON.stringify(clickPoint),
-                    geometryType: "esriGeometryPoint",
+                    geometryType: "point",
                     tolerance: "5",
                     mapExtent: ext,
+                    imageDisplay: view.width + "," + view.height + ",96",
+                    returnGeometry: false,
                     sr: "102100",
-                    imageDisplay: map.width + "," + map.height + ",96",
-                    returnGeometry: false
-                },
-                handleAs: "json",
-                callbackParamName: "callback"
+                    f: "json"
+                  },
+                  responseType: "json"
             });
             layersRequest.then(
                 function(response) {
-                    require(["dojo/dom-attr", "dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"],
-                        function(domAttr, domConstruct, query, dom, on) {
-                            // If user clicks outsite colorado there is no data. Was throwing an error. tlb 6-28-18
-                            if (response.results.length == 0 || isNaN(response.results[0].attributes["Pixel Value"])) {
-                                if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
-                                    domConstruct.empty(query(".actionList #elevation", map.infoWindow.domNode)[0]);
-                                    domConstruct.place(
-                                        domConstruct.toDom("Elevation: data not available"),
-                                        query(".actionList #elevation", map.infoWindow.domNode)[0]);
-                                } else {
-                                    domConstruct.create("span", {
-                                        "class": "action",
-                                        "id": "elevation",
-                                        "innerHTML": "Elevation: data not available"
-                                    }, query(".actionList", map.infoWindow.domNode)[0]);
-                                }
-                                return;
-                            }
-                            
-                            if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
-                                domConstruct.empty(query(".actionList #elevation", map.infoWindow.domNode)[0]);
-                                domConstruct.place(
-                                    // if pixel value is in meters
-                                    //domConstruct.toDom("Elevation: "+ Math.round(response.results[0].attributes["Pixel Value"]*3.28084) + " ft "+Math.round(response.results[0].attributes["Pixel Value"]) + " m"),
-                                    // if pixel value is in feet
-                                    domConstruct.toDom("Elevation: " + Math.round(response.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.results[0].attributes["Pixel Value"] * 0.3048) + " m"),
-                                    query(".actionList #elevation", map.infoWindow.domNode)[0]);
-                            } else {
-                                domConstruct.create("span", {
-                                    "class": "action",
-                                    "id": "elevation",
-                                    // if pixel value is in meters
-                                    //"innerHTML":  "Elevation: "+ Math.round(response.results[0].attributes["Pixel Value"]*3.28084) + " ft "+Math.round(response.results[0].attributes["Pixel Value"]) + " m"
-                                    // if pixel value is in feet
-                                    "innerHTML": "Elevation: " + Math.round(response.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.results[0].attributes["Pixel Value"] * 0.3048) + " m"
-                                }, query(".actionList", map.infoWindow.domNode)[0]);
-                            }
-                        });
+                    var footer = document.getElementsByClassName("idFooter")[0];
+                    var elev = document.createElement("div");
+                    // If user clicks outsite colorado there is no data. Was throwing an error. tlb 6-28-18
+                    if (response.data.results.length == 0 || isNaN(response.data.results[0].attributes["Pixel Value"])) {
+                        view.popup.actions.items[index].title = "Elevation: data not available";
+                        elev.innerHTML = "Elevation: data not available";
+                        footer.appendChild(elev);
+                        return;
+                    }
+                    view.popup.actions.items[index].title = "Elevation: " + Math.round(response.data.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.data.results[0].attributes["Pixel Value"] * 0.3048) + " m";
+                    elev.innerHTML = "Elevation: " + Math.round(response.data.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.data.results[0].attributes["Pixel Value"] * 0.3048) + " m";
+                    footer.appendChild(elev);
                 },
                 function(error) {
-                    require(["dojo/dom-attr", "dojo/dom-construct", "dojo/query", "dojo/dom", "dojo/on", "dojo/domReady!"],
-                        function(domAttr, domConstruct, query, dom, on) {
-                            if (query(".actionList #elevation", map.infoWindow.domNode)[0]) {
-                                domConstruct.empty(query(".actionList #elevation", map.infoWindow.domNode)[0]);
-                                domConstruct.place(
-                                    domConstruct.toDom("Elevation: data not available"),
-                                    query(".actionList #elevation", map.infoWindow.domNode)[0]);
-                            } else {
-                                domConstruct.create("span", {
-                                    "class": "action",
-                                    "id": "elevation",
-                                    "innerHTML": "Elevation: data not available"
-                                }, query(".actionList", map.infoWindow.domNode)[0]);
-                            }
-                        });
+                    view.popup.actions.items[index].title = "Elevation: data not available";
+                    var footer = document.getElementsByClassName("idFooter")[0];
+                    var elev = document.createElement("div");
+                    elev.innerHTML = "Elevation: data not available";
+                    footer.appendChild(elev);
                     hideLoading("");
                 }
 
@@ -1212,7 +1232,7 @@ function displayElevation(){
 
 function getDirections(evt) {
     // Example of changeing link text			dom.byId("dirLink).innerHTML = "Calculating...";
-    require(["esri/geometry/webMercatorUtils"], function(webMercatorUtils) {
+    require(["esri/geometry/support/webMercatorUtils"], function(webMercatorUtils) {
         var geoPt = webMercatorUtils.webMercatorToGeographic(clickPoint);
         var url = "http://google.com/maps?output=classic&q=" + geoPt.y + "," + geoPt.x;
         window.open(url, "_blank");
