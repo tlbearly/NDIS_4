@@ -255,6 +255,8 @@ body{
     border-radius: 0 0 5px 5px;
     -webkit-border-radius: 0 0 5px 5px;
     border: 1px solid #ccc;
+	width: calc(100% - 6px);
+    margin: 3px;
 }
 
 #xyCoordsDialog{

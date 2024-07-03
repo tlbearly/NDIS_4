@@ -2511,8 +2511,13 @@ if (layer.id == 1900) {
 						showCoordinates(event);  
 					});
 					
+					
+					// executeIdentify() is called each time the view is clicked
+					view.on("click", executeIdentify);
+					
 					// Identify
-					view.on('click', (event)=>{
+					/*view.on('click', (event)=>{
+						//if (identifyGroup && identifyGroup === "Wildfire Perimeters") return;
 						view.popup.location = event.mapPoint;
 						view.popup.title = "Identify";
 						view.popup.content = "<p align='center'>Loading...</p>";
@@ -2520,7 +2525,7 @@ if (layer.id == 1900) {
 						view.openPopup();
 						doIdentify(event);
 						console.log("Identify");
-					});
+					});*/
 
 					// add popup actions
 					// When one of the action buttons are triggered, open the website or Directions widget.
