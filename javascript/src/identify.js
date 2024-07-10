@@ -462,6 +462,8 @@ function doIdentify(evt){
 function setIdentifyHeader() {
     // Set title drop down
     // Called by displayContent on empty content and handleQueryResults
+    var h = document.getElementsByClassName("esri-popup__main-container")[0];
+    if (!h) return;
     title = "<span style='float:left;text-overflow:ellipsis;'>Show: <select id='id_group' name='id_group' style='margin: 5px;color:black;' onChange='changeIdentifyGroup(this)'>";
     for (var i = 0; i < identifyGroups.length; i++) {
         title += "<option";
@@ -469,10 +471,12 @@ function setIdentifyHeader() {
         title += ">" + identifyGroups[i] + "</option>";
     }
     title += "</select></span>";
-    var h = document.getElementsByClassName("esri-popup__main-container")[0];
-    h.childNodes[0].childNodes[0].childNodes[0].childNodes[0].innerHTML = title;
-    //view.popup.title = title;
-    //map.infoWindow.setTitle(title);
+    if (h.childNodes[0].childNodes[0].childNodes[0].innerHTML.indexOf("<h") === 0)
+        h = h.childNodes[0].childNodes[0].childNodes[0].childNodes[0];
+    else
+        h = h.childNodes[0].childNodes[0].childNodes[0];
+
+    h.innerHTML = title;
 }
 
 function displayContent() {
@@ -480,192 +484,211 @@ function displayContent() {
     require(["esri/rest/query", "esri/rest/support/Query", "esri/rest/identify", "dojo/promise/all"], 
     function(query, Query, Identify, all) {
         try{
-        if (groupContent[identifyGroup]) {
-            view.poppup.content = groupContent[identifyGroup];
-            //map.infoWindow.setContent(groupContent[identifyGroup]);
-            hideLoading("");
-            return;
-        }
-
-        identifyParams.geometry = clickPoint; 
-        identifyParams.mapExtent = view.extent;
-        identifyParams.width = view.width;
-        identifyParams.height = view.height;
-
-        var skip = -1; // if id_vis_only and the top layer is hidden this will be true
-
-        var deferreds = [];
-        for (var i = 0; i < identifyLayerIds[identifyGroup].length; i++) {
-            var item = identifyLayerIds[identifyGroup][i];
-            if (item) {
-                // 10-19-20 Add identify Wildfires
-                if (item.url.indexOf("Wildfire")>-1){
-                    for (var g=0; g<view.layerViews.items.length;g++){
-                        if (view.layerViews.items[g].layer && 
-                            view.layerViews.items[g].layer.allLayers &&
-                            view.layerViews.items[g].layer.allLayers.items[0] &&
-                            view.layerViews.items[g].layer.allLayers.items[0].url &&
-                            view.layerViews.items[g].layer.allLayers.items[0].url.indexOf("Wildfire")> -1){
-                            view.popup.content = view.layerViews.items[g].layer.allLayers.items[0].popupTemplate.content[0].text;
-                            view.popup.content += view.layerViews.items[g].layer.allLayers.items[1].popupTemplate.content[0].text;
-                        }
-                    }
-                    view.openPopup();
-                    setIdentifyHeader();
-                    setIdentifyFooter();
-
-
-                    // OLD *************************************
-                    // 11-11-20 if wildfire feature service failed to load display error message
-                    /*var mapLayers = map.getLayersVisibleAtScale();
-                    var found = 0;
-                    for (var g=0; g < mapLayers.length; g++){
-                        if (mapLayers[g].id.indexOf("Wildfire") > -1){
-                            found = 1;
-                            break;
-                        }
-                    }
-                    if (!found) {
-                        alert("Cannot display incident report at this time. The external map service that provides Wildfire Perimeters is experiencing problems. This issue is out of CPW control. We will make the National Interagency Fire Center aware of this issue.","Notice");
-                        continue;
-                    }
-
-                    // new 6-12-24
-                    params = new Query({
-                        returnGeometry: true,
-                        geometry: clickPoint,
-                        spatialRelationship: "intersects",
-                        outSpatialReference: map.spatialReference
+            if (identifyGroup.indexOf("Wildfire")>-1){
+                view.closePopup();
+                view.popupEnabled = true;
+                try {
+                    view.popup.open({
+                        location: clickPoint, // <- use map point of the click event
+                        fetchFeatures: true // <- fetch the selected features (if any)
                     });
-                    //task = new QueryTask(item.url);
-                    //var query = new Query();
-                    if (identifyLayers[identifyGroup][identifyGroup].url === item.url){
-                        //query.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
-                        params.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
-                    }
-                    else if (identifyLayers[identifyGroup]["Wildfire Incidents"].url === item.url){
-                        //query.outFields = identifyLayers[identifyGroup]["Wildfire Incidents"].fields;
-                        //query.distance =2;
-                        //query.units = "miles";
-                        params.outFields = identifyLayers[identifyGroup]["Wildfire Incidents"].fields;
-                        params.distance = 2;
-                        params.units = "miles";
-                    }
-                    else
-                        alert("In SettingsWidget.xml tag Wildfire Perimeters folder, must contain layers with the following names: Wildfire Perimeters or Wildfire Incidents.", "Data Error");
-                    //query.geometry = clickPoint;
-                    //query.returnGeometry = true;
-                    //query.spatialRelationship = "esriSpatialRelIntersects";
-                    //query.outSpatialReference = map.spatialReference;
-                    skip = true;
-                
-                    deferreds.push(query.executeQueryJSON(item.url, params).then(identifySuccess).catch(handleQueryError));  // new 6-13-24
-                    
-                    //deferreds.push(task.execute(query, identifySuccess, handleQueryError));
-                    continue;*/
+                } catch (e){
+                    alert("Problem trying to identify wildfire. "+e.message,"Warning");
+                    return;
                 }
-                                    
-                identifyParams.layerIds = item.ids.slice(); // make a copy of this array since we change it for bighorn or goat gmu
-                if (item.geometry != "polygon") {
-                    // Used to be 15,10,5
-                    if (view.scale <= 36112)
-                        identifyParams.tolerance = 25;
-                    else if (view.scale <= 288895)
-                        identifyParams.tolerance = 20;
-                    else
-                        identifyParams.tolerance = 10;
-                } else
-                    identifyParams.tolerance = 1;
+                var count = 0;
+                // wait up to 2 seconds for popup to open, if it doesn't assume there is not data here
+                let tim = setInterval(function(){
+                    count++;
+					if (count < 4 && document.getElementsByClassName("esri-popup__main-container")[0]){
+						setIdentifyHeader();
+						setIdentifyFooter();
+						clearInterval(tim);
+						hideLoading();
+					}
+					else {
+						view.popup.location = clickPoint;
+						view.popup.title = "Loading";
+						view.popup.content = "No Wildfire incidents at this location.";
+						view.openPopup();
+						setIdentifyHeader();
+						setIdentifyFooter();
+					}
+                },500);
+               
+                return;
+            }
+            // use cached content if available
+            if (groupContent[identifyGroup]) {
+                view.popup.content = groupContent[identifyGroup];
+                hideLoading("");
+                return;
+            }
 
-                // Show only visible items for identifyGroup when id_vis_only="true" in SettingsWidget.xml
-                // NOTE: IdentifyParameters option LAYER_OPTION_VISIBLE is supposed to do this but is not working 1-9-18
-                var url;
-                if (item.id_vis_only) {
-                    identifyParams.layerOption = "visible"; // this is not working so get visible layers manually and set identifyParams.layerIds ????????????????
-                    url = item.vis_url;
-                    // trim off last /
-                    if (item.vis_url[item.vis_url.length - 1] == "/") url = item.vis_url.substr(0, item.vis_url.length - 1);
-                    skip = false;
+            identifyParams.geometry = clickPoint; 
+            identifyParams.mapExtent = view.extent;
+            identifyParams.width = view.width;
+            identifyParams.height = view.height;
 
+            var skip = -1; // if id_vis_only and the top layer is hidden this will be true
 
-                    // Get list of visible layers
-                    /*var layers = map.getLayersVisibleAtScale(map.getScale());
-                    var vis_layers = [];
-                    identifyParams.layerIds = item.vis_ids.slice(); // get list of ids used in the map
-                    // Loop through each top layer in the TOC that is visible at this scale
-                    layers.forEach(function(layer) {
-                        if (layer.url && layer.url.toLowerCase() == url.toLowerCase()) {
-                            if (layer.visible == true) {
-                                skip = false;
-                                //var found = false;
-                                for (var i = 0; i < identifyParams.layerIds.length; i++) {
-                                    var id = identifyParams.layerIds[i];
-                                    // Make sure it and all it's parents are visible
-                                    while (layer.layerInfos[id].visible == true) {
-                                        if (layer.layerInfos[id].parentLayerId == -1) {
-                                            vis_layers.push(identifyParams.layerIds[i]);
-                                            break;
-                                        } else {
-                                            id = layer.layerInfos[id].parentLayerId;
-                                        }
-                                    }
-                                }
-                                identifyParams.layerIds = vis_layers;
-                            } else if (skip == -1) {
-                                skip = true;
+            var deferreds = [];
+            for (var i = 0; i < identifyLayerIds[identifyGroup].length; i++) {
+                var item = identifyLayerIds[identifyGroup][i];
+                if (item) {
+                    // 10-19-20 Add identify Wildfires
+                    /*if (item.url.indexOf("Wildfire")>-1){
+                        // OLD *************************************
+                        // 11-11-20 if wildfire feature service failed to load display error message
+                        var mapLayers = map.getLayersVisibleAtScale();
+                        var found = 0;
+                        for (var g=0; g < mapLayers.length; g++){
+                            if (mapLayers[g].id.indexOf("Wildfire") > -1){
+                                found = 1;
+                                break;
                             }
                         }
-                    }); // for each layer
-                    */
-                } else {
-                    skip = false;
-                    url = item.url;
-                }
+                        if (!found) {
+                            alert("Cannot display incident report at this time. The external map service that provides Wildfire Perimeters is experiencing problems. This issue is out of CPW control. We will make the National Interagency Fire Center aware of this issue.","Notice");
+                            continue;
+                        }
 
-                // remove Big Game GMU if this is identifying Bighorn or Goat GMU
-                if (settings.elkUrl && item.url == settings.elkUrl.slice(0, settings.elkUrl.lastIndexOf("/") + 1) && gmu != "Big Game GMU") {
-                    // Find the index to the layerId for Big Game GMU and remove it from the layer ids.
-                    var index = identifyParams.layerIds.indexOf(settings.elkUrl.slice(settings.elkUrl.lastIndexOf("/") + 1));
-                    if (index > -1) identifyParams.layerIds.splice(index, 1);
+                        // new 6-12-24
+                        params = new Query({
+                            returnGeometry: true,
+                            geometry: clickPoint,
+                            spatialRelationship: "intersects",
+                            outSpatialReference: map.spatialReference
+                        });
+                        //task = new QueryTask(item.url);
+                        //var query = new Query();
+                        if (identifyLayers[identifyGroup][identifyGroup].url === item.url){
+                            //query.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
+                            params.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
+                        }
+                        else if (identifyLayers[identifyGroup]["Wildfire Incidents"].url === item.url){
+                            //query.outFields = identifyLayers[identifyGroup]["Wildfire Incidents"].fields;
+                            //query.distance =2;
+                            //query.units = "miles";
+                            params.outFields = identifyLayers[identifyGroup]["Wildfire Incidents"].fields;
+                            params.distance = 2;
+                            params.units = "miles";
+                        }
+                        else
+                            alert("In SettingsWidget.xml tag Wildfire Perimeters folder, must contain layers with the following names: Wildfire Perimeters or Wildfire Incidents.", "Data Error");
+                        //query.geometry = clickPoint;
+                        //query.returnGeometry = true;
+                        //query.spatialRelationship = "esriSpatialRelIntersects";
+                        //query.outSpatialReference = map.spatialReference;
+                        skip = true;
+                    
+                        deferreds.push(query.executeQueryJSON(item.url, params).then(identifySuccess).catch(handleQueryError));  // new 6-13-24
+                        
+                        //deferreds.push(task.execute(query, identifySuccess, handleQueryError));
+                        continue;
+                    }*/
+                                        
+                    identifyParams.layerIds = item.ids.slice(); // make a copy of this array since we change it for bighorn or goat gmu
+                    if (item.geometry != "polygon") {
+                        // Used to be 15,10,5
+                        if (view.scale <= 36112)
+                            identifyParams.tolerance = 25;
+                        else if (view.scale <= 288895)
+                            identifyParams.tolerance = 20;
+                        else
+                            identifyParams.tolerance = 10;
+                    } else
+                        identifyParams.tolerance = 1;
+
+                    // Show only visible items for identifyGroup when id_vis_only="true" in SettingsWidget.xml
+                    // NOTE: IdentifyParameters option LAYER_OPTION_VISIBLE is supposed to do this but is not working 1-9-18
+                    var url;
+                    if (item.id_vis_only) {
+                        identifyParams.layerOption = "visible"; // this is not working so get visible layers manually and set identifyParams.layerIds ????????????????
+                        url = item.vis_url;
+                        // trim off last /
+                        if (item.vis_url[item.vis_url.length - 1] == "/") url = item.vis_url.substr(0, item.vis_url.length - 1);
+                        skip = false;
+
+
+                        // Get list of visible layers
+                        /*var layers = map.getLayersVisibleAtScale(map.getScale());
+                        var vis_layers = [];
+                        identifyParams.layerIds = item.vis_ids.slice(); // get list of ids used in the map
+                        // Loop through each top layer in the TOC that is visible at this scale
+                        layers.forEach(function(layer) {
+                            if (layer.url && layer.url.toLowerCase() == url.toLowerCase()) {
+                                if (layer.visible == true) {
+                                    skip = false;
+                                    //var found = false;
+                                    for (var i = 0; i < identifyParams.layerIds.length; i++) {
+                                        var id = identifyParams.layerIds[i];
+                                        // Make sure it and all it's parents are visible
+                                        while (layer.layerInfos[id].visible == true) {
+                                            if (layer.layerInfos[id].parentLayerId == -1) {
+                                                vis_layers.push(identifyParams.layerIds[i]);
+                                                break;
+                                            } else {
+                                                id = layer.layerInfos[id].parentLayerId;
+                                            }
+                                        }
+                                    }
+                                    identifyParams.layerIds = vis_layers;
+                                } else if (skip == -1) {
+                                    skip = true;
+                                }
+                            }
+                        }); // for each layer
+                        */
+                    } else {
+                        skip = false;
+                        url = item.url;
+                    }
+
+                    // remove Big Game GMU if this is identifying Bighorn or Goat GMU
+                    if (settings.elkUrl && item.url == settings.elkUrl.slice(0, settings.elkUrl.lastIndexOf("/") + 1) && gmu != "Big Game GMU") {
+                        // Find the index to the layerId for Big Game GMU and remove it from the layer ids.
+                        var index = identifyParams.layerIds.indexOf(settings.elkUrl.slice(settings.elkUrl.lastIndexOf("/") + 1));
+                        if (index > -1) identifyParams.layerIds.splice(index, 1);
+                    }
+                    if (identifyParams.layerIds.length == 0) skip = true;
+                    if (!skip){
+                        deferreds.push(Identify.identify(url,identifyParams).then(identifySuccess).catch(handleQueryError)); // new 6-13-24
+                        // deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
+                    }     
                 }
-                if (identifyParams.layerIds.length == 0) skip = true;
-                if (!skip){
-                    deferreds.push(Identify.identify(url,identifyParams).then(identifySuccess).catch(handleQueryError)); // new 6-13-24
-                    // deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
-                }     
             }
-        }
-        // Add goat and sheep gmus
-        if (identifyGroup === "GMU and Land Management") {
-            if (gmu == "Bighorn GMU") {
-                identifyParams.tolerance = 1;
-                identifyParams.layerIds = [settings.sheepUrl.slice(settings.sheepUrl.lastIndexOf("/") + 1)];
-                //task = new IdentifyTask(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1));
-                //deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
-                deferreds.push(Identify.identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
-            } else if (gmu == "Goat GMU") {
-                identifyParams.tolerance = 1;
-                identifyParams.layerIds = [settings.goatUrl.slice(settings.goatUrl.lastIndexOf("/") + 1)];
-                //task = new IdentifyTask(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1));
-                //deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
-                deferreds.push(Identify.identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
+            // Add goat and sheep gmus
+            if (identifyGroup === "GMU and Land Management") {
+                if (gmu == "Bighorn GMU") {
+                    identifyParams.tolerance = 1;
+                    identifyParams.layerIds = [settings.sheepUrl.slice(settings.sheepUrl.lastIndexOf("/") + 1)];
+                    //task = new IdentifyTask(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1));
+                    //deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
+                    deferreds.push(Identify.identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
+                } else if (gmu == "Goat GMU") {
+                    identifyParams.tolerance = 1;
+                    identifyParams.layerIds = [settings.goatUrl.slice(settings.goatUrl.lastIndexOf("/") + 1)];
+                    //task = new IdentifyTask(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1));
+                    //deferreds.push(task.execute(identifyParams, identifySuccess, handleQueryError));
+                    deferreds.push(Identify.identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
+                }
             }
+            if (deferreds && deferreds.length > 0) {
+                var dlist = all(deferreds);
+                dlist.then(handleQueryResults);
+            } else {
+                // display empty info popup
+                numDatabaseCalls = 0;
+                processedDatabaseCalls = 0;
+                features = [];
+                // Set header drop down
+            // setIdentifyHeader();
+                displayInfoWindow();
+            }
+        } catch (e){
+            alert("Problem trying to identify. Error message: "+e.message,"Warning");
         }
-        if (deferreds && deferreds.length > 0) {
-            var dlist = all(deferreds);
-            dlist.then(handleQueryResults);
-        } else {
-            // display empty info popup
-            numDatabaseCalls = 0;
-            processedDatabaseCalls = 0;
-            features = [];
-            // Set header drop down
-           // setIdentifyHeader();
-            displayInfoWindow();
-        }
-    } catch (e){
-        alert("Problem trying to identify. Error message: "+e.message,"Warning");
-    }
     });
 }
 
@@ -710,10 +733,10 @@ function handleQueryResults(results) {
             var title;
             // Set info Content Header
             var tmpStr;
-	        var str = setIdentifyContentHeader(identifyGroup);
+	        var str = "";//setIdentifyContentHeader(identifyGroup);
 
             // 10-19-20 Handle Wildfire
-            if (identifyGroup == "Wildfire Perimeters"){
+            /*if (identifyGroup == "Wildfire Perimeters"){
                 require(["esri/tasks/query", "esri/tasks/QueryTask"],
                 function(Query, QueryTask) {
                     var i;
@@ -768,7 +791,7 @@ function handleQueryResults(results) {
                     });
                 });
                 return;
-            }
+            }*/
                                 
 
             // Count database calls
@@ -787,11 +810,8 @@ function handleQueryResults(results) {
                 XMLHttpRequestObjects.pop();
             }
 
-            // Set title drop down
-            //setIdentifyHeader();
-
             // Set info Content Header
-            var str = setIdentifyContentHeader(identifyGroup);
+            var str = "";//setIdentifyContentHeader(identifyGroup);
             var tmpStr;
 
             // Write the content for the identify 
@@ -995,15 +1015,21 @@ function removeHighlight() {
         map.removeLayer(map.getLayer("identifygraphics"));
 }
 
-function setIdentifyContentHeader(name) {
+/*function setIdentifyContentHeader(name) {
      // tlb 6-8-18 Fix bug on ipad, info window not scrolling. Add <div style='height:100%;'>
     if (identifyLayers[name].desc) return "<div style='height:100%;'><div class='esriPopupItemTitle'>" + name + " found at map click:</div><br/><p style='font-style:italic;top:-15px;position:relative;'>" + identifyLayers[name].desc + "</p>";
     else
         return "<div style='height:100%;'><div class='esriPopupItemTitle'>" + name + " found at map click:</div><br/>";
-}
+}*/
 
 function setIdentifyFooter() {
     // Set XY click info
+    var h = document.getElementsByClassName("esri-popup__main-container")[0];
+    if (!h) return;
+    var contentNode = h.childNodes[0];
+    //if ( document.getElementsByClassName("esri-feature__content-node")[0].parentNode.parentNode.parentNode.parentNode)
+    //    contentNode = document.getElementsByClassName("esri-feature__content-node")[0].parentNode.parentNode.parentNode.parentNode;
+    //else contentNode = document.getElementsByClassName("esri-feature__content-node")[0].parentNode.parentNode.parentNode;
     require(["esri/geometry/support/webMercatorUtils", "esri/geometry/SpatialReference", "esri/rest/support/ProjectParameters", "esri/rest/geometryService", "esri/request"],
         function(webMercatorUtils, SpatialReference, ProjectParameters, GeometryService, esriRequest) {
             try {
@@ -1016,7 +1042,6 @@ function setIdentifyFooter() {
                 footer = document.createElement("div");
                 footer.className = "idFooter";
                 
-
                 // Add XY location
                 var point = document.createElement("div");
                 if (myPrj === "dd") {
@@ -1114,7 +1139,6 @@ function setIdentifyFooter() {
 
                     );
                 }
-                var contentNode = document.getElementsByClassName("esri-feature__content-node")[0].parentNode.parentNode.parentNode.parentNode;
                 contentNode.appendChild(footer);
 
             } catch (e) {

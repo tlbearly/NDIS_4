@@ -52,7 +52,7 @@
     <!-- For Debugging -->
     <script>
       var jsVer = Date.now();
-      var jsVer = "6p";
+      var jsVer = "7d";
       var path = "javascript/src";
       document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '" async><\/script>');
@@ -977,7 +977,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
 
         <!-- Overview -->
         <!--button id="overviewBtn" class="myBtn esri-icon-overview-arrow-bottom-left" style="right:3px;width:32px;height:32px;align-items:center;justify-content:center;display:flex;" onclick="toggleOverview()"></button-->
-        <div id="overviewContainer"><h3 id="OVtitle" class="dialogTitle" style="padding:10px;display:none;">Overview Map</h3><div id="overviewDiv"><div id="extentDiv"></div></div></div>
+        <div id="overviewContainer" style="display:none;"><h3 id="OVtitle" class="dialogTitle" style="padding:10px;display:none;">Overview Map</h3><div id="overviewDiv"><div id="extentDiv"></div></div></div>
         
         <!-- Map -->
         <map id="mapDiv" alt="interactive map of Colorado">

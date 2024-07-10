@@ -1784,7 +1784,7 @@ if (layer.id == 1900) {
             }
           });
           overviewMap.graphics.add(extentGraphic);
-		  document.getElementById("OVtitle").style.display = "block";
+
          /* overviewDiv.style.border="1px solid gray";
 		  overviewDiv.style.display="flex";
 		  overviewDiv.style.flexDirection="column";
@@ -2502,33 +2502,62 @@ if (layer.id == 1900) {
 		}
 	}
 	
-	// disable popup so we can manually open it
-	view.popupEnabled = false;
-				// Load listener function for when the first or base layer has been successfully added
-				view.when(() => {
-					// Update mouse coordinates
-					view.on('pointer-move', (event)=>{
-						showCoordinates(event);  
-					});
-					
-					
-					// executeIdentify() is called each time the view is clicked
-					view.on("click", executeIdentify);
-					
-					// Identify
-					/*view.on('click', (event)=>{
-						//if (identifyGroup && identifyGroup === "Wildfire Perimeters") return;
+	// Load listener function for when the first or base layer has been successfully added
+	view.when(() => {
+		// Update mouse coordinates
+		view.on('pointer-move', (event)=>{
+			showCoordinates(event);  
+		});
+		
+		
+		// executeIdentify() is called each time the view is clicked
+		//view.on("click", executeIdentify);
+		
+		// Identify
+		view.on('click', (event)=>{
+			// Use default popup for wildfire
+			if (identifyGroup && identifyGroup === "Wildfire Perimeters"){
+				view.popupEnabled = true;
+				var count = 0;
+				// Wait for popup to show then add header and footer
+				let tim = setInterval(function(){
+					count++;
+					if (count < 4 && document.getElementsByClassName("esri-popup__main-container")[0]){
+						setIdentifyHeader();
+						setIdentifyFooter();
+						clearInterval(tim);
+						hideLoading();
+					}
+					else {
 						view.popup.location = event.mapPoint;
-						view.popup.title = "Identify";
-						view.popup.content = "<p align='center'>Loading...</p>";
-						view.popup.visible = true;
+						view.popup.title = "Loading";
+						view.popup.content = "No Wildfire incidents at this location.";
 						view.openPopup();
-						doIdentify(event);
-						console.log("Identify");
-					});*/
+						setIdentifyHeader();
+						setIdentifyFooter();
+					}
+				},500);
+				
+				return;
+			}
+			// disable popup so we can manually open it
+			else view.popupEnabled = false;
+			view.popup.location = event.mapPoint;
+			view.popup.title = "Identify";
+			view.popup.content = "<p align='center'>Loading...</p>";
+			view.popup.visible = true;
+			view.openPopup();
+			doIdentify(event);
+		});
 
-					// add popup actions
-					// When one of the action buttons are triggered, open the website or Directions widget.
+		// Overview window was showing on startup. It is hidden now so now make it visible
+		setTimeout(function(){
+			document.getElementById("overviewContainer").style.display = "block";
+			document.getElementById("OVtitle").style.display = "block";
+		},1000);
+
+			// add popup actions
+			// When one of the action buttons are triggered, open the website or Directions widget.
 	reactiveUtils.on(
 		() => view.popup?.viewModel,
 		"trigger-action",
