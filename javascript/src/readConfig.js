@@ -2523,6 +2523,27 @@ if (layer.id == 1900) {
 									setIdentifyFooter();
 									hideLoading();
 								}
+								// display drop down list so can change from wildfire
+								else {
+									clearInterval(tim);
+									view.popup.location = event.mapPoint;
+									view.popup.title = "Wildfire Perimeters";
+									view.popup.content = "No Wildfire incidents at this location.";
+									view.openPopup();
+									hideLoading();
+									var count2=0;
+									let tim2 = setInterval(function(){
+										count2++;
+										if (count2 < wait_count && document.getElementsByClassName("esri-popup__main-container")[0]){
+											setIdentifyHeader();
+											setIdentifyFooter();
+											clearInterval(tim2);
+										}
+										else{
+											clearInterval(tim2);
+										}
+									},wait);
+								}
 							},wait);
 							return;
 						}

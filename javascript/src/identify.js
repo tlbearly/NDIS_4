@@ -203,20 +203,20 @@ function readSettingsWidget() {
                             }
                         ];
                     }
-                    /*if (xmlDoc.getElementsByTagName("elevation")[0] && xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue)
+                    if (xmlDoc.getElementsByTagName("elevation")[0] && xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue)
                         show_elevation = xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue == "true" ? 1 : 0;
                     if (show_elevation && xmlDoc.getElementsByTagName("elevation_url")[0]) {
                         if (xmlDoc.getElementsByTagName("elevation_url")[0].firstChild.nodeValue)
                             elevation_url = xmlDoc.getElementsByTagName("elevation_url")[0].firstChild.nodeValue;
                         else alert("Missing elevation_url tag in SettingsWidget.xml.", "Data Error");
-                        view.popup.actions.push( 
+                    /*    view.popup.actions.push( 
                             {
                                 id: "elevation",
                                 className: "esri-icon-elevation",
                                 title: "Elevation: loading..."
                             }
-                        );
-                    }*/
+                        );*/
+                    }
                     // Read the Identify Groups from the folder tags
                     folder = xmlDoc.getElementsByTagName("folder");
                     for (var f = 0; f < folder.length; f++) {
@@ -519,12 +519,21 @@ function displayContent() {
 					else {
                         clearInterval(tim);
 						view.popup.location = clickPoint;
-						view.popup.title = "Loading";
+						view.popup.title = "Wildfire Perimeters";
 						view.popup.content = "No Wildfire incidents at this location.";
 						view.openPopup();
-						setIdentifyHeader();
-						setIdentifyFooter();
                         hideLoading();
+                        var count2=0;
+						let tim2 = setInterval(function(){
+							count2++;
+							if (count2 < 2 && document.getElementsByClassName("esri-popup__main-container")[0]){
+						        clearInterval(tim2);
+                                setIdentifyHeader();
+						        setIdentifyFooter();
+                            } else{
+                                clearInterval(tim2);
+                            }
+                        },500);
 					}
                 },500);
                
