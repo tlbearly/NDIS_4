@@ -52,7 +52,7 @@
     <!-- For Debugging -->
     <script>
       var jsVer = Date.now();
-      var jsVer = "7d";
+      var jsVer = "7r";
       var path = "javascript/src";
       document.write('<link rel="stylesheet" href="assets/css/layout.css?v=' + jsVer + '"><\/script>');
       document.write('<script type="text/javascript" src="' + path + '/errorBox.js?v=' + jsVer + '" async><\/script>');
@@ -926,7 +926,8 @@ with it. To shorten it uncheck some boxes below:</span><br/>
             <div id="bookmarkDiv" class="pane_container">
               <div id="bookmarkContent" style="position:relative;">
                 <img id="bookmarkHelpBtn" alt="Bookmark Help" class="help_icon help_icon_dialog" src="assets/images/i_help.png"/>
-                <div style="height:200px;width:100%;overflow:hidden;">
+                <div id="bookmarks-container"></div>
+                <!--div style="height:200px;width:100%;overflow:hidden;">
                   <div id="bmTabs" data-dojo-type="dijit/layout/TabContainer" style="width:95%;height:100%;">
                       <div id="bmListPane" style="overflow:auto;" data-dojo-type="dijit/layout/ContentPane" title="Bookmarks" data-dojo-props="selected:true">
                           <span>Bookmarks are stored in a cookie in your browser history.</span><br/><br/>
@@ -938,7 +939,7 @@ with it. To shorten it uncheck some boxes below:</span><br/>
                           <p style="text-align: center;"><button data-dojo-type="dijit/form/Button" role="Presentation" type="button" onClick="addBookmark()">Add Bookmark</button></p>
                       </div>
                   </div><br/>
-                </div>
+                </div-->
               </div>
             </div>
 

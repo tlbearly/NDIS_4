@@ -101,23 +101,23 @@ require(["esri/rest/support/IdentifyParameters", "esri/rest/identify", "esri/sym
 
         // Shows the results of the identify in a popup once the promise is resolved
         function showPopup(response) {
-        if (response.length > 0) {
-            /*for (var i=0; i<response.length; i++){
-                response[i].popupTemplate.title = "test";
-                response[i].popupTemplate.content += "<br><select id='id_group' name='id_group' style='margin: 5px;color:black;' onChange='changeIdentifyGroup(this)'>";
-                for (var j=0; j < identifyGroups.length; j++) {
-                    response[i].popupTemplate.content += "<option";
-                    if (identifyGroup == identifyGroups[j]) response[i].popupTemplate.content += " selected";
-                    response[i].popupTemplate.content += ">" + identifyGroups[j] + "</option>";
-                }
-                response[i].popupTemplate.content += "</select>";
-            }*/
-            view.openPopup({
-                features: response,
-                location: event.mapPoint
-            });
-        }
-        document.getElementById("mapDiv").style.cursor = "auto";
+            if (response.length > 0) {
+                /*for (var i=0; i<response.length; i++){
+                    response[i].popupTemplate.title = "test";
+                    response[i].popupTemplate.content += "<br><select id='id_group' name='id_group' style='margin: 5px;color:black;' onChange='changeIdentifyGroup(this)'>";
+                    for (var j=0; j < identifyGroups.length; j++) {
+                        response[i].popupTemplate.content += "<option";
+                        if (identifyGroup == identifyGroups[j]) response[i].popupTemplate.content += " selected";
+                        response[i].popupTemplate.content += ">" + identifyGroups[j] + "</option>";
+                    }
+                    response[i].popupTemplate.content += "</select>";
+                }*/
+                view.openPopup({
+                    features: response,
+                    location: event.mapPoint
+                });
+            }
+            document.getElementById("mapDiv").style.cursor = "auto";
         }
     }
   }
@@ -203,7 +203,7 @@ function readSettingsWidget() {
                             }
                         ];
                     }
-                    if (xmlDoc.getElementsByTagName("elevation")[0] && xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue)
+                    /*if (xmlDoc.getElementsByTagName("elevation")[0] && xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue)
                         show_elevation = xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue == "true" ? 1 : 0;
                     if (show_elevation && xmlDoc.getElementsByTagName("elevation_url")[0]) {
                         if (xmlDoc.getElementsByTagName("elevation_url")[0].firstChild.nodeValue)
@@ -216,7 +216,7 @@ function readSettingsWidget() {
                                 title: "Elevation: loading..."
                             }
                         );
-                    }
+                    }*/
                     // Read the Identify Groups from the folder tags
                     folder = xmlDoc.getElementsByTagName("folder");
                     for (var f = 0; f < folder.length; f++) {
@@ -471,18 +471,28 @@ function setIdentifyHeader() {
         title += ">" + identifyGroups[i] + "</option>";
     }
     title += "</select></span>";
-    if (h.childNodes[0].childNodes[0].childNodes[0].innerHTML.indexOf("<h") === 0)
+    if (h.childNodes[0].childNodes[0].childNodes[0].innerHTML.indexOf("<h") == 0){
         h = h.childNodes[0].childNodes[0].childNodes[0].childNodes[0];
-    else
-        h = h.childNodes[0].childNodes[0].childNodes[0];
-
-    h.innerHTML = title;
+        h.innerHTML = title;
+    }
+    else {
+        h = h.childNodes[0].childNodes[0].childNodes[0].childNodes[0];
+        var h2 = document.createElement("h2");
+        h2.slot = "header-content";
+        h2.ariaLevel = "2";
+        h2.classList = "esri-widget__heading esri-features__heading";
+        h2.role="heading";
+        h2.innerHTML = title;
+        h.parentNode.insertBefore(h2, h);
+    }
+    
 }
 
 function displayContent() {
     // Loop through each layer found at the map click
-    require(["esri/rest/query", "esri/rest/support/Query", "esri/rest/identify", "dojo/promise/all"], 
-    function(query, Query, Identify, all) {
+    //"esri/rest/query", "esri/rest/support/Query", query, Query
+    require(["esri/rest/identify", "dojo/promise/all"], 
+    function(Identify, all) {
         try{
             if (identifyGroup.indexOf("Wildfire")>-1){
                 view.closePopup();
@@ -500,19 +510,21 @@ function displayContent() {
                 // wait up to 2 seconds for popup to open, if it doesn't assume there is not data here
                 let tim = setInterval(function(){
                     count++;
-					if (count < 4 && document.getElementsByClassName("esri-popup__main-container")[0]){
-						setIdentifyHeader();
-						setIdentifyFooter();
+					if (count < 2 && document.getElementsByClassName("esri-popup__main-container")[0]){
 						clearInterval(tim);
+                        setIdentifyHeader();
+						setIdentifyFooter();
 						hideLoading();
 					}
 					else {
+                        clearInterval(tim);
 						view.popup.location = clickPoint;
 						view.popup.title = "Loading";
 						view.popup.content = "No Wildfire incidents at this location.";
 						view.openPopup();
 						setIdentifyHeader();
 						setIdentifyFooter();
+                        hideLoading();
 					}
                 },500);
                
@@ -1092,13 +1104,13 @@ function setIdentifyFooter() {
                 if (elevation_url) {  
                     var ext = '{"xmin":' + view.extent.xmin + ',"ymin":' + view.extent.ymin + ',"xmax":' + view.extent.xmax + ',"ymax":' + view.extent.ymax + ',"spatialReference":{"wkid":102100,"latestWkid":102100}}';
                     // find the index of the elevation action
-                    var index=0;
+                    /*var index=0;
                     for (var i=0; i<view.popup.actions.items.length; i++){
                         if (view.popup.actions.items[i].title.indexOf("Elevation")>-1){
                             index = i;
                             break;
                         }
-                    }
+                    }*/
                     var layersRequest = esriRequest(elevation_url + "/identify", {
                         responseType: "json",
                         query: {
@@ -1119,17 +1131,17 @@ function setIdentifyFooter() {
                             var elev = document.createElement("div");
                             // If user clicks outsite colorado there is no data. Was throwing an error. tlb 6-28-18
                             if (response.data.results.length == 0 || isNaN(response.data.results[0].attributes["Pixel Value"])) {
-                                view.popup.actions.items[index].title = "Elevation: data not available";
+                                //view.popup.actions.items[index].title = "Elevation: data not available";
                                 elev.innerHTML = "Elevation: data not available";
                                 footer.appendChild(elev);
                                 return;
                             }
-                            view.popup.actions.items[index].title = "Elevation: " + Math.round(response.data.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.data.results[0].attributes["Pixel Value"] * 0.3048) + " m";
+                            //view.popup.actions.items[index].title = "Elevation: " + Math.round(response.data.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.data.results[0].attributes["Pixel Value"] * 0.3048) + " m";
                             elev.innerHTML = "Elevation: " + Math.round(response.data.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.data.results[0].attributes["Pixel Value"] * 0.3048) + " m";
                             footer.appendChild(elev);
                         },
                         function(error) {
-                            view.popup.actions.items[index].title = "Elevation: data not available";
+                            //view.popup.actions.items[index].title = "Elevation: data not available";
                             var footer = document.getElementsByClassName("idFooter")[0];
                             var elev = document.createElement("div");
                             elev.innerHTML = "Elevation: data not available";
