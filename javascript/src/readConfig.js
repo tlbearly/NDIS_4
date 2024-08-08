@@ -18,10 +18,10 @@ function readConfig() {
 	 "esri/layers/FeatureLayer", "esri/rest/geometryService",
 	 "esri/geometry/SpatialReference", "esri/Graphic", "esri/Map", "esri/views/MapView","esri/widgets/Print","esri/geometry/Extent",
 	 "esri/widgets/Home", "esri/widgets/Expand", "esri/widgets/LayerList", "esri/widgets/Legend", "esri/widgets/Bookmarks", "esri/widgets/Locate", "esri/widgets/Search", "esri/widgets/ScaleBar", "esri/widgets/Slider", "esri/rest/support/ProjectParameters",
-	 "dijit/TitlePane", "esri/widgets/Sketch","esri/layers/GraphicsLayer"], 
+	 "dijit/TitlePane", "esri/widgets/Sketch", "esri/geometry/geometryEngine", "esri/layers/GraphicsLayer"], 
 	 function (dom, ioquery, promiseUtils, reactiveUtils, GroupLayer, MapImageLayer, FeatureLayer, GeometryService, SpatialReference,
 		Graphic, Map, MapView, Print, Extent, Home, Expand, LayerList, Legend, Bookmarks, Locate, Search, ScaleBar, Slider, ProjectParameters,
-		TitlePane, Sketch, GraphicsLayer) {
+		TitlePane, Sketch, geometryEngine, GraphicsLayer) {
 		var xmlDoc; // config.xml document json
 		var ext;
 		openTOCgroups=[];
@@ -402,7 +402,7 @@ function readConfig() {
 				// at USFS and they restarted one of their map services and it fixed the problem.
 				
 				// Call subgroup layer load failed handler
-				if (event.layer.parent.type === "group") {
+				if (event.layer.parent.type && event.layer.parent.type === "group") {
 					subGroupLayerLoadFailed(event);
 					return;
 				}
@@ -553,7 +553,7 @@ console.log("url="+layer.getAttribute("url"));
 						}
 					}
 					
-					alert("Was able to sucessfully load: "+event.layer.id);
+					//alert("Was able to sucessfully load: "+event.layer.id);
 					event.layer.refresh;
 				}
 			}
@@ -739,7 +739,7 @@ if (layer.id == 1900) {
 							const template = addPopupTemplate(title,popupFields,popupLabels);
 							if (template != null) subGroupLayer.popupTemplate = template;
 						}
-						console.log("sub group layer loaded: "+layer.parent.title+" "+title+" url="+fsUrl);
+						//console.log("sub group layer loaded: "+layer.parent.title+" "+title+" url="+fsUrl);
 					});
 				}
 				if (groupLayer.title && tries[groupLayer.title+id]>0){
@@ -789,7 +789,7 @@ if (layer.id == 1900) {
 								index++;
 							} while (!reordered && index < correctOrder.length);
 						}
-						console.log("reorder group layer "+layer.title);
+						//console.log("reorder group layer "+layer.title);
 					});
 				}
 				groupLayer.add(subGroupLayer);
@@ -1021,7 +1021,7 @@ if (layer.id == 1900) {
 					tries[layer[i].getAttribute("label")] = 0;
 					// DEBUG make it fail
 					//layer[i].setAttribute("url",layer[i].getAttribute("url")+"oooo");
-					console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);				
+					//console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);				
 					createLayer(layer[i]);
 				}		
 			}
@@ -1041,19 +1041,98 @@ if (layer.id == 1900) {
             const item = event.item;
 			await item.layer.when();
 
+			if(item.title === "Graphics Layer"){
+				item.hidden = true;
+				return;
+			}
+
+			// hide group sub layers
+			//if (item.title === "Hunter Reference"){
+				item.children.forEach((subLayer) => {
+					// hide children 2 layers deep if found in hideGroupSublayers
+					if (hideGroupSublayers.includes(subLayer.title)){
+						// hide child layers
+						subLayer.children.forEach((subSubLayer) => {
+							subSubLayer.hidden = true;
+							console.log("hiding "+subSubLayer.title);
+						});
+					}
+					// hide children 3 layers deep if found in hideGroupSublayers
+					subLayer.children.forEach((subSubLayer) => {
+						if (hideGroupSublayers.includes(subSubLayer.title)){
+							// hide child layers
+							subSubLayer.children.forEach((subSubSubLayer) => {
+								subSubSubLayer.hidden = true;
+								console.log("hiding "+subSubSubLayer.title);
+							});
+						}
+					});
+				});
+			//}
+			
+
 			// Watch for layer change to visible. For exclusive layers, open selected layer and toggle other layers closed.
 			// V Game Species (visibilityMode = exclusive)
 			//     > Bighorn
 			//     V Elk
 			//     > Moose
 			item.watch("visible", (event) => {
-				// set gmu species
-				if (item.title === "Bighorn" && item.visible == true)
+				// set gmu species && display GMU layer
+				if (item.title === "Bighorn" && item.visible == true) {
 					gmu = "Bighorn GMU";
-				else if (item.title === "Mountain Goat" && item.visible == true)
+				}	
+				else if (item.title === "Mountain Goat" && item.visible == true){
 					gmu = "Goat GMU";
-				else
+				}
+				else {
 					gmu = "Big Game GMU";
+				}
+				// Show correct GMU layer, hide others
+				layerList.operationalItems.every((opLayer) => { //every break on return false
+					if (opLayer.title==="Hunter Reference"){
+						opLayer.children.every((layerView) => {
+							if (layerView.title==="GMU boundary (Hunting Units)"){
+								layerView.children.forEach((gmuScale) => {
+									// Big Game GMU, Bighorn GMU, and Goat GMU
+									gmuScale.children.forEach((gmuAnimal) => {
+										switch (gmu) {
+											case "Big Game GMU":
+												if (gmuAnimal.title === "Big Game GMU"){
+													gmuAnimal.visible = true;
+												}
+												else {
+													gmuAnimal.visible = false; // don't show on map
+												}
+												break;
+											case "Bighorn GMU":
+												if (gmuAnimal.title === "Bighorn GMU"){
+													gmuAnimal.visible = true;
+												}
+												else {
+													gmuAnimal.visible = false; // don't show on map
+												}
+												break;
+											case "Goat GMU":
+												if (gmuAnimal.title === "Goat GMU"){
+													gmuAnimal.visible = true;
+												}
+												else {
+													gmuAnimal.visible = false; // don't show on map
+												}
+												break;
+										}	
+									});
+								});
+								return false; // "GMU boundary (Hunting Units)" found, quit loop
+							}
+							return true; // "GMU boundary (Hunting Units)" not found yet
+						});
+						return false; // Hunter Reference found, quit loop
+					}
+					return true; // Hunter Reference not found yet
+				});
+				
+				// open the selected radio button layers and close other radio buttons
 				layerList.operationalItems.forEach((opLayer) => {
 					opLayer.children.forEach((layerView) => {
 						if ((item.parent && item.parent.title === layerView.parent.title) && (item.parent.visibilityMode === "exclusive")){
@@ -1157,37 +1236,6 @@ if (layer.id == 1900) {
         					visibilityAppearance: "checkbox",
 							listItemCreatedFunction: defineActions,
 							container: document.getElementById('layersContent') //tocPane.containerNode.id
-						});
-					
-						layerList.when(() => {
-							// hide toc items
-							var tocItems = document.getElementsByClassName("esri-layer-list__item--has-children");
-							for (var i=0; i<tocItems.length;i++){
-								var item=tocItems[i].children[0].children[1].children[1].innerHTML;
-								// TODO read from config.xml hideGroupSubLayers
-								//if (['Emergency','Field Office','Chamber of Commerce or Welcome Center','License Agent','Campgrounds and SWA Facilities','GMU boundary (Hunting Units)'].includes(item) ){
-								if (hideGroupSublayers.includes(item)){
-									// hide expand icon
-									tocItems[i].children[0].children[0].style.visibility = "hidden";
-									// hide the ul of zoom levels
-									tocItems[i].children[1].style.display = "none";
-								}
-								// hide MVUM status layer
-								else if(item === "Status"){
-									for (var j=0;j<map.layers.length;j++){
-										if (map.layers.items[j].title === "Motor Vehicle Use Map"){
-											for (var m=0;m<map.layers.items[j].sublayers.length;m++){
-												if (map.layers.items[j].sublayers.items[m].title === "Status"){
-													map.layers.items[j].sublayers.items[m].visible = false;
-													break;
-												}
-											}
-											break;
-										}
-									}
-									tocItems[i].children[0].children[1].children[0].children[0].className="esri-icon-non-visible";
-								}
-							}
 						});
 			
 						// Event listener that fires each time an action is triggered
@@ -1331,13 +1379,162 @@ if (layer.id == 1900) {
 						let drawTitle = document.createElement("h3");
 						drawTitle.innerText = "ESRI default Sketch tool";
 						document.getElementById('drawContent').appendChild(drawTitle);
+						
 						const graphicsLayer = new GraphicsLayer();
+						graphicsLayer.title="Graphics Layer";
 						map.add(graphicsLayer);
+
 						const sketch = new Sketch({
 							view,
 							layer: graphicsLayer,
-							container: document.getElementById('drawContent')
+							container: document.getElementById('drawContent'),
+							availableCreateTools: ["point", "polyline", "polygon", "rectangle"],
+							creationMode: "update",
+							updateOnGraphicClick: true,
+							visibleElements: {
+								createTools: {
+									circle: false
+								},
+								selectionTools:{
+									"lasso-selection": false,
+									"rectangle-selection":false,
+								},
+								settingsMenu: false,
+								undoRedoMenu: false
+							}
 						});
+						const measurements = document.createElement("div");
+						measurements.id = "measurements";
+						measurements.innerHTML = "Measurement Results";
+						sketch.when(() => {
+							document.getElementById('drawContent').appendChild(measurements);
+						});
+
+						var textSymbol = {
+							type: "text",  // autocasts as new TextSymbol()
+							color: "white",
+							haloColor: "black",
+							haloSize: "1px",
+							xoffset: 3,
+							yoffset: 3,
+							font: {  // autocasts as new Font()
+								size: 12,
+								weight: "bold"
+							}
+						};
+						function getArea(polygon) {
+							// if WGS94(4326) or WebMercator (3857) use geodesic Area
+							const geodesicArea = geometryEngine.geodesicArea(polygon, "square-miles");//"square-kilometers");
+							//const planarArea = geometryEngine.planarArea(polygon, "square-kilometers");
+							measurements.innerHTML =
+							"<b>Area</b>:  " + geodesicArea.toFixed(2) + " mi\xB2";
+							/*textSymbol.text = geodesicArea.toFixed(2) + " mi\xB2";
+							var g = new Graphic({
+								geometry: polygon,
+								symbol: textSymbol
+							});
+							graphicsLayer.graphics.add(g);*/
+						  }
+				  
+						  function getLength(line) {
+							// if WGS94(4326) or WebMercator (3857) use geodesic Area
+							const geodesicLength = geometryEngine.geodesicLength(line, "miles"); //kilometers");
+							//const planarLength = geometryEngine.planarLength(line, "kilometers");
+							measurements.innerHTML =
+							  "<b>Length</b>:  " + geodesicLength.toFixed(2) + " miles";
+							/*textSymbol.text = geodesicLength.toFixed(2) + " mi";
+							var g = new Graphic({
+								geometry: line,
+								symbol: textSymbol
+							});
+							graphicsLayer.graphics.add(g);*/
+						  }
+						  function switchType(geom) {
+							switch (geom.type) {
+							  case "polygon":
+								getArea(geom,);
+								break;
+							  case "polyline":
+								getLength(geom);
+								break;
+								case "point":
+									projectPoint(geom, measurements);
+							  default:
+								console.log("No defined geometry type found. Must be polygon, polyline, or point.");
+							}
+						  }
+						  sketch.on("update", (e) => {
+							view.closePopup();
+							const geometry = e.graphics[0].geometry;
+				  
+							if (e.state === "start") {
+							  switchType(geometry);
+							}
+				  
+							if (e.state === "complete") {
+							  // remove label
+							  //graphicsLayer.remove(graphicsLayer.graphics.getItemAt(1));
+							  graphicsLayer.remove(graphicsLayer.graphics.getItemAt(0));
+							  measurements.innerHTML = null;
+							}
+				  
+							if (
+							  e.toolEventInfo &&
+							  (e.toolEventInfo.type === "scale-stop" ||
+								e.toolEventInfo.type === "reshape-stop" ||
+								e.toolEventInfo.type === "move-stop")
+							) {
+							  switchType(geometry);
+							}
+				  
+						  });
+						// Listen to sketch widget's create event.
+						/*sketch.on("create", function(event) {
+							// check if the create event's state has changed to complete indicating
+							// the graphic create operation is completed.
+							var textSymbol = {
+								type: "text",  // autocasts as new TextSymbol()
+								color: "white",
+								haloColor: "black",
+								haloSize: "1px",
+								xoffset: 3,
+								yoffset: 3,
+								font: {  // autocasts as new Font()
+									size: 12,
+									weight: "bold"
+								}
+							};
+							if (event.state === "complete"){
+								var gra;
+								if (event.graphic && (event.graphic.geometry.type === 'polygon' || event.graphic.geometry.type === 'extent')) {
+									var area = geometryEngine.geodesicArea(event.graphic.geometry, 'square-miles');
+									//console.log(area);
+									textSymbol.text = area.toFixed(2)+' SqMi.';
+									gra = new Graphic({
+										geometry: event.graphic.geometry,
+										symbol: textSymbol
+									});
+									sketch.layer.add(gra);
+								}
+								else if (event.graphic && (event.graphic.geometry.type === 'polyline' )){
+									var distance = geometryEngine.distance(event.graphic.geometry, "miles");
+									textSymbol.text = distance+' Mi.';
+									gra = new Graphic({
+										geometry: event.graphic.geometry,
+										symbol: textSymbol
+									});
+									sketch.layer.add(gra);
+								} else if (event.graphic && (event.graphic.geometry.type === 'point' )){
+									textSymbol.text = "XY";
+									gra = new Graphic({
+										geometry: event.graphic.geometry,
+										symbol: textSymbol
+									});
+									sketch.layer.add(gra);
+									projectPoint(event.graphic.geometry, null, gra);
+								}
+							}
+						});*/
 						
 					} else if (label == "Bookmark") {
 						var bookmarkPane = new TitlePane({
@@ -1535,7 +1732,8 @@ if (layer.id == 1900) {
 					}*/
 			});
 			var gmuFL = new FeatureLayer({
-				url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/4"
+				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2"
+				//url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/4"
 				/*popupTemplate: {
 					// autocasts as new PopupTemplate()
 					title: "GMU {GMUID}",
@@ -1552,6 +1750,12 @@ if (layer.id == 1900) {
 					title: "{NAME}",
 					overwriteActions: true
 					}*/
+			});
+			var bighornFL = new FeatureLayer({
+				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/15"
+			});
+			var goatFL = new FeatureLayer({
+				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/16"
 			});
 			
 			searchWidget = new Search({
@@ -1629,6 +1833,30 @@ if (layer.id == 1900) {
 						outFields: ["*"],
 						name: "Address",
 						placeholder: "Search Address"
+					},
+					{
+						layer: bighornFL,
+						searchFields: ["BSGMU"],
+						displayField: "BSGMU",
+						exactMatch: false,
+						maxResults: 6,
+						maxSuggestions: 100,
+						minSuggestCharacters: 1,
+						outFields: ["BSGMU"],
+						name: "Bighorn GMU Boundaries (S10)",
+						placeholder: "Search Bighorn GMUs"
+					},
+					{
+						layer: goatFL,
+						searchFields: ["MGGMU"],
+						displayField: "MGGMU",
+						exactMatch: false,
+						maxResults: 6,
+						maxSuggestions: 100,
+						minSuggestCharacters: 1,
+						outFields: ["MGGMU"],
+						name: "Goat GMU Boundaries (S10)",
+						placeholder: "Search Goat GMUs"
 					}
 				]
 				});
@@ -1828,7 +2056,6 @@ if (layer.id == 1900) {
                     if (resp.results.length > 0 && resp.results[0].graphic && resp.results[0].graphic.geometry && resp.results[0].graphic.geometry.type === 'extent'){
                       event.stopPropagation();
                       dragging=true;
-                      console.log("start dragging"); 
                       // if the hitTest returns an extent graphic, set dragginGraphic
                       draggingGraphic = resp.results[0].graphic;
                       start =  overviewMap.toMap({x: event.x, y: event.y});
@@ -1839,7 +2066,6 @@ if (layer.id == 1900) {
                 // on drag update events, only continue if a draggingGraphic is set
                 if (draggingGraphic){
                     event.stopPropagation();
-                    console.log("update dragging");
                     // if there is a tempGraphic, remove it
                     if (tempGraphic) {
                         overviewMap.graphics.remove(tempGraphic);
@@ -1867,7 +2093,6 @@ if (layer.id == 1900) {
                 // on drag end, continue only if there is a draggingGraphic
                 if (draggingGraphic){
                   event.stopPropagation();
-                  console.log("end dragging");
                   // rm temp
                   if (tempGraphic) overviewMap.graphics.remove(tempGraphic);
                   // fix double image bug
@@ -1896,7 +2121,6 @@ if (layer.id == 1900) {
           // disable the view's zoom box to prevent the Shift + drag
           // and Shift + Control + drag zoom gestures.
           overviewMap.on("drag", ["Shift"], function(event){
-            console.log("shift-drag");
             if(overviewDiv.style.visibility == "hidden")return;
             event.stopPropagation();
           });
@@ -2501,108 +2725,30 @@ if (layer.id == 1900) {
 						showCoordinates(event);  
 					});
 					
-					
-					// executeIdentify() is called each time the view is clicked
-					//view.on("click", executeIdentify);
-					
 					// Identify
+					view.popup.visibleElements = {
+						actionBar: false,
+						heading: false
+						//featureNavigation: false
+					};
+					
 					view.on('click', (event)=>{
-						// Use default popup for wildfire
-						if (identifyGroup && identifyGroup === "Wildfire Perimeters"){
-							view.popupEnabled = true;
-							var count = 0;
-							let total_wait = 1; // total time to wait in seconds before giving up
-							let wait = 500;
-							let wait_count = (total_wait * 1000) / wait;
-							// Wait for popup to show then add header and footer
-							let tim = setInterval(function(){
-								count++;
-								if (count < wait_count && document.getElementsByClassName("esri-popup__main-container")[0]){
-									clearInterval(tim);
-									setIdentifyHeader();
-									setIdentifyFooter();
-									hideLoading();
-								}
-								// display drop down list so can change from wildfire
-								else {
-									clearInterval(tim);
-									view.popup.location = event.mapPoint;
-									view.popup.title = "Wildfire Perimeters";
-									view.popup.content = "No Wildfire incidents at this location.";
-									view.openPopup();
-									hideLoading();
-									var count2=0;
-									let tim2 = setInterval(function(){
-										count2++;
-										if (count2 < wait_count && document.getElementsByClassName("esri-popup__main-container")[0]){
-											setIdentifyHeader();
-											setIdentifyFooter();
-											clearInterval(tim2);
-										}
-										else{
-											clearInterval(tim2);
-										}
-									},wait);
-								}
-							},wait);
-							return;
-						}
-						// disable popup so we can manually open it and call doIdentify in identify.js
-						else {
-							view.popupEnabled = false;
-							view.popup.location = event.mapPoint;
-							view.popup.title = "Identify";
-							view.popup.content = "<p align='center'>Loading...</p>";
-							view.popup.visible = true;
-							view.openPopup();
-							doIdentify(event);
-						}
+						view.popupEnabled = false;
+						view.popup.location = event.mapPoint;
+						view.popup.title = "Identify";
+						view.popup.content = "<p align='center'>Loading...</p>";
+						view.popup.visible = true;
+						view.openPopup();
+						doIdentify(event);
 					});
 
 					// Overview window was showing on startup. It is hidden now so now make it visible
 					setTimeout(function(){
 						document.getElementById("overviewContainer").style.display = "block";
 						document.getElementById("OVtitle").style.display = "block";
-					},1000);
+					},2000);
 
-					// add popup actions
-					// When one of the action buttons are triggered, open the website or Directions widget.
-					reactiveUtils.on(
-						() => view.popup?.viewModel,
-						"trigger-action",
-						(event) => {
-							/*const selectedFeature = view.popup.viewModel.selectedFeature;
-							if (event.action.id === "open-site") {
-								// Get the 'Information' field attribute
-								let info = selectedFeature.attributes.WEBSITE;
-								// Make sure the 'Information' field value is not null
-								if (info) {
-									// Open up a new browser using the URL value in the 'Information' field
-									info = formatWebsite(info);
-									if (info !== "No site") {
-										window.open(info.trim());
-									}
-								}
-							} else*/ if (event.action.id === "directions") {
-								getDirections(view.popup.viewModel.location);
-								// Create a new RouteLayer for the Directions widget and add it to the map.
-								/*routeLayer = new RouteLayer();
-								directionsWidget.layer = routeLayer;
-								view.map.add(routeLayer);
-								// Add a stop with the current selected feature and a blank stop.
-								const start = new Stop({
-									name: selectedFeature.attributes.Title,
-									geometry: selectedFeature.geometry,
-								});
-								const end = new Stop();
-								directionsWidget.layer.stops = [start, end];
-								// Close the popup and open the directions widget
-								view.closePopup();
-								directionsExpand.expanded = true;*/
-							}
-						}
-					);
-					
+									
 					// Watch for map scale change
 					// Providing `initial: true` in ReactiveWatchOptions
 					// checks immediately after initialization

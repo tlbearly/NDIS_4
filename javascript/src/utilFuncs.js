@@ -178,6 +178,7 @@
 	}
 	
 	function showCoordinates(evt) {
+		// display mouse coordinates at mouse
 		require(["dojo/dom","esri/geometry/support/webMercatorUtils"],function(dom,webMercatorUtils){
 			//get mapPoint from event
 			var mp, xy;
@@ -202,6 +203,53 @@
 				dom.byId("xycoords").children[0].innerHTML = pt.x.toFixed(0) + ", " + pt.y.toFixed(0); // + " Web Mercator";
 			}
 		 });
+	}
+
+	
+	async function projectPoint(pt, div){
+		require(["esri/geometry/support/webMercatorUtils", "esri/geometry/SpatialReference", "esri/rest/support/ProjectParameters", "esri/rest/geometryService"],
+			function(webMercatorUtils, SpatialReference, ProjectParameters, GeometryService) {
+			// Project point pt to user selected projection from Settings
+			var geoPt;
+            var myPrj = document.getElementById("settings_xycoords_combo").value; // user defined projection
+			if (myPrj === "dd") {
+				geoPt = webMercatorUtils.webMercatorToGeographic(pt);
+				if (div)
+					div.innerHTML = geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";			
+			} else if (myPrj === "dms") {
+				geoPt = mappoint_to_dms(pt, true);
+				if (div)
+					div.innerHTML =  geoPt[0] + " N, " + geoPt[1] + " W";
+			} else if (myPrj === "dm") {
+				geoPt = mappoint_to_dm(pt, true);
+				if (div)
+					div.innerHTML =  geoPt[0] + " N, " + geoPt[1] + " W";
+			} else { // utm
+				var outSR = new SpatialReference(Number(myPrj));
+				// converts point to selected projection
+				var params = new ProjectParameters({
+					outSpatialReference: outSR,
+					geometries: [pt]
+				});
+				GeometryService.project(geometryService,params).then( (feature) => {
+					var units;
+					if (outSR.wkid == 32612) units = "WGS84 UTM Zone 12N";
+					else if (outSR.wkid == 32613) units = "WGS84 UTM Zone 13N";
+					else if (outSR.wkid == 26912) units = "NAD83 UTM Zone 12N";
+					else if (outSR.wkid == 26913) units = "NAD83 UTM Zone 13N";
+					else if (outSR.wkid == 26712) units = "NAD27 UTM Zone 12N";
+					else if (outSR.wkid == 26713) units = "NAD27 UTM Zone 13N";
+					else units = "unknown units: "+outSR.wkid+" in utilFuncs.js projectPoint()";
+					if (div)
+						div.innerHTML = feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0) + " " + units;
+				}).catch ( (err) => {
+					if (err.details)
+						alert("Problem projecting point. " + err.message + " " + err.details[0], "Warning");
+					else
+						alert("Problem projecting point. " + err.message, "Warning");					
+				});
+			}
+		});
 	}
 
 	function mappoint_to_dms(point, leadingZero) {
@@ -539,11 +587,11 @@
 	  }
 	  
 	  // Drawing
-	  function addTempLabel(point, label, fontSize, fade1){
+	  function addTempLabel(point, label, fontSize, noFade){
 		// Add text at a point. Fade out after 10 seconds.
 		// point: Point, label: text, fontSize: int
 		// if point is a polygon use the centroid
-		// fade: should it fade away? default is true
+		// noFade: should it fade away? default is true
 		require(["esri/symbols/TextSymbol","esri/Graphic"], function (TextSymbol, Graphic) {
 			var shouldFade = true;
 			if (arguments.length == 2) fontSize = 11;
@@ -571,7 +619,8 @@
 			view.graphics.add(pointText);
 			let fade = 1.0; // starting transparency
 			let width = pointText.symbol.haloSize / 4;
-			if (shouldFade){
+			// should fade out?
+			if (arguments.length == 4){
 				setTimeout(function(){
 					let tim = setInterval(function(){
 						fade = fade - 0.25;
@@ -587,9 +636,10 @@
 			}
 		});
 	  }
-	  function addTempPoint(pt){
+	  function addTempPoint(pt,noFade){
 		// pt: Point
 		// add point and remove it in 10 seconds
+		// if noFade is passed in do not fade
 		// added 4/25/24
 		require(["esri/symbols/PictureMarkerSymbol","esri/Graphic"], function (PictureMarkerSymbol, Graphic) {
 			const symbol = {
@@ -606,20 +656,51 @@
 				symbol: symbol
 			});
 			view.graphics.add(point);
-			setTimeout(function(){
-				view.graphics.remove(point);
-			},13000);
+			if (arguments.length == 1){
+				setTimeout(function(){
+					view.graphics.remove(point);
+				},13000);
+			}
 		});
 	  }
-	  function addTempPolygon(feature){
+	  function addHighlightPoint(pt){
+		require (["esri/Graphic","esri/geometry/Circle"],(Graphic,Circle) => {
+			let r = 1;
+			if (view.scale < 24000) r = .25;
+			else if (view.scale < 24000) r = .5;
+
+			const circle = new Circle({
+				center: pt.geometry,
+				geodesic: false,
+				numberOfPoints: 100,
+				radius: r,
+				radiusUnit: "kilometers"
+			  });
+			let point = new Graphic({
+				geometry: circle,
+				symbol: {
+					type: "simple-fill",
+					style: "none",
+					outline: {
+					  width: 3,
+					  color: "cyan"
+					}
+				}
+			});
+			view.graphics.add(point);
+		});
+	  }
+	  const polySymbol = {
+				type: "simple-line",  // autocasts as SimpleLineSymbol()
+				color: [0,255,255], //[226, 119, 40],
+				width: 3
+			}
+	  function addTempPolygon(feature,noFade){
 		// add polygon outline and remove it in 10 seconds
+		// if noFade is passed in do not fade
 		require(["esri/geometry/Polygon", "esri/Graphic"],
 			function (Polygon, Graphic) {
-			const polySymbol = {
-				type: "simple-line",  // autocasts as SimpleLineSymbol()
-				color: [226, 119, 40],
-				width: 4
-			}
+			
 			const polygon = new Polygon({
 				rings: feature.geometry.rings,
 				spatialReference: feature.geometry.spatialReference
@@ -629,11 +710,42 @@
 				symbol: polySymbol
 			});
 			view.graphics.add(poly);
-			setTimeout(function(){
-				view.graphics.remove(poly);
-			},13000);
+			if (arguments.length == 1){
+				setTimeout(function(){
+					view.graphics.remove(poly);
+				},13000);
+			}
 		});
 	  }
+
+	  function addTempLine(feature,noFade){
+		// add polygon outline and remove it in 10 seconds
+		// if noFade is passed in do not fade
+		// called by Identify highlight
+		require(["esri/geometry/Polyline", "esri/Graphic"],
+			function (Polyline, Graphic) {
+			/*const polySymbol = {
+				type: "simple-line",  // autocasts as SimpleLineSymbol()
+				color: [0,255,255], //[226, 119, 40],
+				width: 3
+			}*/
+			const line = new Polyline({
+				paths: feature.geometry.paths,
+				spatialReference: feature.geometry.spatialReference
+			});
+			const lineGraphic = new Graphic({
+				geometry: line,
+				symbol: polySymbol
+			});
+			view.graphics.add(lineGraphic);
+			if (arguments.length == 1){
+				setTimeout(function(){
+					view.graphics.remove(lineGraphic);
+				},13000);
+			}
+		});
+	  }
+	  
 	  function addLabel(point, label, graphicsLayer, fontsize) {
 		  // Adds a label to the map at the given point, fontsize = "11pt"
 		  // graphicsName is the name for this graphics layer. For example: searchgraphics or drawgraphics

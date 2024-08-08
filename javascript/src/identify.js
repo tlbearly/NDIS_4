@@ -17,8 +17,8 @@ var groupContent = {}; // Cache the infoWindow content for each group for a map 
 var identifyLayerIds = []; // handles the identify tasks for each group. [GroupName][{url, layerIds, geometryType}]
 var show_elevation = false;
 var elevation_url = null;
-var polySymbol, pointSymbol, lineSymbol;
-var irwin_to_inciweb_url = "";
+var driving_directions = false;
+var tooManyRequests = false;
 var firstClick = false; // 4-1-22
 var secondClick = false; // 4-1-22
 var lastIdentifyTime=0; // 4-1-22
@@ -33,7 +33,7 @@ require(["esri/rest/support/IdentifyParameters", "esri/rest/identify", "esri/sym
     identify = Identify;
 
     // Set up symbols for highlight on mouse over
-    polySymbol = new SimpleFillSymbol(
+    /*polySymbol = new SimpleFillSymbol(
         SimpleFillSymbol.STYLE_SOLID,
         new SimpleLineSymbol(
             SimpleLineSymbol.STYLE_SOLID,
@@ -42,87 +42,8 @@ require(["esri/rest/support/IdentifyParameters", "esri/rest/identify", "esri/sym
         new Color([125, 125, 125, 0.35])
     );
     pointSymbol = new PictureMarkerSymbol("assets/images/i_flag.png", 40, 40);
-    lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 10]), 1);
+    lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 10]), 1);*/
 });
-
-// TEST ********************************
-
-  // Executes each time the view is clicked
-  function executeIdentify(event) {
-    // Set the geometry to the location of the view click
-    identifyParams.geometry = event.mapPoint;
-    identifyParams.width = view.width;
-    identifyParams.height = view.height;
-    identifyParams.mapExtent = view.extent;
-    identifyParams.tolerance = 1;
-
-    document.getElementById("mapDiv").style.cursor = "wait";
-
-    for(var g=0; g<identifyLayerIds[identifyGroup].length; g++){
-        var identifyURL = identifyLayerIds[identifyGroup][g].url;
-        identifyParams.layerIds = identifyLayerIds[identifyGroup][g].ids.slice();
-
-        // This function returns a promise that resolves to an array of features
-        // A custom popupTemplate is set for each feature based on the layer it
-        // originates from
-        identify
-        .identify(identifyURL, identifyParams)
-        .then(function (response) {
-            const results = response.results;
-
-            return results.map(function (result) {
-            let feature = result.feature;
-            let layerName = result.layerName;
-
-            feature.attributes.layerName = layerName;
-            feature.popupTemplate = {
-                title: "<button>"+identifyGroup+"</button>"
-            };
-            feature.popupTemplate.content = "<b>"+layerName+"</b><br>";
-            // add displayname: field value</br>
-            for (var i=0; i<identifyLayers[identifyGroup][layerName].displaynames.length; i++){
-                if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "") continue;
-                feature.popupTemplate.content += identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +
-                "{"+identifyLayers[identifyGroup][layerName].fields[i] + "}<br>";
-            }
-
-            // drop down list of identify groups
-            feature.popupTemplate.content += "<br><select id='id_group' name='id_group' style='margin: 5px;color:black;' onChange='changeIdentifyGroup(this)'>";
-                for (var j=0; j < identifyGroups.length; j++) {
-                    feature.popupTemplate.content += "<option";
-                    if (identifyGroup == identifyGroups[j]) feature.popupTemplate.content += " selected";
-                    feature.popupTemplate.content += ">" + identifyGroups[j] + "</option>";
-                }
-                feature.popupTemplate.content += "</select>";
-            return feature;
-            });
-        })
-        .then(showPopup); // Send the array of features to showPopup()
-
-        // Shows the results of the identify in a popup once the promise is resolved
-        function showPopup(response) {
-            if (response.length > 0) {
-                /*for (var i=0; i<response.length; i++){
-                    response[i].popupTemplate.title = "test";
-                    response[i].popupTemplate.content += "<br><select id='id_group' name='id_group' style='margin: 5px;color:black;' onChange='changeIdentifyGroup(this)'>";
-                    for (var j=0; j < identifyGroups.length; j++) {
-                        response[i].popupTemplate.content += "<option";
-                        if (identifyGroup == identifyGroups[j]) response[i].popupTemplate.content += " selected";
-                        response[i].popupTemplate.content += ">" + identifyGroups[j] + "</option>";
-                    }
-                    response[i].popupTemplate.content += "</select>";
-                }*/
-                view.openPopup({
-                    features: response,
-                    location: event.mapPoint
-                });
-            }
-            document.getElementById("mapDiv").style.cursor = "auto";
-        }
-    }
-  }
-
-// END TEST ****************************
 
 function readSettingsWidget() {
     // Read the SettingsWidget.xml file
@@ -191,8 +112,8 @@ function readSettingsWidget() {
                     } else {
                         settings.useGMUs = false;
                     }
-                    var driving_directions = xmlDoc.getElementsByTagName("driving_directions")[0] && xmlDoc.getElementsByTagName("driving_directions")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
-                    if (driving_directions) {
+                    driving_directions = xmlDoc.getElementsByTagName("driving_directions")[0] && xmlDoc.getElementsByTagName("driving_directions")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
+                    /*if (driving_directions) {
                         // Add a link into the InfoWindow Actions panel
                         // Get Directions
                         view.popup.actions = [
@@ -202,7 +123,7 @@ function readSettingsWidget() {
                                 title: "Get Directions"
                             }
                         ];
-                    }
+                    }*/
                     if (xmlDoc.getElementsByTagName("elevation")[0] && xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue)
                         show_elevation = xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue == "true" ? 1 : 0;
                     if (show_elevation && xmlDoc.getElementsByTagName("elevation_url")[0]) {
@@ -246,14 +167,6 @@ function readSettingsWidget() {
                                     alert("Error in " + app + "/SettingsWidget.xml. When vis_id_only is set in a folder, every layer in the folder must have a vis_id and vis_url tag for the layer that is in the map to check if it is visible or not. Missing vis_url and vis_id tags in folder: " + identifyGroups[f] + ".", "Data Error");
                             }
                             identifyLayers[identifyGroups[f]][label] = {};
-
-                            // Get Wildfire Perimeters IRWIN_to_Inciweb url if. This contains the report info. 6/24/21
-							if (layer[i].getAttribute("label") === "Wildfire Perimeters"){
-								if (layer[i].getElementsByTagName("irwin_to_inciweb") && layer[i].getElementsByTagName("irwin_to_inciweb")[0])
-									irwin_to_inciweb_url = layer[i].getElementsByTagName("irwin_to_inciweb")[0].childNodes[0].nodeValue;
-								else
-									alert("Error in "+ app + "/readSettingsWidget.xml. Missing irwin_to_inciweb tag in Wildfire Perimeters layer. This contains the report info.");
-							}
 
                             // Create list of ids for this layer
                             var found = false;
@@ -485,67 +398,20 @@ function setIdentifyHeader() {
         h2.innerHTML = title;
         h.parentNode.insertBefore(h2, h);
     }
-    
 }
 
 function displayContent() {
-    // Loop through each layer found at the map click
-    //"esri/rest/query", "esri/rest/support/Query", query, Query
-    require(["esri/rest/identify", "dojo/promise/all"], 
-    function(Identify, all) {
-        try{
-            if (identifyGroup.indexOf("Wildfire")>-1){
-                view.closePopup();
-                view.popupEnabled = true;
-                try {
-                    view.popup.open({
-                        location: clickPoint, // <- use map point of the click event
-                        fetchFeatures: true // <- fetch the selected features (if any)
-                    });
-                } catch (e){
-                    alert("Problem trying to identify wildfire. "+e.message,"Warning");
-                    return;
-                }
-                var count = 0;
-                // wait up to 2 seconds for popup to open, if it doesn't assume there is not data here
-                let tim = setInterval(function(){
-                    count++;
-					if (count < 2 && document.getElementsByClassName("esri-popup__main-container")[0]){
-						clearInterval(tim);
-                        setIdentifyHeader();
-						setIdentifyFooter();
-						hideLoading();
-					}
-					else {
-                        clearInterval(tim);
-						view.popup.location = clickPoint;
-						view.popup.title = "Wildfire Perimeters";
-						view.popup.content = "No Wildfire incidents at this location.";
-						view.openPopup();
-                        hideLoading();
-                        var count2=0;
-						let tim2 = setInterval(function(){
-							count2++;
-							if (count2 < 2 && document.getElementsByClassName("esri-popup__main-container")[0]){
-						        clearInterval(tim2);
-                                setIdentifyHeader();
-						        setIdentifyFooter();
-                            } else{
-                                clearInterval(tim2);
-                            }
-                        },500);
-					}
-                },500);
-               
-                return;
-            }
-            // use cached content if available
-            if (groupContent[identifyGroup]) {
-                view.popup.content = groupContent[identifyGroup];
-                hideLoading("");
-                return;
-            }
+    // Display cached content if available
+    // Else loop through each layer found at the map click and call identifySuccess & handleQueryResults to handle each
+    // Use cached content if available
+    if (groupContent[identifyGroup]) {
+        displayInfoWindow(groupContent[identifyGroup]);
+        return;
+    }
 
+    require(["esri/rest/identify", "dojo/promise/all", "esri/rest/query", "esri/rest/support/Query"], 
+    function(Identify, all, query, Query) {
+        try{
             identifyParams.geometry = clickPoint; 
             identifyParams.mapExtent = view.extent;
             identifyParams.width = view.width;
@@ -558,56 +424,27 @@ function displayContent() {
                 var item = identifyLayerIds[identifyGroup][i];
                 if (item) {
                     // 10-19-20 Add identify Wildfires
-                    /*if (item.url.indexOf("Wildfire")>-1){
-                        // OLD *************************************
-                        // 11-11-20 if wildfire feature service failed to load display error message
-                        var mapLayers = map.getLayersVisibleAtScale();
-                        var found = 0;
-                        for (var g=0; g < mapLayers.length; g++){
-                            if (mapLayers[g].id.indexOf("Wildfire") > -1){
-                                found = 1;
-                                break;
-                            }
-                        }
-                        if (!found) {
-                            alert("Cannot display incident report at this time. The external map service that provides Wildfire Perimeters is experiencing problems. This issue is out of CPW control. We will make the National Interagency Fire Center aware of this issue.","Notice");
-                            continue;
-                        }
-
-                        // new 6-12-24
+                    if (item.url.indexOf("Wildfire")>-1){
                         params = new Query({
                             returnGeometry: true,
                             geometry: clickPoint,
                             spatialRelationship: "intersects",
                             outSpatialReference: map.spatialReference
                         });
-                        //task = new QueryTask(item.url);
-                        //var query = new Query();
-                        if (identifyLayers[identifyGroup][identifyGroup].url === item.url){
-                            //query.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
-                            params.outFields = identifyLayers[identifyGroup][identifyGroup].fields;
-                        }
-                        else if (identifyLayers[identifyGroup]["Wildfire Incidents"].url === item.url){
-                            //query.outFields = identifyLayers[identifyGroup]["Wildfire Incidents"].fields;
-                            //query.distance =2;
-                            //query.units = "miles";
+                        if (identifyLayers[identifyGroup]["Wildfire Incidents"].url === item.url){
                             params.outFields = identifyLayers[identifyGroup]["Wildfire Incidents"].fields;
-                            params.distance = 2;
+                            params.distance = 4;
                             params.units = "miles";
                         }
+                        else if (identifyLayers[identifyGroup]["Wildfire Perimeters"].url === item.url){
+                            params.outFields = identifyLayers[identifyGroup]["Wildfire Perimeters"].fields;
+                        }
                         else
-                            alert("In SettingsWidget.xml tag Wildfire Perimeters folder, must contain layers with the following names: Wildfire Perimeters or Wildfire Incidents.", "Data Error");
-                        //query.geometry = clickPoint;
-                        //query.returnGeometry = true;
-                        //query.spatialRelationship = "esriSpatialRelIntersects";
-                        //query.outSpatialReference = map.spatialReference;
+                            alert("In SettingsWidget.xml tag Wildfire folder, must contain layers with the following names: Wildfire Incidents or Wildfire Perimeters.", "Data Error");
                         skip = true;
-                    
-                        deferreds.push(query.executeQueryJSON(item.url, params).then(identifySuccess).catch(handleQueryError));  // new 6-13-24
-                        
-                        //deferreds.push(task.execute(query, identifySuccess, handleQueryError));
+                        deferreds.push(query.executeQueryJSON(item.url, params).then(identifySuccess).catch(handleQueryError));
                         continue;
-                    }*/
+                    }
                                         
                     identifyParams.layerIds = item.ids.slice(); // make a copy of this array since we change it for bighorn or goat gmu
                     if (item.geometry != "polygon") {
@@ -703,9 +540,7 @@ function displayContent() {
                 numDatabaseCalls = 0;
                 processedDatabaseCalls = 0;
                 features = [];
-                // Set header drop down
-            // setIdentifyHeader();
-                displayInfoWindow();
+                accumulateContent("");
             }
         } catch (e){
             alert("Problem trying to identify. Error message: "+e.message,"Warning");
@@ -714,21 +549,16 @@ function displayContent() {
 }
 
 function identifySuccess(response) {
-    return response.results;
-    /*const results = response.results;
-
-    return results.map(function (result) {
-        // add popups
-        let feature = result.feature;
-        let layerName = result.layerName;
-
-        feature.attributes.layerName = layerName;
-    });
-*/
-    
+    if (response.results)
+        return response.results;
+    else return response; // for wildfire
 }
 
 function handleQueryError(e) {
+    if (e.message.indexOf("Too many requests")) {
+        tooManyRequests = true;
+        return;
+    }
     if (e.details)
         alert("Error in identify.js/doIdentify.  " + e.details + " " + e.message + " Check " + app + "/SettingsWidget.xml urls.", "Data Error");
     else
@@ -748,72 +578,96 @@ function handleQueryResults(results) {
     //require(["dojo/_base/array"], function(array) {
         try {
             if (!results) {
-                alert("Error in identify.js/handleQueryResults. IdentifyTask returned null.", "Data Error");
+                alert("Error in identify.js/handleQueryResults. Identify returned null.", "Data Error");
                 return;
             }
-            var title;
+
             // Set info Content Header
-            var tmpStr;
-	        var str = "";//setIdentifyContentHeader(identifyGroup);
+            var tmpStr = "";
+	        var str = "";
 
             // 10-19-20 Handle Wildfire
-            /*if (identifyGroup == "Wildfire Perimeters"){
-                require(["esri/tasks/query", "esri/tasks/QueryTask"],
-                function(Query, QueryTask) {
-                    var i;
-                    if (results[0].features.length == 0 && results[1].features.length == 0){
-                        //title = "No " + identifyGroup;
-                        //view.popup.title = title;
-                        //map.infoWindow.setTitle(title);
-                        
-                        view.popup.content = "No Wildfire Perimeters/Incidents at this point.<br/><br/>";
-                        view.openPopup();
-                        setIdentifyHeader();
-                        setIdentifyFooter();
-                        groupContent[identifyGroup] = "No Wildfire Perimeters/Incidents at this point."; // cache 
-                        hideLoading("");
+            if (identifyGroup.indexOf("Wildfire") > -1){
+                require(["esri/rest/query", "esri/rest/support/Query"], function (query, Query) {
+                    if (tooManyRequests || !results[0].features) {
+                        displayInfoWindow("<p>Too many people are requesting this data. Please try again.</p>");
                         return;
                     }
-                    // results[0] = Wildfire Perimeters
-                    // results[1] = Wildfire Incidents
-                    if (results[0].features.length > 0)i=0;
-                    else i=1;
-                    //title = results[i].features[0].attributes.IncidentName;
-                    //view.popup.title = title;
-                    //map.infoWindow.setTitle(title);
-                    tmpStr = results[i].features[0].attributes.IncidentName + "</strong><div style='padding-left: 10px;'>";
-                    // lookup irwinid to get incident report
-                    var queryTask = new QueryTask(irwin_to_inciweb_url);//"https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/IRWIN_to_Inciweb_View/FeatureServer/0");
-                    var query = new Query();
-                    var irwinid;
-                    if (i==0) irwinid = results[i].features[0].attributes.IRWINID.substr(1,results[i].features[0].attributes.IRWINID.length -2).toLocaleLowerCase();
-                    else irwinid = results[i].features[0].attributes.IrwinID.substr(1,results[i].features[0].attributes.IrwinID.length -2).toLocaleLowerCase();
-                    query.where = "IrwinID='"+irwinid+"'";
-                    query.outFields = ["LinkURI","IrwinID"];
-                    query.returnGeometry = false;
-                    queryTask.execute(query, function(featureSet){
-                        if (featureSet.features.length == 0 || !featureSet.features[0].attributes ||
-                            !featureSet.features[0].attributes.LinkURI) {
-                            tmpStr+= "<br/>No incident report found";
-                        }
-                        else {
-                            tmpStr+="<br/><a href='" + featureSet.features[0].attributes.LinkURI + "' target='_blank'>Incident Report</a>";
-                        }
-                        tmpStr += "</div><br/>";
-                        str += "<div><strong>" + tmpStr;
-                        groupContent[identifyGroup] = str; // cache content
-                        view.popup.content = str;
-                        view.openPopup();
-                        setIdentifyHeader();
-                        setIdentifyFooter();
-                        hideLoading("");
-                    }, function (error){ 
-                        alert("Error in javascript/identify.js/handleQueryResults/queryTask.execute, url="+queryLayer+". Where irwinID='"+irwinid+"'. Error message: "+error.message,"Code Error",error);
+                    else tooManyRequests = false;
+                    if (results[0].features.length == 0){
+                        displayInfoWindow("No wildfire incidents at this point.");
+                        groupContent[identifyGroup] = "No wildfire incidents at this point."; // cache 
+                        return;
+                    }
+
+                    // add each attribute to str
+                    results.forEach(function(result) {
+                        result.features.forEach(function(feature){
+                            var layerName = "Wildfire Incidents";
+                            if (feature.attributes && feature.attributes.IncidentName)
+                                str += "<strong>"+ feature.attributes.IncidentName + "</strong><div style='padding-left: 10px;'>";
+                            else
+                                str += "<strong>Wildfire Incidents</strong><div style='padding-left: 10px;'>";
+                            var d;
+                            
+                            for (var i = 0; i < identifyLayers[identifyGroup][layerName].displaynames.length; i++) {
+                                if ((feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] &&
+                                    identifyLayers[identifyGroup][layerName].fields[i] !== "IncidentName" &&
+                                    identifyLayers[identifyGroup][layerName].fields[i].toLowerCase() !== "irwinid" &&
+                                    feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== " " &&
+                                    feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "Null" &&
+                                    feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "")) {
+                                    //https link (can't do substring on a number!)
+                                    if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
+                                        (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) == "http"))
+                                        tmpStr = "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a><br/>";
+                                    else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("percent") > -1){
+                                        tmpStr =identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "%<br/>";
+                                    }
+                                    else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("updated") > -1){
+                                        d = Date.now() - feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]];
+                                        const days = Math.trunc(d/1000/60/60/24);
+                                        const hours = Math.trunc(d/1000/60/60 - days*24);
+                                        const minutes = Math.trunc(d/1000/60 - hours*60);
+                                        if (days >= 1)
+                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +days+" days "+hours+" hours ago<br/>";
+                                        else if (hours >= 1)
+                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +hours+" hours "+minutes+" minutes ago<br/>";
+                                        else
+                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": "+minutes+" minutes ago<br/>";
+                                    }
+                                    else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("date") > -1){
+                                        d = new Date(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
+                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + d.getMonth() + "/"+ d.getDate() +"/"+ d.getFullYear() +"<br/>";
+                                    }
+                                    else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("acre") > -1 ||
+                                        identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("size") > -1 ||
+                                        identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("final") > -1 ||
+                                        identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("burned") > -1 ){
+                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + Math.round(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]) + " Acres<br/>";
+                                    }
+                                    else {
+                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "<br/>";
+                                    }
+                                }
+                            
+                                // don't add it twice, but add it to the features geometry array
+                                if (tmpStr != "" && str.indexOf(tmpStr) == -1) {
+                                    // highlight polygon/point on mouse over, hide highlight on mouse out
+                                    //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
+                                    //str += "<div>" + tmpStr;
+                                    str += tmpStr;
+                                }
+                            }
+                            str += "Inciweb: <a href='https://inciweb.wildfire.gov/state/colorado' target='_blank'>https://inciweb.wildfire.gov/state/colorado</a><br/>";
+                            str += "</div>";
+                            groupContent[identifyGroup] = str; // cache content
+                            displayInfoWindow(str);
+                        });
                     });
                 });
                 return;
-            }*/
-                                
+            }
 
             // Count database calls
             results.forEach(function(result) {
@@ -830,10 +684,6 @@ function handleQueryResults(results) {
             while (XMLHttpRequestObjects.length > 0) {
                 XMLHttpRequestObjects.pop();
             }
-
-            // Set info Content Header
-            var str = "";//setIdentifyContentHeader(identifyGroup);
-            var tmpStr;
 
             // Write the content for the identify 
             results.forEach(function(result) {
@@ -918,10 +768,10 @@ function handleQueryResults(results) {
                                                     // don't add it twice, but add it to the features geometry array
                                                     if (str.indexOf(tmpStr) == -1) {
                                                         // highlight polygon/point on mouse over, hide highlight on mouse out
-                                                        //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
-                                                        str += "<div><strong>" + tmpStr;
+                                                        str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
+                                                        //str += "<div><strong>" + tmpStr;
                                                         groupContent[identifyGroup] = str; // cache content
-                                                        view.popup.content = str;
+                                                        //view.popup.content = str;
                                                         //view.openPopup();
                                                         //map.infoWindow.setContent(str);
                                                         //map.infoWindow.show(clickPoint);
@@ -933,11 +783,11 @@ function handleQueryResults(results) {
                                                     if (XMLHttpRequestObjects[arrIndex].status == 404) {
                                                         alert("Identify failed. File not found: " + url, "Data Error");
                                                         processedDatabaseCalls = numDatabaseCalls;
-                                                        displayInfoWindow();
+                                                        accumulateContent(str);
                                                     } else {
                                                         alert("Identify failed for call to " + url + ". Make sure it exists and does not have errors. Must be in the same directory as index.html or a lower directory. XMLHttpRequestObjects[" + arrIndex + "].status was " + XMLHttpRequestObjects[arrIndex].status, "Data Error");
                                                         processedDatabaseCalls = numDatabaseCalls;
-                                                        displayInfoWindow();
+                                                        accumulateContent(str);
                                                     }
                                                 }
                                                 // Check if all have finished
@@ -949,7 +799,7 @@ function handleQueryResults(results) {
                                                     }
                                                 }
                                                 if (isAllComplete) {
-                                                    displayInfoWindow();
+                                                    accumulateContent(str);
                                                 }
                                             }
                                         };
@@ -985,10 +835,11 @@ function handleQueryResults(results) {
                                 // don't add it twice, but add it to the features geometry array
                                 if (str.indexOf(tmpStr) == -1) {
                                     // highlight polygon/point on mouse over, hide highlight on mouse out
-                                    //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
-                                    str += "<div><strong>" + tmpStr;
+                                    str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
+                                    //str += "<div><strong>" + tmpStr;
                                     groupContent[identifyGroup] = str; // cache content
-                                    view.popup.content = str;
+                                    //displayContent(str);
+                                    //view.popup.content = str;
                                     //view.openPopup();
                                     //map.infoWindow.setContent(str);
                                     //map.infoWindow.show(clickPoint);
@@ -999,7 +850,8 @@ function handleQueryResults(results) {
                     });
                 }
             });
-            displayInfoWindow();
+             
+            accumulateContent(str);
         } catch (e) {
             alert(e.message + " in javascript/identify.js handleQueryResults().", "Code Error", e);
             hideLoading("");
@@ -1008,32 +860,21 @@ function handleQueryResults(results) {
 }
 
 function highlightFeature(id) {
-    require(["esri/graphic", "esri/layers/GraphicsLayer"],
-        function(Graphic, GraphicsLayer) {
-            var highlightSymbol;
-            if (features[id].geometry.type === "polygon") {
-                highlightSymbol = polySymbol;
-            } else if (features[id].geometry.type === "point") {
-                highlightSymbol = pointSymbol;
-            } else if (features[id].geometry.type === "line") {
-                highlightSymbol = lineSymbol;
-            }
-            var identifyGraphicsLayer = newGraphicsLayer();
-            identifyGraphicsLayer.id = "identifygraphics";
-            for (var i = 0; i < features.length; i++) {
-                if (features[i].attributes.layerName == features[id].attributes.layerName)
-                    identifyGraphicsLayer.add(new Graphic(features[id].geometry, highlightSymbol));
-            }
-            map.addLayer(identifyGraphicsLayer);
-            identifyGraphicsLayer = null;
-            highlightSymbol = null;
-        });
+    // highlight geometry on mouse over, no fade = true
+    if (features[id].geometry === undefined || !features[id].geometry) return;
+    if (features[id].geometry.type === undefined || !features[id].geometry.type) return;
+    if (features[id].geometry.type === "point" ) {
+        addHighlightPoint(features[id],true);
+    }else if (features[id].geometry.type === "polygon") {
+        addTempPolygon(features[id],true);
+    } else if (features[id].geometry.type === "polyline") {
+        addTempLine(features[id],true);
+    }
 }
 
 function removeHighlight() {
     // remove old highlight
-    if (map.getLayer("identifygraphics"))
-        map.removeLayer(map.getLayer("identifygraphics"));
+    view.graphics.remove(view.graphics.items[view.graphics.items.length-1]);
 }
 
 /*function setIdentifyContentHeader(name) {
@@ -1043,125 +884,60 @@ function removeHighlight() {
         return "<div style='height:100%;'><div class='esriPopupItemTitle'>" + name + " found at map click:</div><br/>";
 }*/
 
-function setIdentifyFooter() {
+function setIdentifyFooter(clickPt) {
     // Set XY click info
-    var h = document.getElementsByClassName("esri-popup__main-container")[0];
-    if (!h) return;
-    var contentNode = h.childNodes[0];
-    //if ( document.getElementsByClassName("esri-feature__content-node")[0].parentNode.parentNode.parentNode.parentNode)
-    //    contentNode = document.getElementsByClassName("esri-feature__content-node")[0].parentNode.parentNode.parentNode.parentNode;
-    //else contentNode = document.getElementsByClassName("esri-feature__content-node")[0].parentNode.parentNode.parentNode;
-    require(["esri/geometry/support/webMercatorUtils", "esri/geometry/SpatialReference", "esri/rest/support/ProjectParameters", "esri/rest/geometryService", "esri/request"],
-        function(webMercatorUtils, SpatialReference, ProjectParameters, GeometryService, esriRequest) {
+    //var h = document.getElementsByClassName("esri-popup__main-container")[0];
+    //if (!h) return;
+    //var contentNode = h.childNodes[0];
+
+    require(["esri/request"],
+        function(esriRequest) {
             try {
-                var geoPt;
-                var myPrj = document.getElementById("settings_xycoords_combo").value;
+                // Get XY point in user specified projection (from Settings)
+                // Wait for popup to show
+                const tim = setInterval(function(){
+                    if (document.getElementById("idXY")){
+                        clearInterval(tim);
+                        // set click point
+                        projectPoint(clickPoint,document.getElementById("idXY"));
+                    
+                        // display elevation (use our raster map service)
+                        if (elevation_url) {  
+                            var ext = '{"xmin":' + view.extent.xmin + ',"ymin":' + view.extent.ymin + ',"xmax":' + view.extent.xmax + ',"ymax":' + view.extent.ymax + ',"spatialReference":{"wkid":102100,"latestWkid":102100}}';
+                            var layersRequest = esriRequest(elevation_url + "/identify", {
+                                responseType: "json",
+                                query: {
+                                    geometry: JSON.stringify(clickPt),
+                                    geometryType: "point",
+                                    tolerance: "5",
+                                    mapExtent: ext,
+                                    imageDisplay: view.width + "," + view.height + ",96",
+                                    returnGeometry: false,
+                                    sr: "102100",
+                                    f: "json"
+                                },
+                                responseType: "json"
+                            });
+                            layersRequest.then(
+                                function(response) { 
+                                    var elev = document.getElementById("idElevation");
+                                    // If user clicks outsite colorado there is no data. Was throwing an error. tlb 6-28-18
+                                    if (response.data.results.length == 0 || isNaN(response.data.results[0].attributes["Pixel Value"])) {
+                                        elev.innerHTML = "Elevation: data not available";
+                                        return;
+                                    }
+                                    elev.innerHTML = "Elevation: " + Math.round(response.data.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.data.results[0].attributes["Pixel Value"] * 0.3048) + " m";
+                                },
+                                function(error) {
+                                    var elev = getElementById("idElevation");
+                                    elev.innerHTML = "Elevation: data not available";
+                                    hideLoading("");
+                                }
 
-                var footer = document.getElementsByClassName("idFooter")[0];
-                if (footer)
-                    footer.remove();
-                footer = document.createElement("div");
-                footer.className = "idFooter";
-                
-                // Add XY location
-                var point = document.createElement("div");
-                if (myPrj === "dd") {
-                    geoPt = webMercatorUtils.webMercatorToGeographic(clickPoint);
-                    //dom.byId("identifyPoint").innerHTML = "Map clicked at (X/Y): " + geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5)+" W</br>&nbsp;&nbsp;&nbsp;&nbsp;Lat/Long Decimal Degrees";
-                    //dom.byId("identifyPoint").innerHTML = "Lat Long: " + geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";
-                    point.innerHTML = "Lat Long: " + geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";
-                } else if (myPrj === "dms") {
-                    geoPt = mappoint_to_dms(clickPoint, true);
-                    //dom.byId("identifyPoint").innerHTML = "Map clicked at (X/Y): " + geoPt[0] + " N, " + geoPt[1]+" W</br>&nbsp;&nbsp;&nbsp;&nbsp;Lat/Long Degrees, Min, Sec";
-                    //dom.byId("identifyPoint").innerHTML = "Lat Long: " + geoPt[0] + " N, " + geoPt[1] + " W";
-                    point.innerHTML = "Lat Long: " + geoPt[0] + " N, " + geoPt[1] + " W";
-                } else if (myPrj === "dm") {
-                    geoPt = mappoint_to_dm(clickPoint, true);
-                    //dom.byId("identifyPoint").innerHTML = "Map clicked at (X/Y): " + geoPt[0] + " N, " + geoPt[1]+" W</br>&nbsp;&nbsp;&nbsp;&nbsp;Lat/Long Degrees, Decimal Min";
-                    //dom.byId("identifyPoint").innerHTML = "Lat Long: " + geoPt[0] + " N, " + geoPt[1] + " W";
-                    point.innerHTML = "Lat Long: " + geoPt[0] + " N, " + geoPt[1] + " W";
-                } else { // utm
-                    var outSR = new SpatialReference(Number(myPrj));
-                    // converts point to selected projection
-                    var params = new ProjectParameters({
-                        outSpatialReference: outSR,
-                        geometries: [clickPoint]
-                    });
-                    GeometryService.project(geometryService,params).then( (feature) => {
-                        var units;
-                        if (outSR.wkid == 32612) units = "WGS84 UTM Zone 12N";
-                        else if (outSR.wkid == 32613) units = "WGS84 UTM Zone 13N";
-                        else if (outSR.wkid == 26912) units = "NAD83 UTM Zone 12N";
-                        else if (outSR.wkid == 26913) units = "NAD83 UTM Zone 13N";
-                        else if (outSR.wkid == 26712) units = "NAD27 UTM Zone 12N";
-                        else if (outSR.wkid == 26713) units = "NAD27 UTM Zone 13N";
-                        else units = "unknown units";
-                        //dom.byId("identifyPoint").innerHTML = "Map clicked at (X/Y): " + feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0)+"</br>&nbsp;&nbsp;&nbsp;&nbsp;"+units;
-                        //dom.byId("identifyPoint").innerHTML = units + ": " + feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0);
-                        point.innerHTML = units + ": " + feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0);
-                    }).catch ( (err) => {
-                        if (err.details)
-                            alert("Problem projecting point. " + err.message + " " + err.details[0], "Warning");
-                        else
-                            alert("Problem projecting point. " + err.message, "Warning");
-                    });
-                    footer.appendChild(point);
-                }
-                
-                // display elevation
-                // use our raster map service
-                if (elevation_url) {  
-                    var ext = '{"xmin":' + view.extent.xmin + ',"ymin":' + view.extent.ymin + ',"xmax":' + view.extent.xmax + ',"ymax":' + view.extent.ymax + ',"spatialReference":{"wkid":102100,"latestWkid":102100}}';
-                    // find the index of the elevation action
-                    /*var index=0;
-                    for (var i=0; i<view.popup.actions.items.length; i++){
-                        if (view.popup.actions.items[i].title.indexOf("Elevation")>-1){
-                            index = i;
-                            break;
+                            );
                         }
-                    }*/
-                    var layersRequest = esriRequest(elevation_url + "/identify", {
-                        responseType: "json",
-                        query: {
-                            geometry: JSON.stringify(clickPoint),
-                            geometryType: "point",
-                            tolerance: "5",
-                            mapExtent: ext,
-                            imageDisplay: view.width + "," + view.height + ",96",
-                            returnGeometry: false,
-                            sr: "102100",
-                            f: "json"
-                        },
-                        responseType: "json"
-                    });
-                    layersRequest.then(
-                        function(response) {
-                            var footer = document.getElementsByClassName("idFooter")[0];
-                            var elev = document.createElement("div");
-                            // If user clicks outsite colorado there is no data. Was throwing an error. tlb 6-28-18
-                            if (response.data.results.length == 0 || isNaN(response.data.results[0].attributes["Pixel Value"])) {
-                                //view.popup.actions.items[index].title = "Elevation: data not available";
-                                elev.innerHTML = "Elevation: data not available";
-                                footer.appendChild(elev);
-                                return;
-                            }
-                            //view.popup.actions.items[index].title = "Elevation: " + Math.round(response.data.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.data.results[0].attributes["Pixel Value"] * 0.3048) + " m";
-                            elev.innerHTML = "Elevation: " + Math.round(response.data.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.data.results[0].attributes["Pixel Value"] * 0.3048) + " m";
-                            footer.appendChild(elev);
-                        },
-                        function(error) {
-                            //view.popup.actions.items[index].title = "Elevation: data not available";
-                            var footer = document.getElementsByClassName("idFooter")[0];
-                            var elev = document.createElement("div");
-                            elev.innerHTML = "Elevation: data not available";
-                            footer.appendChild(elev);
-                            hideLoading("");
-                        }
-
-                    );
-                }
-                contentNode.appendChild(footer);
-
+                    }
+                }, 100); 
             } catch (e) {
                 alert(e.message + " in javascript/identify.js setIdentifyFooter().", "Code Error", e);
             }
@@ -1171,8 +947,7 @@ function setIdentifyFooter() {
 function changeIdentifyGroup(sel) {
     identifyGroup = sel.options[sel.selectedIndex].value;
     view.popup.content = "<p align='center'>Loading...</p>";
-    //map.infoWindow.setContent("<p align='center'>Loading...</p>");
-
+    view.popupEnabled = false;
     features = [];
     numDatabaseCalls = 0;
     processedDatabaseCalls = 0;
@@ -1180,7 +955,7 @@ function changeIdentifyGroup(sel) {
     //doIdentify(theEvt);
 }
 
-function displayInfoWindow() {
+function accumulateContent(theContent){
     if (numDatabaseCalls == processedDatabaseCalls) {
         numDatabaseCalls = 0;
         processedDatabaseCalls = 0;
@@ -1192,33 +967,62 @@ function displayInfoWindow() {
             if (identifyLayerIds[identifyGroup][0].id_vis_only) visible = "visible "; // 1-10-18 add word visible if identifying visible only
             if (identifyLayers[identifyGroup].desc) {
                 str = "<div><p style='font-style:italic;top:-15px;position:relative;'>" + identifyLayers[identifyGroup].desc + "</p>No " + visible + identifyGroup + " at this point.<br/><br/></div>";
-                view.popup.content = str;
-                //map.infoWindow.setContent(str);
+                theContent = str;
                 groupContent[identifyGroup] = str; // cache content
                 str = null;
             } else {
                 str = "<div>No " + visible + identifyGroup + " at this point.<br/><br/></div>";
-                view.popup.content = str;
-                //map.infoWindow.setContent(str);
+                theContent = str;
                 groupContent[identifyGroup] = str; // cache content
                 str = null;
             }
         }
-        else {
-            // tlb 6-8-18 added + "</div>" to the end of infowindow content for scrolling on ipad.
-            // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-           /* if (map.infoWindow._contentPane.innerHTML.indexOf("Loading") != -1){
-                var str1 = map.infoWindow.map.infoWindow._contentPane.innerHTML+"</div>";
-                map.infoWindow.setContent(str1);
-            }*/
-        }
-
-        view.openPopup();
-        setIdentifyHeader();
-        setIdentifyFooter(); // Add Map Clicked at (X/Y) and elevation to footer
-        hideLoading("");
+        displayInfoWindow(theContent);
     }
+}
+
+function customStuff(theContent){
+    // add a drop down list and footer to the popup content
+    const outerDiv = document.createElement("div");
+    outerDiv.style.margin = "-12px";
+    outerDiv.style.display = "grid";
+    outerDiv.style.gridTemplateRows = "min-content auto min-content";
+    outerDiv.style.height = "100%";
+    // header drop down
+    /*var content = "<div class='dialogTitle' style='border:none;float:left;height:fit-content;text-overflow:ellipsis;border-bottom: 1px solid #dfdfdf;width: 100%;padding: 5px 12px;'><strong>Show:</strong> <select id='id_group' name='id_group' style='margin: 5px;color:black;' onChange='changeIdentifyGroup(this)'>";
+    for (var i = 0; i < identifyGroups.length; i++) {
+        content += "<option";
+        if (identifyGroup == identifyGroups[i]) content += " selected";
+        content+= ">" + identifyGroups[i] + "</option>";
+    }
+    content += "</select></div>";*/
+
+    // content
+    var content = "<div style='overflow:auto;border-bottom: 1px solid #dfdfdf;padding:12px;'>"+theContent+"</div>";
+
+    // footer
+    content += "<div style='height:fit-content;padding:5px 12px 2px;'>";
+    // Zoom To
+    content += "<a href='javascript:zoomToPt()' style='color:black;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='vertical-align:middle;'></calcite-icon> Zoom to</a> ";
+    // Get Directions
+    if (driving_directions){
+        content += "<a href='javascript:getDirections()' style='color:black;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='vertical-align:middle;'></span> Get Directions</a>";
+    }
+    // XY point
+    content += "<p style='margin: 5px 0;'>Location: <span id='idXY'>Loading click point...</span></p>";
+    // Elevation
+    content += "<p id='idElevation' style='margin: 2px 0;'>Loading elevation...</p>"
+    content += "</div>";
+    outerDiv.innerHTML = content;
+    return outerDiv;
+}
+function displayInfoWindow(theContent) {
+    // open popup and set content to string theContent
+    view.popup.content = customStuff(theContent);
+    view.openPopup();    
+    setIdentifyHeader();
+    setIdentifyFooter(clickPoint); // add xy point and elevation to footer
+    hideLoading("");
 }
 
 /*function displayElevation(){
@@ -1395,18 +1199,22 @@ function displayInfoWindow() {
         }*/
 //}
 
-function getDirections(evt) {
-    // Example of changeing link text			dom.byId("dirLink).innerHTML = "Calculating...";
+function getDirections() {
+    // Open Google maps directions to point
     require(["esri/geometry/support/webMercatorUtils"], function(webMercatorUtils) {
-        var geoPt = webMercatorUtils.webMercatorToGeographic(clickPoint);
+        var geoPt = webMercatorUtils.webMercatorToGeographic(view.popup.viewModel.location);
         var url = "http://google.com/maps?output=classic&q=" + geoPt.y + "," + geoPt.x;
         window.open(url, "_blank");
     });
 }
 
 function zoomToPt() {
-    var level = 5; //4-19-17 used to be 11, but I changed lods from 19 levels to 14. Changed the next line from "> 11" to "> 5" ;
-    if (map.getLevel() > 5) level = map.getLevel();
-    map.centerAndZoom(clickPoint, level);
+    var level = 250000;
+    if (view.scale < 250000) level = view.scale; // don't zoom out!!!
+    // zoom to point
+    view.goTo({
+        target: view.popup.viewModel.location,
+        scale: level
+    });
 }
 //// End Identify Widget ////

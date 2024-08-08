@@ -178,26 +178,22 @@
 	   	</layer>
 		</folder>
 		<!-- Set the IRWIN_to_Inciweb_View feature service here. Used in identify. Use url with id!!! (FeatureServer/0) -->  
-		<folder label="Wildfire Perimeters">
-			<layer label="Wildfire Perimeters">
-				<id>1</id>
-				<!--url>https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0</url-->
-				<url>https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1</url>
-				<irwin_to_inciweb>https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/IRWIN_to_Inciweb_View/FeatureServer/0</irwin_to_inciweb>
-				<geometry>polygon</geometry>
-				<fields>IncidentName,IRWINID</fields>
-				<displaynames>Incident Name,Incident Report</displaynames>
-			</layer>
+		<folder label="Wildfires">
 			<layer label="Wildfire Incidents">
 				<id>0</id>
 				<!--url>https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0</url-->
 				<url>https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0</url>
-				<irwin_to_inciweb>https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/IRWIN_to_Inciweb_View/FeatureServer/0</irwin_to_inciweb>
 				<geometry>point</geometry>
-				<!--fields>IncidentName,IrwinID,PercentContained</fields>
-				<displaynames>Incident Name,Incident Report,Percent Contained</displaynames-->
-				<fields>IncidentName,IrwinID,FireDiscoveryAge,FireOutDateTime,IncidentTypeKind,CalculatedAcres,DailyAcres,DiscoveryAcres,FinalAcres,PercentContained</fields>
-				<displaynames>Incident Name,Incident Report,Discovery Date,Fire Out Date,Type,Calculated Acres,Daily Acres,Discovery Acres,Final Acres,Percent Contained</displaynames>
+				<fields>IncidentName,ModifiedOnDateTime,FireDiscoveryDateTime,FireOutDateTime,DailyAcres,FinalAcres,PercentContained</fields>
+				<displaynames>Incident Name,Updated,Discovery Date,Fire Out Date,Acres Burned,Final Acres,Percent Contained</displaynames>
+			</layer>
+			<layer label="Wildfire Perimeters">
+				<id>0</id>
+				<!--url>https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0</url-->
+				<url>https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1</url>
+				<geometry>point</geometry>
+				<fields>IncidentName,GISAcres</fields>
+				<displaynames>Incident Name,Acres Burned</displaynames>
 			</layer>
 		</folder>
 		<folder label="Contact Info">
