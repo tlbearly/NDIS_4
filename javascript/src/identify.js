@@ -431,12 +431,12 @@ function displayContent() {
                             spatialRelationship: "intersects",
                             outSpatialReference: map.spatialReference
                         });
-                        if (identifyLayers[identifyGroup]["Wildfire Incidents"].url === item.url){
+                        if (identifyLayers[identifyGroup]["Wildfire Incidents"] && identifyLayers[identifyGroup]["Wildfire Incidents"].url === item.url){
                             params.outFields = identifyLayers[identifyGroup]["Wildfire Incidents"].fields;
                             params.distance = 4;
                             params.units = "miles";
                         }
-                        else if (identifyLayers[identifyGroup]["Wildfire Perimeters"].url === item.url){
+                        else if (identifyLayers[identifyGroup]["Wildfire Perimeters"] && identifyLayers[identifyGroup]["Wildfire Perimeters"].url === item.url){
                             params.outFields = identifyLayers[identifyGroup]["Wildfire Perimeters"].fields;
                         }
                         else
@@ -625,7 +625,8 @@ function handleQueryResults(results) {
                                         tmpStr =identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "%<br/>";
                                     }
                                     else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("updated") > -1){
-                                        d = Date.now() - feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]];
+                                        // subtract 6 hours from Greenwich time
+                                        d = (Date.now() - feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]) - (6 * 60 * 60 * 1000);
                                         const days = Math.trunc(d/1000/60/60/24);
                                         const hours = Math.trunc(d/1000/60/60 - days*24);
                                         const minutes = Math.trunc(d/1000/60 - hours*60);
@@ -638,13 +639,16 @@ function handleQueryResults(results) {
                                     }
                                     else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("date") > -1){
                                         d = new Date(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
-                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + d.getMonth() + "/"+ d.getDate() +"/"+ d.getFullYear() +"<br/>";
+                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + (d.getMonth()+1) + "/"+ d.getDate() +"/"+ d.getFullYear() +"<br/>";
                                     }
                                     else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("acre") > -1 ||
                                         identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("size") > -1 ||
                                         identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("final") > -1 ||
                                         identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("burned") > -1 ){
-                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + Math.round(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]) + " Acres<br/>";
+                                        if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] >= 1)
+                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + Math.round(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]) + " Acres<br/>";
+                                        else
+                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(2) + " Acres<br/>";
                                     }
                                     else {
                                         tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "<br/>";
