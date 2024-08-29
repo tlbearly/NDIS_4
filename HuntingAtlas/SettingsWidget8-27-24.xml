@@ -179,6 +179,24 @@
 		</folder>
 		<!-- Set the IRWIN_to_Inciweb_View feature service here. Used in identify. Use url with id!!! (FeatureServer/0) -->  
 		<folder label="Wildfires">
+			<!--layer label="Wildfire Incidents">
+				<id>0</id-->
+				<!--irwin_to_inciweb>https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/IRWIN_to_Inciweb_View/FeatureServer/0</irwin_to_inciweb-->
+				<!--url>https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0</url-->
+				<!--url>https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0</url>
+				<geometry>point</geometry>
+				<fields>IncidentName,ModifiedOnDateTime,FireDiscoveryDateTime,FireOutDateTime,DailyAcres,PercentContained,FinalAcres</fields>
+				<displaynames>Incident Name,Updated,Discovery Date,Fire Out Date,Daily Acres,Percent Contained,Final Acres</displaynames>
+			</layer>
+			<layer label="Wildfire Perimeters">
+				<id>1</id-->
+				<!--url>https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/1</url-->
+				<!-- must contain GISAcres identify.js uses this to know which layer it is -->
+				<!--url>https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1</url>
+				<geometry>polygon</geometry>
+				<fields>IncidentName,GISAcres</fields>
+				<displaynames>Incident Name,Calculated Acres</displaynames>
+			</layer-->
 			<!-- Inciweb -->
 			<layer label="Wildfire Incidents">
 				<id>0</id>
@@ -191,8 +209,8 @@
 				<id>0</id>
 				<url>https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Interagency_Perimeters_YearToDate/FeatureServer/0</url>
 				<geometry>polygon</geometry>
-				<fields>poly_IncidentName,attr_ModifiedOnDateTime_dt,attr_FireDiscoveryDateTime,poly_GISAcres,attr_PercentContained,attr_IncidentTypeCategory</fields>
-				<displaynames>Incident Name,Updated,Discovery Date,Calculated Acres,Percent Contained,Type</displaynames>
+				<fields>poly_IncidentName,attr_ModifiedOnDateTime_dt,attr_FireDiscoveryDateTime,poly_GISAcres,attr_PercentContained</fields>
+				<displaynames>Incident Name,Updated,Discovery Date,Calculated Acres,Percent Contained</displayNames>
 			</layer>
 		</folder>
 		<folder label="Contact Info">

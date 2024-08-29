@@ -339,6 +339,11 @@ option{
 .dijitDialogPaneContentArea {
 	word-wrap:break-word;
 }
+/* 8-28-24 */
+.esri-popup a[href] {
+    color: #336699;
+    text-decoration: underline;
+}
 /* Identify Popup width */
 .esriPopup .esriPopupWrapper .sizer{
 	width:400px!important;

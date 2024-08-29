@@ -424,7 +424,7 @@ function displayContent() {
                 var item = identifyLayerIds[identifyGroup][i];
                 if (item) {
                     // 10-19-20 Add identify Wildfires
-                    if (item.url.indexOf("Wildfire")>-1){
+                    if (item.url.indexOf("Wildfire")>-1 || item.url.indexOf("WFIGS")>-1){
                         params = new Query({
                             returnGeometry: true,
                             geometry: clickPoint,
@@ -433,7 +433,16 @@ function displayContent() {
                         });
                         if (identifyLayers[identifyGroup]["Wildfire Incidents"] && identifyLayers[identifyGroup]["Wildfire Incidents"].url === item.url){
                             params.outFields = identifyLayers[identifyGroup]["Wildfire Incidents"].fields;
-                            params.distance = 4;
+                            if (view.scale <= 36112)
+								params.distance = 0.25;
+							else if (view.scale <= 144448)
+								 params.distance = 0.5;
+							else if (view.scale <= 577791)
+								params.distance = 1;
+							else if (view.scale <= 2311162)
+								params.distance = 4;
+							else
+								params.distance = 10;
                             params.units = "miles";
                         }
                         else if (identifyLayers[identifyGroup]["Wildfire Perimeters"] && identifyLayers[identifyGroup]["Wildfire Perimeters"].url === item.url){
@@ -544,6 +553,7 @@ function displayContent() {
             }
         } catch (e){
             alert("Problem trying to identify. Error message: "+e.message,"Warning");
+			 hideLoading("");
         }
     });
 }
@@ -555,7 +565,7 @@ function identifySuccess(response) {
 }
 
 function handleQueryError(e) {
-    if (e.message.indexOf("Too many requests")) {
+    if (e.message.indexOf("Too many requests") > -1) {
         tooManyRequests = true;
         return;
     }
@@ -565,7 +575,9 @@ function handleQueryError(e) {
         alert("Error in identify.js/doIdentify.  " + e.message + " Check " + app + "/SettingsWidget.xml urls.", "Data Error");
     hideLoading("");
 }
-
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 function handleQueryResults(results) {
     // results contains an array of identifyGroups
     // in which results[i] contains an array of objects:
@@ -589,30 +601,36 @@ function handleQueryResults(results) {
             // 10-19-20 Handle Wildfire
             if (identifyGroup.indexOf("Wildfire") > -1){
                 require(["esri/rest/query", "esri/rest/support/Query"], function (query, Query) {
-                    if (tooManyRequests || !results[0].features) {
+                    for (var r=0; r<results.length; r++){
+						if (!results[r].features) tooManyRequests=true;
+					}
+					if (tooManyRequests) {
                         displayInfoWindow("<p>Too many people are requesting this data. Please try again.</p>");
+						tooManyRequests = false;
                         return;
                     }
                     else tooManyRequests = false;
-                    if (results[0].features.length == 0){
-                        displayInfoWindow("No wildfire incidents at this point.");
-                        groupContent[identifyGroup] = "No wildfire incidents at this point."; // cache 
-                        return;
-                    }
-
+                    var noData = true;
+					str = "The wildfire map layers are maintained and imported on demand from ESRI's USA Current Wildfires layer. They present the best-known point and perimeter locations of wildfire occurrences within the United States over the past 7 days from IRWIN and NIFC information.<br/><br/>";
                     // add each attribute to str
                     results.forEach(function(result) {
+						if (result.features.length > 0) noData = false;
                         result.features.forEach(function(feature){
                             var layerName = "Wildfire Incidents";
-                            if (feature.attributes && feature.attributes.IncidentName)
-                                str += "<strong>"+ feature.attributes.IncidentName + "</strong><div style='padding-left: 10px;'>";
-                            else
-                                str += "<strong>Wildfire Incidents</strong><div style='padding-left: 10px;'>";
+							if (feature.attributes.GISAcres != undefined || feature.attributes.poly_GISAcres != undefined) layerName = "Wildfire Perimeters";
+                            //if (feature.attributes && feature.attributes.IncidentName)
+                            //    str += "<strong>"+ feature.attributes.IncidentName + "</strong><div style='padding-left: 10px;'>";
+                            //else
+							if (feature.attributes.IncidentName)
+								str += "<h3 style='margin-bottom: 5px;margin-top: 5px;'>"+feature.attributes.IncidentName+"</h3><strong>"+layerName+"</strong><div style='padding-left: 10px;'>";
+                            else str += "<h3 style='margin-bottom: 5px;margin-top: 5px;'>"+feature.attributes.poly_IncidentName+"</h3><strong>"+layerName+"</strong><div style='padding-left: 10px;'>";
                             var d;
                             
                             for (var i = 0; i < identifyLayers[identifyGroup][layerName].displaynames.length; i++) {
+								tmpStr = "";
                                 if ((feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] &&
-                                    identifyLayers[identifyGroup][layerName].fields[i] !== "IncidentName" &&
+									identifyLayers[identifyGroup][layerName].fields[i] !== "IncidentName" &&
+									identifyLayers[identifyGroup][layerName].fields[i] !== "poly_IncidentName" &&
                                     identifyLayers[identifyGroup][layerName].fields[i].toLowerCase() !== "irwinid" &&
                                     feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== " " &&
                                     feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "Null" &&
@@ -626,16 +644,28 @@ function handleQueryResults(results) {
                                     }
                                     else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("updated") > -1){
                                         // subtract 6 hours from Greenwich time
-                                        d = (Date.now() - feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]) - (6 * 60 * 60 * 1000);
+                                        d = (Date.now() - feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
                                         const days = Math.trunc(d/1000/60/60/24);
                                         const hours = Math.trunc(d/1000/60/60 - days*24);
                                         const minutes = Math.trunc(d/1000/60 - hours*60);
-                                        if (days >= 1)
-                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +days+" days "+hours+" hours ago<br/>";
-                                        else if (hours >= 1)
-                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +hours+" hours "+minutes+" minutes ago<br/>";
-                                        else
-                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": "+minutes+" minutes ago<br/>";
+											var dayStr = "days";
+										if (days == 1) dayStr = "day";
+										var hourStr = "hours";
+										if (hours == 1) hourStr = "hour";
+										var minStr = "minutes";
+										if (minutes == 1) minStr = "minute";
+										if (days >= 1) {
+											if (hours >= 1)
+												tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +days+" "+dayStr+" "+hours+" "+hourStr+" ago<br/>";
+											else
+												tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +days+" "+dayStr+" ago<br/>";
+										} else if (hours >= 1){
+											if (minutes >= 1)
+												tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +hours+" "+hourStr+" "+minutes+" "+minStr+" ago<br/>";
+											else
+												tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +hours+" "+hourStr+" ago<br/>";
+										} else
+											tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": "+minutes+" "+minStr+" ago<br/>";
                                     }
                                     else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("date") > -1){
                                         d = new Date(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
@@ -646,9 +676,9 @@ function handleQueryResults(results) {
                                         identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("final") > -1 ||
                                         identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("burned") > -1 ){
                                         if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] >= 1)
-                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + Math.round(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]) + " Acres<br/>";
+                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + numberWithCommas(Math.round(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]])) + " Acres<br/>";
                                         else
-                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(2) + " Acres<br/>";
+											tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + numberWithCommas(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(2)) + " Acres<br/>";
                                     }
                                     else {
                                         tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "<br/>";
@@ -656,19 +686,24 @@ function handleQueryResults(results) {
                                 }
                             
                                 // don't add it twice, but add it to the features geometry array
-                                if (tmpStr != "" && str.indexOf(tmpStr) == -1) {
+                                //if (tmpStr != "" && str.indexOf(tmpStr) == -1) {
                                     // highlight polygon/point on mouse over, hide highlight on mouse out
                                     //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
                                     //str += "<div>" + tmpStr;
                                     str += tmpStr;
-                                }
+                                //}
                             }
-                            str += "Inciweb: <a href='https://inciweb.wildfire.gov/state/colorado' target='_blank'>https://inciweb.wildfire.gov/state/colorado</a><br/>";
-                            str += "</div>";
-                            groupContent[identifyGroup] = str; // cache content
-                            displayInfoWindow(str);
+							str += "</div><br/>";
                         });
                     });
+					if (noData){
+                        displayInfoWindow("No wildfires at this point.");
+                        groupContent[identifyGroup] = "No wildfires at this point."; // cache 
+                    }else {
+						str += "Inciweb: <a href='https://inciweb.wildfire.gov/state/colorado' target='_blank'>https://inciweb.wildfire.gov/state/colorado</a><br/><br/>";
+						groupContent[identifyGroup] = str; // cache content
+						displayInfoWindow(str);
+					}
                 });
                 return;
             }
@@ -1007,10 +1042,10 @@ function customStuff(theContent){
     // footer
     content += "<div style='height:fit-content;padding:5px 12px 2px;'>";
     // Zoom To
-    content += "<a href='javascript:zoomToPt()' style='color:black;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='vertical-align:middle;'></calcite-icon> Zoom to</a> ";
+    content += "<a href='javascript:zoomToPt()' style='color:black;margin-right:20px;'><button><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='vertical-align:middle;'></calcite-icon> Zoom to</button></a> ";
     // Get Directions
     if (driving_directions){
-        content += "<a href='javascript:getDirections()' style='color:black;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='vertical-align:middle;'></span> Get Directions</a>";
+        content += "<a href='javascript:getDirections()' style='color:black;'><button><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='vertical-align:middle;'></span> Get Directions</button></a>";
     }
     // XY point
     content += "<p style='margin: 5px 0;'>Location: <span id='idXY'>Loading click point...</span></p>";

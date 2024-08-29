@@ -381,6 +381,7 @@ function readConfig() {
 							visible: layer.getAttribute("visible") == "true",
 							legendEnabled: true
 						});
+						
 						// identify popup template
 						if (layer.getAttribute("popup_fields") && layer.getAttribute("popup_labels")){
 							const template = addPopupTemplate(layer.getAttribute("label"),layer.getAttribute("popup_fields").split(","),layer.getAttribute("popup_labels").split(","));
