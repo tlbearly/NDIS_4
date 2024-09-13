@@ -216,8 +216,8 @@
             
             <!-- Wildfire Incidents and Wildfire Perimeters Current from the last 7 days -->
             <layer group="Wildfires" open="false" visible="true" alpha="1" radio="false" portal="d957997ccee7408287a963600a77f61f"/>
-			<layer label="Inciweb Perimeters" open="false" visible="true" alpha="1" radio="false" url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Interagency_Perimeters_YearToDate/FeatureServer/0" />
-            <layer label="Inciweb Incidents" open="false"  visible="true" alpha="1" radio="false" url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/WFIGS_Incident_Locations_YearToDate/FeatureServer/0" />
+			<!--layer label="Inciweb Perimeters" open="false" visible="true" alpha="1" radio="false" url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Interagency_Perimeters_YearToDate/FeatureServer/0" /-->
+            <!--layer label="Inciweb Incidents" open="false"  visible="true" alpha="1" radio="false" url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/WFIGS_Incident_Locations_YearToDate/FeatureServer/0" /-->
 			<!--layer label="Wildfire Incidents" open="true" type="dynamic" visible="true" alpha="0.8" 
                     url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0" />
             <layer label="Wildfire Perimeters" open="true" type="dynamic" visible="true" alpha="0.8"

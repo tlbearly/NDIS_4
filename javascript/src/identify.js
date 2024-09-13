@@ -376,7 +376,7 @@ function setIdentifyHeader() {
     // Set title drop down
     // Called by displayContent on empty content and handleQueryResults
     var h = document.getElementsByClassName("esri-popup__main-container")[0];
-    if (!h) return;
+    if (!h || h.childNodes.length == 0) return;
     title = "<span style='float:left;text-overflow:ellipsis;'>Show: <select id='id_group' name='id_group' style='margin: 5px;color:black;' onChange='changeIdentifyGroup(this)'>";
     for (var i = 0; i < identifyGroups.length; i++) {
         title += "<option";
@@ -900,7 +900,7 @@ function handleQueryResults(results) {
 
 function highlightFeature(id) {
     // highlight geometry on mouse over, no fade = true
-    if (features[id].geometry === undefined || !features[id].geometry) return;
+    if (!features[id].geometry || features[id].geometry === undefined) return;
     if (features[id].geometry.type === undefined || !features[id].geometry.type) return;
     if (features[id].geometry.type === "point" ) {
         addHighlightPoint(features[id],true);
@@ -1058,8 +1058,17 @@ function customStuff(theContent){
 function displayInfoWindow(theContent) {
     // open popup and set content to string theContent
     view.popup.content = customStuff(theContent);
-    view.openPopup();    
-    setIdentifyHeader();
+    view.openPopup();
+    var h = document.getElementsByClassName("esri-popup__main-container")[0];
+    if (!h || h.childNodes.length == 0) {
+        var tim = setInterval(function(){
+            if (h && h.childNodes.length != 0) {
+                clearInterval(tim);
+                setIdentifyHeader();
+            }
+        },500);
+    }
+    else setIdentifyHeader();
     setIdentifyFooter(clickPoint); // add xy point and elevation to footer
     hideLoading("");
 }
