@@ -2728,15 +2728,14 @@ if (layer.id == 1900) {
 					
 					// Identify
 					view.popup.visibleElements = {
-						actionBar: false,
-						heading: false
+						actionBar: false
+						//heading: false
 						//featureNavigation: false
 					};
 					
 					view.on('click', (event)=>{
 						view.popupEnabled = false;
 						view.popup.location = event.mapPoint;
-						view.popup.title = "Identify";
 						view.popup.content = "<p align='center'>Loading...</p>";
 						view.popup.visible = true;
 						view.openPopup();

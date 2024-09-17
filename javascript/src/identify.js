@@ -14,6 +14,7 @@ var theEvt;
 var identifyGroups = [];
 var identifyLayers = {};
 var groupContent = {}; // Cache the infoWindow content for each group for a map click
+var theTitle = [];
 var identifyLayerIds = []; // handles the identify tasks for each group. [GroupName][{url, layerIds, geometryType}]
 var show_elevation = false;
 var elevation_url = null;
@@ -362,11 +363,13 @@ function doIdentify(evt){
     processedDatabaseCalls = 0;
     features = [];
     theEvt = evt; // Save the click point so we can call this again from changeIdentifyGroup
-    
+    view.popup.title = "Identify";
+
     // Reset array of popupTemplate content for each group to null
     //if (groupContent["Way Point"]) delete groupContent["Way Point"]; // remove way point since we don't know if there is a way point here
     for (var i = 0; i < identifyGroups.length; i++) {
         groupContent[identifyGroups[i]] = null;
+        theTitle[identifyGroups[i]] = null;
     }
     clickPoint = evt.mapPoint;
     displayContent();
@@ -405,6 +408,7 @@ function displayContent() {
     // Else loop through each layer found at the map click and call identifySuccess & handleQueryResults to handle each
     // Use cached content if available
     if (groupContent[identifyGroup]) {
+        view.popup.title = theTitle[identifyGroup];
         displayInfoWindow(groupContent[identifyGroup]);
         return;
     }
@@ -600,111 +604,109 @@ function handleQueryResults(results) {
 
             // 10-19-20 Handle Wildfire
             if (identifyGroup.indexOf("Wildfire") > -1){
-                require(["esri/rest/query", "esri/rest/support/Query"], function (query, Query) {
-                    for (var r=0; r<results.length; r++){
-						if (!results[r].features) tooManyRequests=true;
-					}
-					if (tooManyRequests) {
-                        displayInfoWindow("<p>Too many people are requesting this data. Please try again.</p>");
-						tooManyRequests = false;
-                        return;
-                    }
-                    else tooManyRequests = false;
-                    var noData = true;
-					str = "The wildfire map layers are maintained and imported on demand from ESRI's USA Current Wildfires layer. They present the best-known point and perimeter locations of wildfire occurrences within the United States over the past 7 days from IRWIN and NIFC information.<br/><br/>";
-                    // add each attribute to str
-                    results.forEach(function(result) {
-						if (result.features.length > 0) noData = false;
-                        result.features.forEach(function(feature){
-                            var layerName = "Wildfire Incidents";
-							if (feature.attributes.GISAcres != undefined || feature.attributes.poly_GISAcres != undefined) layerName = "Wildfire Perimeters";
-                            //if (feature.attributes && feature.attributes.IncidentName)
-                            //    str += "<strong>"+ feature.attributes.IncidentName + "</strong><div style='padding-left: 10px;'>";
-                            //else
-							if (feature.attributes.IncidentName)
-								str += "<h3 style='margin-bottom: 5px;margin-top: 5px;'>"+feature.attributes.IncidentName+"</h3><strong>"+layerName+"</strong><div style='padding-left: 10px;'>";
-                            else str += "<h3 style='margin-bottom: 5px;margin-top: 5px;'>"+feature.attributes.poly_IncidentName+"</h3><strong>"+layerName+"</strong><div style='padding-left: 10px;'>";
-                            var d;
-                            
-                            for (var i = 0; i < identifyLayers[identifyGroup][layerName].displaynames.length; i++) {
-								tmpStr = "";
-                                if ((feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] &&
-									identifyLayers[identifyGroup][layerName].fields[i] !== "IncidentName" &&
-									identifyLayers[identifyGroup][layerName].fields[i] !== "poly_IncidentName" &&
-                                    identifyLayers[identifyGroup][layerName].fields[i].toLowerCase() !== "irwinid" &&
-                                    feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== " " &&
-                                    feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "Null" &&
-                                    feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "")) {
-                                    //https link (can't do substring on a number!)
-                                    if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
-                                        (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) == "http"))
-                                        tmpStr = "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a><br/>";
-                                    else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("percent") > -1){
-                                        tmpStr =identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "%<br/>";
-                                    }
-                                    else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("updated") > -1){
-                                        // subtract 6 hours from Greenwich time
-                                        d = (Date.now() - feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
-                                        const days = Math.trunc(d/1000/60/60/24);
-                                        const hours = Math.trunc(d/1000/60/60 - days*24);
-                                        const minutes = Math.trunc(d/1000/60 - hours*60);
-											var dayStr = "days";
-										if (days == 1) dayStr = "day";
-										var hourStr = "hours";
-										if (hours == 1) hourStr = "hour";
-										var minStr = "minutes";
-										if (minutes == 1) minStr = "minute";
-										if (days >= 1) {
-											if (hours >= 1)
-												tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +days+" "+dayStr+" "+hours+" "+hourStr+" ago<br/>";
-											else
-												tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +days+" "+dayStr+" ago<br/>";
-										} else if (hours >= 1){
-											if (minutes >= 1)
-												tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +hours+" "+hourStr+" "+minutes+" "+minStr+" ago<br/>";
-											else
-												tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +hours+" "+hourStr+" ago<br/>";
-										} else
-											tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": "+minutes+" "+minStr+" ago<br/>";
-                                    }
-                                    else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("date") > -1){
-                                        d = new Date(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
-                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + (d.getMonth()+1) + "/"+ d.getDate() +"/"+ d.getFullYear() +"<br/>";
-                                    }
-                                    else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("acre") > -1 ||
-                                        identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("size") > -1 ||
-                                        identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("final") > -1 ||
-                                        identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("burned") > -1 ){
-                                        if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] >= 1)
-                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + numberWithCommas(Math.round(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]])) + " Acres<br/>";
-                                        else
-											tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + numberWithCommas(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(2)) + " Acres<br/>";
-                                    }
-                                    else {
-                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "<br/>";
-                                    }
+                for (var r=0; r<results.length; r++){
+                    if (!results[r].features) tooManyRequests=true;
+                }
+                if (tooManyRequests) {
+                    displayInfoWindow("<p>Too many people are requesting this data. Please try again.</p>");
+                    tooManyRequests = false;
+                    return;
+                }
+                else tooManyRequests = false;
+                var noData = true;
+                str = "The wildfire map layers are maintained and imported on demand from ESRI's USA Current Wildfires layer. They present the best-known point and perimeter locations of wildfire occurrences within the United States over the past 7 days from IRWIN and NIFC information.<br/><br/>";
+                // add each attribute to str
+                results.forEach(function(result) {
+                    if (result.features.length > 0) noData = false;
+                    result.features.forEach(function(feature){
+                        var layerName = "Wildfire Incidents";
+                        if (feature.attributes.IncidentName) {
+                            str += "<h3 style='margin-bottom: 5px;margin-top: 5px;'>"+feature.attributes.IncidentName+"</h3><strong>"+layerName+"</strong><div style='padding-left: 10px;'>";
+                            // set the title, use the first wildfire
+                            theTitle[identifyGroup] = feature.attributes.IncidentName;
+                            view.popup.title = theTitle[identifyGroup];
+                        }
+                        var d;
+                        
+                        for (var i = 0; i < identifyLayers[identifyGroup][layerName].displaynames.length; i++) {
+                            tmpStr = "";
+                            if ((feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] &&
+                                identifyLayers[identifyGroup][layerName].fields[i] !== "IncidentName" &&
+                                identifyLayers[identifyGroup][layerName].fields[i].toLowerCase() !== "irwinid" &&
+                                feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== " " &&
+                                feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "Null" &&
+                                feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "")) {
+                                //https link (can't do substring on a number!)
+                                if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
+                                    (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) == "http"))
+                                    tmpStr = "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a><br/>";
+                                else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("percent") > -1){
+                                    tmpStr =identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "%<br/>";
                                 }
-                            
-                                // don't add it twice, but add it to the features geometry array
-                                //if (tmpStr != "" && str.indexOf(tmpStr) == -1) {
-                                    // highlight polygon/point on mouse over, hide highlight on mouse out
-                                    //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
-                                    //str += "<div>" + tmpStr;
-                                    str += tmpStr;
-                                //}
+                                else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("updated") > -1){
+                                    // subtract 6 hours from Greenwich time
+                                    d = (Date.now() - feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
+                                    const days = Math.trunc(d/1000/60/60/24);
+                                    const hours = Math.trunc(d/1000/60/60 - days*24);
+                                    const minutes = Math.trunc(d/1000/60 - hours*60);
+                                        var dayStr = "days";
+                                    if (days == 1) dayStr = "day";
+                                    var hourStr = "hours";
+                                    if (hours == 1) hourStr = "hour";
+                                    var minStr = "minutes";
+                                    if (minutes == 1) minStr = "minute";
+                                    if (days >= 1) {
+                                        if (hours >= 1)
+                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +days+" "+dayStr+" "+hours+" "+hourStr+" ago<br/>";
+                                        else
+                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +days+" "+dayStr+" ago<br/>";
+                                    } else if (hours >= 1){
+                                        if (minutes >= 1)
+                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +hours+" "+hourStr+" "+minutes+" "+minStr+" ago<br/>";
+                                        else
+                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +hours+" "+hourStr+" ago<br/>";
+                                    } else
+                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": "+minutes+" "+minStr+" ago<br/>";
+                                }
+                                else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("date") > -1){
+                                    d = new Date(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
+                                    tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + (d.getMonth()+1) + "/"+ d.getDate() +"/"+ d.getFullYear() +"<br/>";
+                                }
+                                else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("acre") > -1 ||
+                                    identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("size") > -1 ||
+                                    identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("final") > -1 ||
+                                    identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("burned") > -1 ){
+                                    if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] >= 1)
+                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + numberWithCommas(Math.round(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]])) + " Acres<br/>";
+                                    else
+                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + numberWithCommas(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(2)) + " Acres<br/>";
+                                }
+                                else {
+                                    tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "<br/>";
+                                }
                             }
-							str += "</div><br/>";
-                        });
+                        
+                            // don't add it twice, but add it to the features geometry array
+                            //if (tmpStr != "" && str.indexOf(tmpStr) == -1) {
+                                // highlight polygon/point on mouse over, hide highlight on mouse out
+                                //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
+                                //str += "<div>" + tmpStr;
+                                str += tmpStr;
+                            //}
+                        }
+                        str += "</div><br/>";
                     });
-					if (noData){
-                        displayInfoWindow("No wildfires at this point.");
-                        groupContent[identifyGroup] = "No wildfires at this point."; // cache 
-                    }else {
-						str += "Inciweb: <a href='https://inciweb.wildfire.gov/state/colorado' target='_blank'>https://inciweb.wildfire.gov/state/colorado</a><br/><br/>";
-						groupContent[identifyGroup] = str; // cache content
-						displayInfoWindow(str);
-					}
                 });
+                if (noData){
+                    displayInfoWindow("No wildfires at this point.");
+                    theTitle[identifyGroup] = "No Wildfires";
+                    view.popup.title = "No Wildfires";
+                    groupContent[identifyGroup] = "No wildfires at this point."; // cache 
+                }else {
+                    str += "Inciweb: <a href='https://inciweb.wildfire.gov/state/colorado' target='_blank'>https://inciweb.wildfire.gov/state/colorado</a><br/><br/>";
+                    groupContent[identifyGroup] = str; // cache content
+                    displayInfoWindow(str);
+                }
                 return;
             }
 
@@ -747,6 +749,11 @@ function handleQueryResults(results) {
                                                     tmpStr = r.layerName + "</strong><div style='padding-left: 10px;'>";
 
                                                     var xmlDoc = createXMLdoc(XMLHttpRequestObjects[arrIndex]);
+                                                    // set the header
+                                                    if (r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                                    else theTitle[identifyGroup] = r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                                    view.popup.title = theTitle[identifyGroup];
+                                                    
                                                     for (i = 0; i < identifyLayers[identifyGroup][r.layerName].displaynames.length; i++) {
                                                         if ((i > 0 && r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] &&
                                                                 r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== " " &&
@@ -810,10 +817,6 @@ function handleQueryResults(results) {
                                                         str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
                                                         //str += "<div><strong>" + tmpStr;
                                                         groupContent[identifyGroup] = str; // cache content
-                                                        //view.popup.content = str;
-                                                        //view.openPopup();
-                                                        //map.infoWindow.setContent(str);
-                                                        //map.infoWindow.show(clickPoint);
                                                     }
                                                     features.push(r.feature);
                                                 }
@@ -854,6 +857,10 @@ function handleQueryResults(results) {
                             else {
                                 tmpStr = r.layerName + "</strong><div style='padding-left: 10px;'>";
                                 var first = true;
+                                // set header with first field value
+                                if (r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                else theTitle[identifyGroup] = r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                view.popup.title = theTitle[identifyGroup];
                                 for (i = 0; i < identifyLayers[identifyGroup][r.layerName].displaynames.length; i++) {
                                     if ((r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] &&
                                             r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== " " &&
@@ -877,11 +884,6 @@ function handleQueryResults(results) {
                                     str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
                                     //str += "<div><strong>" + tmpStr;
                                     groupContent[identifyGroup] = str; // cache content
-                                    //displayContent(str);
-                                    //view.popup.content = str;
-                                    //view.openPopup();
-                                    //map.infoWindow.setContent(str);
-                                    //map.infoWindow.show(clickPoint);
                                 }
                                 features.push(r.feature);
                             }
@@ -900,7 +902,7 @@ function handleQueryResults(results) {
 
 function highlightFeature(id) {
     // highlight geometry on mouse over, no fade = true
-    if (!features[id].geometry || features[id].geometry === undefined) return;
+    if (!features[id] || !features[id].geometry || features[id].geometry === undefined) return;
     if (features[id].geometry.type === undefined || !features[id].geometry.type) return;
     if (features[id].geometry.type === "point" ) {
         addHighlightPoint(features[id],true);
@@ -1008,11 +1010,15 @@ function accumulateContent(theContent){
                 str = "<div><p style='font-style:italic;top:-15px;position:relative;'>" + identifyLayers[identifyGroup].desc + "</p>No " + visible + identifyGroup + " at this point.<br/><br/></div>";
                 theContent = str;
                 groupContent[identifyGroup] = str; // cache content
+                theTitle[identifyGroup] = "No "+identifyGroup;
+                view.popup.title = "No "+identifyGroup;
                 str = null;
             } else {
                 str = "<div>No " + visible + identifyGroup + " at this point.<br/><br/></div>";
                 theContent = str;
                 groupContent[identifyGroup] = str; // cache content
+                theTitle[identifyGroup] = "No "+identifyGroup;
+                view.popup.title = "No "+identifyGroup;
                 str = null;
             }
         }
@@ -1024,34 +1030,35 @@ function customStuff(theContent){
     // add a drop down list and footer to the popup content
     const outerDiv = document.createElement("div");
     outerDiv.style.margin = "-12px";
-    outerDiv.style.display = "grid";
-    outerDiv.style.gridTemplateRows = "min-content auto min-content";
+    //outerDiv.style.display = "grid";
+    //outerDiv.style.gridTemplateRows = "min-content auto min-content";
     outerDiv.style.height = "100%";
-    // header drop down
-    /*var content = "<div class='dialogTitle' style='border:none;float:left;height:fit-content;text-overflow:ellipsis;border-bottom: 1px solid #dfdfdf;width: 100%;padding: 5px 12px;'><strong>Show:</strong> <select id='id_group' name='id_group' style='margin: 5px;color:black;' onChange='changeIdentifyGroup(this)'>";
+ 
+    // content
+    var content = "<div style='overflow:auto;border-bottom: 1px solid #dfdfdf;padding:12px;'>"+theContent+"</div>";
+
+    // footer
+    content += "<div class='dialogTitle' style='padding:0;margin:0;border:none;'>";
+    content += "<div style='height:fit-content;padding:5px 12px 5px;'>";
+    // show drop down
+    content += "<div style='text-overflow:ellipsis;width: 100%;'><strong>Show:</strong> <select id='id_group' name='id_group' style='margin:5px;color:black;' onChange='changeIdentifyGroup(this)'>";
     for (var i = 0; i < identifyGroups.length; i++) {
         content += "<option";
         if (identifyGroup == identifyGroups[i]) content += " selected";
         content+= ">" + identifyGroups[i] + "</option>";
     }
-    content += "</select></div>";*/
-
-    // content
-    var content = "<div style='overflow:auto;border-bottom: 1px solid #dfdfdf;padding:12px;'>"+theContent+"</div>";
-
-    // footer
-    content += "<div style='height:fit-content;padding:5px 12px 2px;'>";
+    content += "</select></div>";
+    // XY point
+    content += "<div style='margin:5px 0;'>Location: <span id='idXY'>Loading click point...</span></div>";
+    // Elevation
+    content += "<div id='idElevation' style='margin:5px 0;'>Loading elevation...</div>"
     // Zoom To
-    content += "<a href='javascript:zoomToPt()' style='color:black;margin-right:20px;'><button><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='vertical-align:middle;'></calcite-icon> Zoom to</button></a> ";
+    content += "<div style='margin:5px 0;min-height:40px;'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><button class='esri-button'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> Zoom to</button></a> ";
     // Get Directions
     if (driving_directions){
-        content += "<a href='javascript:getDirections()' style='color:black;'><button><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='vertical-align:middle;'></span> Get Directions</button></a>";
+        content += "<a href='javascript:getDirections()' style='float:left;'><button class='esri-button'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='vertical-align:middle;margin-right: 5px;'></span> Get Directions</button></a></div>";
     }
-    // XY point
-    content += "<p style='margin: 5px 0;'>Location: <span id='idXY'>Loading click point...</span></p>";
-    // Elevation
-    content += "<p id='idElevation' style='margin: 2px 0;'>Loading elevation...</p>"
-    content += "</div>";
+    content += "</div></div></div>";
     outerDiv.innerHTML = content;
     return outerDiv;
 }
@@ -1059,7 +1066,8 @@ function displayInfoWindow(theContent) {
     // open popup and set content to string theContent
     view.popup.content = customStuff(theContent);
     view.openPopup();
-    var h = document.getElementsByClassName("esri-popup__main-container")[0];
+    // wait for popup to populate header then add drop down
+    /*var h = document.getElementsByClassName("esri-popup__main-container")[0];
     if (!h || h.childNodes.length == 0) {
         var tim = setInterval(function(){
             if (h && h.childNodes.length != 0) {
@@ -1068,7 +1076,8 @@ function displayInfoWindow(theContent) {
             }
         },500);
     }
-    else setIdentifyHeader();
+    else setIdentifyHeader();*/
+    
     setIdentifyFooter(clickPoint); // add xy point and elevation to footer
     hideLoading("");
 }

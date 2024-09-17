@@ -139,7 +139,7 @@
                 <geometry>polygon</geometry>
 				<fields>PropName</fields>
 				<displaynames>CPW Property Name</displaynames>
-	   	</layer>
+	   		</layer>
 			<!-- WIA Small Game ONLY -->
 			<!--
 			<layer label="Small Game ONLY">
@@ -161,21 +161,21 @@
 			</layer>
 			-->
 			<!-- COMaP v8 -->
-			<layer label="Land Management (COMaP v10)">
-		   	<id>4</id>
-	     	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
-      	<geometry>polygon</geometry>
-		   	<fields>NAME,MANAGER</fields>
-		   	<displaynames>Property Name,Land Manager</displaynames>
-	   	</layer>
+			<layer label="Land Management (COMaP v20240702)">
+		   		<id>4</id>
+	     		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
+      			<geometry>polygon</geometry>
+		   		<fields>NAME,MANAGER</fields>
+		   		<displaynames>Property Name,Land Manager</displaynames>
+	   		</layer>
 			<!-- GMU      NOTE: cannot use vis_id with GMU -->
 			<layer label="Big Game GMU Boundaries">
 				<id>2</id>
-	     	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
-	     	<geometry>polygon</geometry>
-		   	<fields>GMUID</fields>
-	     	<displaynames>GMU Number</displaynames>
-	   	</layer>
+	     		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
+	     		<geometry>polygon</geometry>
+		   		<fields>GMUID</fields>
+	     		<displaynames>GMU Number</displaynames>
+	   		</layer>
 		</folder>
 		<!-- Set the IRWIN_to_Inciweb_View feature service here. Used in identify. Use url with id!!! (FeatureServer/0) -->  
 		<folder label="Wildfires">
