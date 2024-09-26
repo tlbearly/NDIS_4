@@ -1,8 +1,8 @@
 ﻿/* CSS file # used for id=<name> . used for class=<name> :hover must not have a space */
 html, body {margin: 0; height: 100%; overflow: hidden}
 body{			
-	font-family:Helvetica, Arial, sans-serif;
-	font-size: small;
+	font-family:Lato, Helvetica, Arial, sans-serif; /*Helvetica, Arial, sans-serif;*/
+	font-size: medium;
 	color:#494949;
 	display:flex;
 	flex-flow:column;
@@ -165,6 +165,62 @@ body{
 .esri-expand--auto .esri-expand__container--expanded{
 	z-index: 2!important; /* hide map scale behind panel */
 }
+.esri-widget{
+	font-family: Lato, Helvetica, Arial, sans-serif;
+	font-size: medium;
+	border-radius: 12px;
+}
+.esri-component{
+	border-radius: 12px;
+}
+.esri-widget--button{
+	width: 40px;
+	height: 40px;
+	border-radius:10px;
+}
+.esri-zoom .esri-widget--button:first-child{
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+.esri-zoom .esri-widget--button:last-child{
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+.esri-expand{
+	min-width: 40px;
+	min-height: 40px;
+}
+.esri-expand__content{
+	border-radius: 15px;
+}
+.esri-input {
+	font-size:small;
+}
+.esri-input[type=text], .esri-input[type=password], .esri-input[type=number]{
+	min-height: 40px;
+}
+.esri-search__sources-button{
+	border-top-left-radius: 12px;
+	border-bottom-left-radius: 12px;
+	border-top-right-radius: 0;
+	border-bottom-right-radius:0;
+}
+.esri-search__submit-button{
+	border-top-right-radius: 12px;
+	border-bottom-right-radius:12px;
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+}
+/* Idenitfy height */
+.esri-popup--is-docked-top-left .esri-popup__main-container, .esri-popup--is-docked-top-right .esri-popup__main-container, .esri-popup--is-docked-bottom-left .esri-popup__main-container, .esri-popup--is-docked-bottom-right .esri-popup__main-container {
+    max-height: 100%;
+}
+/* Identify location XY */
+#idXY {
+	border:none;
+	background-color:transparent;
+	font-weight:normal;
+}
 #bmGallery{
 	background-color: #fff;
 	min-height: 200px;
@@ -297,9 +353,6 @@ body{
     background-image: -webkit-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
     background-image: -o-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
     background-image: linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
-    border: 1px solid #b5bcc7;
-	border-top-left-radius: 5px;
-	border-top-right-radius: 5px;
 }
 .dialogButton{
 	margin: 0 5px 0 5px;
@@ -338,6 +391,18 @@ option{
 /* wrap long text in dialog panes. For long url */
 .dijitDialogPaneContentArea {
 	word-wrap:break-word;
+}
+
+calcite-panel {
+	border-radius: 12px;
+}
+calcite-panel .header {
+	--calcite-color-foreground-1: #cfe5fa;
+    background-color: #cfe5fa;
+    background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+    background-image: -webkit-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+    background-image: -o-linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+    background-image: linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
 }
 /* 8-28-24 */
 .esri-popup a[href] {

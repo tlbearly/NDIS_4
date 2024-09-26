@@ -703,7 +703,7 @@ function handleQueryResults(results) {
                     view.popup.title = "No Wildfires";
                     groupContent[identifyGroup] = "No wildfires at this point."; // cache 
                 }else {
-                    str += "Inciweb: <a href='https://inciweb.wildfire.gov/state/colorado' target='_blank'>https://inciweb.wildfire.gov/state/colorado</a><br/><br/>";
+                    str += "Inciweb: <a href='https://inciweb.wildfire.gov/state/colorado' target='_blank'>https://inciweb.wildfire.gov/state/colorado</a><br/>";
                     groupContent[identifyGroup] = str; // cache content
                     displayInfoWindow(str);
                 }
@@ -937,11 +937,12 @@ function setIdentifyFooter(clickPt) {
                 // Get XY point in user specified projection (from Settings)
                 // Wait for popup to show
                 const tim = setInterval(function(){
-                    if (document.getElementById("idXY")){
+                    let idXY = document.getElementById("idXY");
+                    if (idXY){
                         clearInterval(tim);
                         // set click point
-                        projectPoint(clickPoint,document.getElementById("idXY"));
-                    
+                        projectPoint(clickPoint,idXY);
+
                         // display elevation (use our raster map service)
                         if (elevation_url) {  
                             var ext = '{"xmin":' + view.extent.xmin + ',"ymin":' + view.extent.ymin + ',"xmax":' + view.extent.xmax + ',"ymax":' + view.extent.ymax + ',"spatialReference":{"wkid":102100,"latestWkid":102100}}';
@@ -964,14 +965,14 @@ function setIdentifyFooter(clickPt) {
                                     var elev = document.getElementById("idElevation");
                                     // If user clicks outsite colorado there is no data. Was throwing an error. tlb 6-28-18
                                     if (response.data.results.length == 0 || isNaN(response.data.results[0].attributes["Pixel Value"])) {
-                                        elev.innerHTML = "Elevation: data not available";
+                                        elev.innerHTML = "<strong>Elevation:</strong> data not available";
                                         return;
                                     }
-                                    elev.innerHTML = "Elevation: " + Math.round(response.data.results[0].attributes["Pixel Value"]) + " ft " + Math.round(response.data.results[0].attributes["Pixel Value"] * 0.3048) + " m";
+                                    elev.innerHTML = "<strong>Elevation:</strong> " + Math.round(response.data.results[0].attributes["Pixel Value"]) + " ft, " + Math.round(response.data.results[0].attributes["Pixel Value"] * 0.3048) + " m";
                                 },
                                 function(error) {
                                     var elev = getElementById("idElevation");
-                                    elev.innerHTML = "Elevation: data not available";
+                                    elev.innerHTML = "<strong>Elevation:</strong> data not available";
                                     hideLoading("");
                                 }
 
@@ -1007,14 +1008,14 @@ function accumulateContent(theContent){
             var visible = "";
             if (identifyLayerIds[identifyGroup][0].id_vis_only) visible = "visible "; // 1-10-18 add word visible if identifying visible only
             if (identifyLayers[identifyGroup].desc) {
-                str = "<div><p style='font-style:italic;top:-15px;position:relative;'>" + identifyLayers[identifyGroup].desc + "</p>No " + visible + identifyGroup + " at this point.<br/><br/></div>";
+                str = "<div><p style='font-style:italic;top:-15px;position:relative;'>" + identifyLayers[identifyGroup].desc + "</p>No " + visible + identifyGroup + " at this point.<br/></div>";
                 theContent = str;
                 groupContent[identifyGroup] = str; // cache content
                 theTitle[identifyGroup] = "No "+identifyGroup;
                 view.popup.title = "No "+identifyGroup;
                 str = null;
             } else {
-                str = "<div>No " + visible + identifyGroup + " at this point.<br/><br/></div>";
+                str = "<div>No " + visible + identifyGroup + " at this point.<br/></div>";
                 theContent = str;
                 groupContent[identifyGroup] = str; // cache content
                 theTitle[identifyGroup] = "No "+identifyGroup;
@@ -1034,31 +1035,33 @@ function customStuff(theContent){
     //outerDiv.style.gridTemplateRows = "min-content auto min-content";
     outerDiv.style.height = "100%";
  
-    // content
-    var content = "<div style='overflow:auto;border-bottom: 1px solid #dfdfdf;padding:12px;'>"+theContent+"</div>";
-
-    // footer
-    content += "<div class='dialogTitle' style='padding:0;margin:0;border:none;'>";
-    content += "<div style='height:fit-content;padding:5px 12px 5px;'>";
-    // show drop down
-    content += "<div style='text-overflow:ellipsis;width: 100%;'><strong>Show:</strong> <select id='id_group' name='id_group' style='margin:5px;color:black;' onChange='changeIdentifyGroup(this)'>";
+    // menu drop down
+    var content = "<div style='padding:12px;'><strong>Show:</strong> <select id='id_group' name='id_group' style='margin:5px;color:black;' onChange='changeIdentifyGroup(this)'>";
     for (var i = 0; i < identifyGroups.length; i++) {
         content += "<option";
         if (identifyGroup == identifyGroups[i]) content += " selected";
         content+= ">" + identifyGroups[i] + "</option>";
     }
     content += "</select></div>";
+
+    // content
+    content += "<div style='overflow:auto;border-bottom: 1px solid #dfdfdf;padding:12px;'>"+theContent+"</div>";
+
+    // footer
+    //content += "<div style='padding:0;margin:0;border:none;'>";
+    //content += "<div style='height:fit-content;padding:5px 12px 5px;'>";
+    
     // XY point
-    content += "<div style='margin:5px 0;'>Location: <span id='idXY'>Loading click point...</span></div>";
+    content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <strong>Location:</strong> <input type='text' value='Loading XY...' id='idXY' disabled='true'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;font-color:var(--calcite-color-brand)'>Copy</a></div>";
     // Elevation
-    content += "<div id='idElevation' style='margin:5px 0;'>Loading elevation...</div>"
+    content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='altitude' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <span id='idElevation'>Loading elevation...</span></div>"
     // Zoom To
-    content += "<div style='margin:5px 0;min-height:40px;'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><button class='esri-button'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> Zoom to</button></a> ";
+    content += "<div slot='footer' style='padding:12px;display:flex'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> Zoom To</a> ";
     // Get Directions
     if (driving_directions){
-        content += "<a href='javascript:getDirections()' style='float:left;'><button class='esri-button'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='vertical-align:middle;margin-right: 5px;'></span> Get Directions</button></a></div>";
+        content += "<a href='javascript:getDirections()' style='float:left;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='vertical-align:middle;margin-right: 5px;'></span> Get Directions</a></div>";
     }
-    content += "</div></div></div>";
+    content += "</div>";
     outerDiv.innerHTML = content;
     return outerDiv;
 }

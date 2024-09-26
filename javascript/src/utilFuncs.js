@@ -205,25 +205,54 @@
 		 });
 	}
 
-	
+	function copyText(id){
+			// Get the text field
+			var copyText = document.getElementById(id);
+		  
+			// Select the text field
+			copyText.select();
+			copyText.setSelectionRange(0, 99999); // For mobile devices
+		  
+			 // Copy the text inside the text field
+			navigator.clipboard.writeText(copyText.value);
+		  
+			// Alert the copied text
+			alert("Copied text to clipboard: " + copyText.value, "NOTE");
+	}
 	async function projectPoint(pt, div){
 		require(["esri/geometry/support/webMercatorUtils", "esri/geometry/SpatialReference", "esri/rest/support/ProjectParameters", "esri/rest/geometryService"],
 			function(webMercatorUtils, SpatialReference, ProjectParameters, GeometryService) {
 			// Project point pt to user selected projection from Settings
 			var geoPt;
+
             var myPrj = document.getElementById("settings_xycoords_combo").value; // user defined projection
 			if (myPrj === "dd") {
 				geoPt = webMercatorUtils.webMercatorToGeographic(pt);
-				if (div)
-					div.innerHTML = geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";			
+				if (div && div.value != undefined){
+					div.value = geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";
+					div.setAttribute("size",div.value.length);
+				}
+				else if (div)
+					div.innerHTML = geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";
+				else alert("Warning", "Undefined DOM node id="+div);			
 			} else if (myPrj === "dms") {
 				geoPt = mappoint_to_dms(pt, true);
-				if (div)
+				if (div && div.value != undefined){
+					div.value = geoPt[0] + " N, " + geoPt[1] + " W";
+					div.setAttribute("size",div.value.length);
+				}
+				else if (div)
 					div.innerHTML =  geoPt[0] + " N, " + geoPt[1] + " W";
+				else alert("Warning", "Undefined DOM node id="+div);
 			} else if (myPrj === "dm") {
 				geoPt = mappoint_to_dm(pt, true);
-				if (div)
-					div.innerHTML =  geoPt[0] + " N, " + geoPt[1] + " W";
+				if (div && div.value != undefined){
+					div.value = geoPt[0] + " N, " + geoPt[1] + " W";
+					div.setAttribute("size",div.value.length);
+				}
+				else if (div)
+					div.innerHTML = geoPt[0] + " N, " + geoPt[1] + " W";
+				else alert("Warning", "Undefined DOM node id="+div);
 			} else { // utm
 				var outSR = new SpatialReference(Number(myPrj));
 				// converts point to selected projection
@@ -240,8 +269,13 @@
 					else if (outSR.wkid == 26712) units = "NAD27 UTM Zone 12N";
 					else if (outSR.wkid == 26713) units = "NAD27 UTM Zone 13N";
 					else units = "unknown units: "+outSR.wkid+" in utilFuncs.js projectPoint()";
-					if (div)
+					if (div && div.value != undefined){
+						div.value = feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0) + " " + units;
+						div.setAttribute("size",div.value.length);
+					}
+					else if (div)
 						div.innerHTML = feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0) + " " + units;
+					else alert("Warning", "Undefined DOM node id="+div);
 				}).catch ( (err) => {
 					if (err.details)
 						alert("Problem projecting point. " + err.message + " " + err.details[0], "Warning");
@@ -594,7 +628,7 @@
 		// noFade: should it fade away? default is true
 		require(["esri/symbols/TextSymbol","esri/Graphic"], function (TextSymbol, Graphic) {
 			var shouldFade = true;
-			if (arguments.length == 2) fontSize = 11;
+			if (arguments.length >= 2) fontSize = 11;
 			else fontSize = arguments[2];
 			if (arguments.length == 4) shouldFade = false;
 			
@@ -620,7 +654,7 @@
 			let fade = 1.0; // starting transparency
 			let width = pointText.symbol.haloSize / 4;
 			// should fade out?
-			if (arguments.length == 4){
+			if (shouldFade){
 				setTimeout(function(){
 					let tim = setInterval(function(){
 						fade = fade - 0.25;
@@ -641,6 +675,8 @@
 		// add point and remove it in 10 seconds
 		// if noFade is passed in do not fade
 		// added 4/25/24
+		var shouldFade = true;	
+		if (arguments.length == 2) shouldFade = false;
 		require(["esri/symbols/PictureMarkerSymbol","esri/Graphic"], function (PictureMarkerSymbol, Graphic) {
 			const symbol = {
 				type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
@@ -656,7 +692,7 @@
 				symbol: symbol
 			});
 			view.graphics.add(point);
-			if (arguments.length == 1){
+			if (shouldFade){
 				setTimeout(function(){
 					view.graphics.remove(point);
 				},13000);
@@ -698,6 +734,8 @@
 	  function addTempPolygon(feature,noFade){
 		// add polygon outline and remove it in 10 seconds
 		// if noFade is passed in do not fade
+		var shouldFade = true;	
+		if (arguments.length == 2) shouldFade = false;
 		require(["esri/geometry/Polygon", "esri/Graphic"],
 			function (Polygon, Graphic) {
 			
@@ -710,7 +748,7 @@
 				symbol: polySymbol
 			});
 			view.graphics.add(poly);
-			if (arguments.length == 1){
+			if (shouldFade){
 				setTimeout(function(){
 					view.graphics.remove(poly);
 				},13000);

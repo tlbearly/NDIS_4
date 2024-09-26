@@ -7,6 +7,7 @@ var locator;
 var addressGraphicsCount = []; // store names of graphics layers used to display address.
 var addressGraphicsCounter = 0;
 var layerObj; // holds layer id, visiblelayers, visible when read from url &layer=...
+var searchWidget;
 
 //**********************
 // Read config.xml file
@@ -166,7 +167,7 @@ function readConfig() {
 				this.menu =  document.createElement("ul");
 				this.bmGallery = document.createElement("div");
 				this.bmGallery.style.backgroundColor = "#fff";
-				this.bmGallery.className ="esri-legend";
+				this.bmGallery.className ="esri-widget";
 				this.bmGallery.appendChild(this.menu);
 				this.menu.role = "menu";
 				this.bmGallery.id = "bmGallery";
@@ -1029,10 +1030,20 @@ if (layer.id == 1900) {
 			addWidgets();
 		}
 
+		function findGMUIndex(){
+			// search Find a place widget sources to find index of GMU source
+			for (var i=0; i<searchWidget.sources.items.length; i++){
+				if (searchWidget.sources.items[i].name.indexOf("GMUs")>-1){
+					break;
+				}
+			}
+			return i;
+		}
 		// *********************************
 		// Creates actions in the LayerList.
 		// *********************************
 		var layerList;
+		var gmuIndex = -1;
         async function defineActions(event) {
             // The event object contains an item property.
             // is is a ListItem referencing the associated layer
@@ -1081,12 +1092,51 @@ if (layer.id == 1900) {
 				// set gmu species && display GMU layer
 				if (item.title === "Bighorn" && item.visible == true) {
 					gmu = "Bighorn GMU";
+					// find the index of the Find a Place GMUs
+					if (gmuIndex == -1){
+						gmuIndex=findGMUIndex();
+					}
+					var bighornFL = new FeatureLayer({
+						url: settings.sheepUrl
+					});
+					searchWidget.sources.items[gmuIndex].layer = bighornFL;
+					searchWidget.sources.items[gmuIndex].searchFields = [settings.sheepField];
+					searchWidget.sources.items[gmuIndex].displayField = settings.sheepField;
+					searchWidget.sources.items[gmuIndex].outFields = [settings.sheepField];
+					searchWidget.sources.items[gmuIndex].name = "Bighorn Sheep GMUs (S10)";
+					searchWidget.sources.items[gmuIndex].placeholder = "Search Bighorn GMUs";
 				}	
 				else if (item.title === "Mountain Goat" && item.visible == true){
 					gmu = "Goat GMU";
+					// find the index of the Find a Place GMUs
+					if (gmuIndex == -1){
+						gmuIndex=findGMUIndex();
+					}
+					var goatFL = new FeatureLayer({
+						url: settings.goatUrl
+					});
+					searchWidget.sources.items[gmuIndex].layer = goatFL;
+					searchWidget.sources.items[gmuIndex].searchFields = [settings.goatField];
+					searchWidget.sources.items[gmuIndex].displayField = settings.goatField;
+					searchWidget.sources.items[gmuIndex].outFields = [settings.goatField];
+					searchWidget.sources.items[gmuIndex].name = "Mountain Goat GMUs (G12)";
+					searchWidget.sources.items[gmuIndex].placeholder = "Search Goat GMUs";
 				}
 				else {
 					gmu = "Big Game GMU";
+					// find the index of the Find a Place GMUs
+					if (gmuIndex == -1){
+						gmuIndex=findGMUIndex();
+					}
+					var elkFL = new FeatureLayer({
+						url: settings.elkUrl
+					});
+					searchWidget.sources.items[gmuIndex].layer = elkFL;
+					searchWidget.sources.items[gmuIndex].searchFields = [settings.elkField];
+					searchWidget.sources.items[gmuIndex].displayField = settings.elkField;
+					searchWidget.sources.items[gmuIndex].outFields = [settings.elkField];
+					searchWidget.sources.items[gmuIndex].name = "Big Game GMUs (38)";
+					searchWidget.sources.items[gmuIndex].placeholder = "Search GMUs";
 				}
 				// Show correct GMU layer, hide others
 				layerList.operationalItems.every((opLayer) => { //every break on return false
@@ -1221,23 +1271,31 @@ if (layer.id == 1900) {
 						continue;
 					widgetStr += label;
 					if (label == "Map Layers & Legend") {
-						var tocPane = new TitlePane({
+						/*var tocPane = new TitlePane({
 							title: "<img id='tocIcon' role='presentation' alt='map layers icon' src='assets/images/i_layers.png'/> Map Layers",
 							open: preload,
 							content: document.getElementById("tocContent")
 							 //"<div id='tocContent' style='position:relative'><img id='tocHelpBtn' role='button' alt='map layers help' class='help_icon help_icon_dialog' src='assets/images/i_help.png'></div>"
 						},"tocPane");
 						tocPane.startup();
-						document.getElementById("tocHelpBtn").addEventListener("click",function(){show("tocHelpDialog");});
+						document.getElementById("tocHelpBtn").addEventListener("click",function(){show("tocHelpDialog");});*/
 					
 						// Layer List
 						layerList = new LayerList({
 							view: view,
-							dragEnabled: true, // add drag layers to re-arrange draw order
+							title: "Map Layers",
+							dragEnabled: false, // add drag layers to re-arrange draw order
         					visibilityAppearance: "checkbox",
-							listItemCreatedFunction: defineActions,
-							container: document.getElementById('layersContent') //tocPane.containerNode.id
+							listItemCreatedFunction: defineActions
+							//container: document.getElementById('layersContent') //tocPane.containerNode.id
 						});
+						const layerListExpand = new Expand({
+							view,
+							content: layerList,
+							expandTooltip: "Map Layers",
+							expandIconClass: "esri-icon-layers"
+						});
+						view.ui.add(layerListExpand, "top-right");
 			
 						// Event listener that fires each time an action is triggered
 						layerList.on("trigger-action", (event) => {
@@ -1338,23 +1396,6 @@ if (layer.id == 1900) {
 						}
 						dom.byId("searchDiv").style.display = "block";
 						dom.byId("searchDiv").style.visibility = "visible";
-					}else if (label == "Address") {
-						continue;
-						/*try {
-							// TODO ******locator = new Locator(xmlDoc.getElementsByTagName("addressservice")[0].getAttribute("url"));
-						} catch (e) {
-							alert('Missing tag: addressservice in ' + app + '/config.xml.\n\nTag should look like: &lt;addressservice url="https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"/&gt;\n\nWill use that url for now.', 'Data Error');
-							// TODO ******locator = new Locator("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates");
-						}
-						if (video == null)
-							alert("Warning: Missing help video in " + app + "/config.xml file for widget Address.", "Data Error");
-						if (icon)
-							document.getElementById("addressIcon").src = icon;
-						dom.byId("addressHelp").href = video;
-						
-						dom.byId("addressDiv").style.display = "block";
-						dom.byId("addressDiv").style.visibility = "visible";
-						*/
 					}
 					 else if (label == "Draw, Label, & Measure") {
 						var drawPane = new TitlePane({
@@ -1712,7 +1753,6 @@ if (layer.id == 1900) {
 		//**********************
 		//   Add Find a Place
 		//**********************
-		var searchWidget;
 		function addFindPlace(){
 			// Find a Place Widget ESRI default
 			//define layers for boundaries
@@ -1726,37 +1766,15 @@ if (layer.id == 1900) {
 			});
 			var propertyFL = new FeatureLayer({
 				url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3"
-				/*popupTemplate: {
-					// autocasts as new PopupTemplate()
-					title: "{PropName}",
-					overwriteActions: true
-					}*/
 			});
 			var gmuFL = new FeatureLayer({
-				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2"
-				//url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/4"
-				/*popupTemplate: {
-					// autocasts as new PopupTemplate()
-					title: "GMU {GMUID}",
-					overwriteActions: true
-					}*/
+				url: settings.elkUrl //"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2"
 			});
 			var forestFL = new FeatureLayer({
 				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5"
 			});
 			var wildernessFL = new FeatureLayer({
 				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/4"
-				/*popupTemplate: {
-					// autocasts as new PopupTemplate()
-					title: "{NAME}",
-					overwriteActions: true
-					}*/
-			});
-			var bighornFL = new FeatureLayer({
-				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/15"
-			});
-			var goatFL = new FeatureLayer({
-				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/16"
 			});
 			
 			searchWidget = new Search({
@@ -1773,41 +1791,25 @@ if (layer.id == 1900) {
 				allPlaceholder: "Search",
 				sources: [
 					{
-						url: myFindService, //https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer 
-						singleLineFieldName: "SingleLine",
-						outFields: ["*"],
-						name: "Colorado Places",
-						placeholder: "Search Colorado Places"
-					},
-					{
-						layer: countyFL,
-						searchFields: ["COUNTYNAME"],
-						displayField: "COUNTYNAME",
-						exactMatch: false,
-						outFields: ["COUNTYNAME"],
-						name: "County Boundaries (Douglas)",
-						placeholder: "Search Counties"
-					},
-					{
 						layer: propertyFL,
 						searchFields: ["PropName"],
 						displayField: "PropName",
 						exactMatch: false,
 						maxSuggestions: 1000,
 						outFields: ["PropName"],
-						name: "CPW Properties Boundaries (STL, SWA, SFU, or WWA)",
+						name: "CPW Properties (STL, SWA, SFU, or WWA)",
 						placeholder: "Search CPW Properties"
 					},
 					{
 						layer: gmuFL,
-						searchFields: ["GMUID"],
-						displayField: "GMUID",
+						searchFields: [settings.elkField],
+						displayField: settings.elkField,
 						exactMatch: false,
 						maxResults: 6,
 						maxSuggestions: 100,
 						minSuggestCharacters: 1,
-						outFields: ["GMUID"],
-						name: "GMU Boundaries (38)",
+						outFields: [settings.elkField],
+						name: "Big Game GMUs (e.g. 38)",
 						placeholder: "Search GMUs"
 					},
 					{
@@ -1816,7 +1818,7 @@ if (layer.id == 1900) {
 						displayField: "MapName",
 						exactMatch: false,
 						outFields: ["MapName"],
-						name: "Forest or Grassland Boundaries",
+						name: "Forests or Grasslands",
 						placeholder: "Search Forests/Grasslands"
 					},
 					{
@@ -1825,48 +1827,55 @@ if (layer.id == 1900) {
 						displayField: "NAME",
 						exactMatch: false,
 						outFields: ["NAME"],
-						name: "Wilderness Boundaries",
+						name: "Wildernesses",
 						placeholder: "Search Wildernesses"
 					},
 					{
+						layer: countyFL,
+						searchFields: ["COUNTYNAME"],
+						displayField: "COUNTYNAME",
+						exactMatch: false,
+						outFields: ["COUNTYNAME"],
+						name: "Counties (Douglas)",
+						placeholder: "Search Counties"
+					},
+					// Colorado Place GNIS
+					{
+						url: myFindService, //https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer 
+						singleLineFieldName: "SingleLine",
+						outFields: ["*"],
+						name: "Colorado Places",
+						placeholder: "Search Colorado Places"
+					},
+					// Address limit search to Colorado
+					{
+						filter: {
+							geometry: new Extent({
+								//-12350000 4250000 -11150000 5250000
+							  xmax: -11150000,
+							  xmin: -12350000,
+							  ymax: 5250000,
+							  ymin: 4250000,
+							  spatialReference: {
+								wkid: 102100
+							  }
+							})
+						},
 						url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/",
 						singleLineFieldName: "SingleLine",
 						outFields: ["*"],
 						name: "Address",
 						placeholder: "Search Address"
-					},
-					{
-						layer: bighornFL,
-						searchFields: ["BSGMU"],
-						displayField: "BSGMU",
-						exactMatch: false,
-						maxResults: 6,
-						maxSuggestions: 100,
-						minSuggestCharacters: 1,
-						outFields: ["BSGMU"],
-						name: "Bighorn GMU Boundaries (S10)",
-						placeholder: "Search Bighorn GMUs"
-					},
-					{
-						layer: goatFL,
-						searchFields: ["MGGMU"],
-						displayField: "MGGMU",
-						exactMatch: false,
-						maxResults: 6,
-						maxSuggestions: 100,
-						minSuggestCharacters: 1,
-						outFields: ["MGGMU"],
-						name: "Goat GMU Boundaries (S10)",
-						placeholder: "Search Goat GMUs"
 					}
 				]
-				});
+			});
 				
-				searchWidget.goToOverride = function(view, goToParams) {
+			searchWidget.goToOverride = function(view, goToParams) {
 				// Don't zoom in, we will handle it below
 				return null;
-				};
-				searchWidget.on("search-complete", function(event){
+			};
+			
+			searchWidget.on("search-complete", function(event){
 				// The results are stored in the event Object[]
 				// Highlight and label the result for 10 seconds
 
@@ -2719,6 +2728,15 @@ if (layer.id == 1900) {
 					}
 				}
 	
+				readSettingsWidget(); // initialize Identify, found in identify.js. Needed for FindPlace SearchWidget      moved 9-19-24
+				
+				// Update the theme to use slightly transparent green graphics and green text
+				view.theme = {
+					accentColor: [55, 200, 100, 0.75],
+					textColor: "green"
+				};
+
+
 				// Load listener function for when the first or base layer has been successfully added
 				view.when(() => {
 					// Update mouse coordinates
@@ -2799,93 +2817,94 @@ if (layer.id == 1900) {
 			
 					// Add Basemap Gallery
 					try{
-				let basemap = new My_BasemapGallery();
-				basemapExpand = new Expand({
-					view,
-					content: basemap,
-					expandTooltip: "Basemap",
-					expandIconClass: "esri-icon-basemap"
-				});
-				view.ui.add(basemapExpand, "top-right");
-				// add a title bar
-				basemapExpand.when(() =>{
-					var title = document.createElement("h3");
-					title.className = "dialogTitle";
-					title.style.margin = 0;
-					title.style.padding = "10px";
-					title.style.position = "sticky";
-					title.style.top = "0px";
-					title.style.position = "-webkit-sticky";
-					title.style.zIndex = 1;
-					title.innerHTML = "Basemaps";
-					const basemapWidget = document.getElementById("bmGallery");
-					basemapWidget.insertBefore(title,basemapWidget.firstChild);
-				});
-			
-				// add bookmark
-				const storeBookmarks = (bookmarks) => {
-					window.localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
-				};
-				const bookmarks = new Bookmarks({
-					view,
-					container: "bookmarks-container",
-					// allows bookmarks to be added, edited, or deleted
-					dragEnabled: true,
-					visibleElements: {
-					  addBookmarkButton: true,
-					  editBookmarkButton: true,
-					  filter: true // add search button
+						let basemap = new My_BasemapGallery();
+						basemapExpand = new Expand({
+							view,
+							content: basemap,
+							expandTooltip: "Basemap",
+							expandIconClass: "esri-icon-basemap"
+						});
+						view.ui.add(basemapExpand, "top-right");
+						// add a title bar
+						basemapExpand.when(() =>{
+							var title = document.createElement("h3");
+							title.className = "dialogTitle";
+							title.style.margin = 0;
+							title.style.padding = "10px";
+							title.style.position = "sticky";
+							title.style.top = "0px";
+							title.style.position = "-webkit-sticky";
+							title.style.zIndex = 1;
+							title.innerHTML = "Basemaps";
+							const basemapWidget = document.getElementById("bmGallery");
+							basemapWidget.insertBefore(title,basemapWidget.firstChild);
+						});
+					}catch (e){
+						alert("Problem creating basemaps. Error message: "+e.getMessage, "Error");
 					}
-				});
-				//load bookmarks from local storage
-				if (window.localStorage.getItem('bookmarks')) {
-					const bms = JSON.parse(window.localStorage.getItem('bookmarks'));
-					bms?.forEach(bm => bm.viewpoint.targetGeometry.type = 'extent');
-					bookmarks.bookmarks = bms;
-				}
-				//store bookmarks when added or removed or reordered
-				bookmarks.bookmarks.on('after-changes', () => storeBookmarks(bookmarks.bookmarks));
-				//store boomarks when a bookmark is edited
-				bookmarks.on('bookmark-edit', () => storeBookmarks(bookmarks.bookmarks));
+					
+					// Add Bookmarks
+					try {
+						const storeBookmarks = (bookmarks) => {
+							window.localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+						};
+						const bookmarks = new Bookmarks({
+							view,
+							container: "bookmarks-container",
+							// allows bookmarks to be added, edited, or deleted
+							dragEnabled: true,
+							visibleElements: {
+							addBookmarkButton: true,
+							editBookmarkButton: true,
+							filter: true // add search button
+							}
+						});
+						//load bookmarks from local storage
+						if (window.localStorage.getItem('bookmarks')) {
+							const bms = JSON.parse(window.localStorage.getItem('bookmarks'));
+							bms?.forEach(bm => bm.viewpoint.targetGeometry.type = 'extent');
+							bookmarks.bookmarks = bms;
+						}
+						//store bookmarks when added or removed or reordered
+						bookmarks.bookmarks.on('after-changes', () => storeBookmarks(bookmarks.bookmarks));
+						//store boomarks when a bookmark is edited
+						bookmarks.on('bookmark-edit', () => storeBookmarks(bookmarks.bookmarks));
+					}catch (e){
+						alert("Problem creating bookmarks. Error message: "+e.getMessage, "Error");
+					}
 
-			}catch (e){
-				alert("Problem creating basemaps. Error message: "+e.getMessage, "Error");
-			}
+					// Add Scalebar
+					let scalebar = new ScaleBar({
+						view: view,
+						// "dual" displays both miles and kilmometers
+						// "non-metric"|"metric"|"dual"
+						unit: "dual"
+					});
+					
+					view.ui.add(scalebar, "bottom-left");
+					
+					// Home
+					const homeBtn = new Home({
+						view: view,
+						expandTooltip: "Full Extent",
+					});
+					// Add the home button to the top left corner of the view
+					view.ui.add(homeBtn, "top-left");
 
-
-			// Add Scalebar
-			let scalebar = new ScaleBar({
-				view: view,
-				// "dual" displays both miles and kilmometers
-				// "non-metric"|"metric"|"dual"
-				unit: "dual"
-			});
+					// Add You Location
+					const locateBtn = new Locate({
+						view: view
+					});
 			
-			view.ui.add(scalebar, "bottom-left");
-			
-			// Home
-			const homeBtn = new Home({
-				view: view,
-				expandTooltip: "Full Extent",
-			});
-			// Add the home button to the top left corner of the view
-			view.ui.add(homeBtn, "top-left");
+					// Add the locate widget to the top left corner of the view
+					view.ui.add(locateBtn, "top-left");
 
-			// Add You Location
-			const locateBtn = new Locate({
-				view: view
-			});
-	
-			// Add the locate widget to the top left corner of the view
-			view.ui.add(locateBtn, "top-left");
-
-			
-				addPrint();
-				
-			zoomToQueryParams();
-			addGraphicsAndLabels();
-			readSettingsWidget(); // initialize Identify, found in identify.js      moved 6-13-24
-			hideLoading();
+					addPrint();
+					
+					zoomToQueryParams();
+					addGraphicsAndLabels();
+					//readSettingsWidget(); // initialize Identify, found in identify.js      moved 6-13-24
+					hideLoading();
 				});
 			});
 		}
