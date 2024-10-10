@@ -49,53 +49,29 @@ function readConfig() {
 			require([
 			"esri/Basemap",
 			"esri/layers/VectorTileLayer",
+			"esri/layers/TileLayer",
 			"esri/layers/MapImageLayer",
 			"esri/layers/FeatureLayer"
-			], (Basemap,VectorTileLayer,MapImageLayer,FeatureLayer)  => {
+			], (Basemap,VectorTileLayer,TileLayer,MapImageLayer,FeatureLayer)  => {
 				var layer;
-				// Old world streets
-				/*layer = new MapImageLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"});
-				streets = new Basemap({
-					baseLayers:[layer],
-					title:"Streets",
-					id:"streets",
-					thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
-				});*/
-
+				const hillShadeLayer = new TileLayer({
+					url: "https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer"
+				  });
 				// World Streets Vector with Hillshade
-				//var layer1 = new VectorTileLayer({url:"https://tiledbasemaps.arcgis.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer"});//requires username and password
-				layer = new VectorTileLayer({url:"https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"});
+				layer = new VectorTileLayer({
+					url:"https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer",
+					opacity: 0.75,
+				});
 				streets = new Basemap({
-					baseLayers:[layer],
+					baseLayers:[hillShadeLayer,layer],
 					title:"Streets",
 					id:"streets",
 					thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
 				});
-
-				/*esri jsapi 4 examples
-				let vtlLayer = new VectorTileLayer({
-				// URL to the style of vector tiles
-					url: "https://www.arcgis.com/sharing/rest/content/items/4cf7e1fb9f254dcda9c8fbadb15cf0f8/resources/styles/root.json"
-				});
-
-				let vtlLayer = new VectorTileLayer({
-				// URL to the vector tile service
-					url: "https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"
-				});*/
-				
-				
-				// Old Streets
-				/*let streetsLayer = new VectorTileLayer({url:"https://www.arcgis.com/sharing/rest/content/items/b266e6d17fc345b498345613930fbd76/resources/styles/root.json"});
-				let streets = new Basemap({
-					baseLayers:[streetsLayer],
-					title:"Streets",
-					id:"streets",
-					thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/f81bc478e12c4f1691d0d7ab6361f5a6/info/thumbnail/street_thumb_b2wm.jpg"
-				});*/
 
 				// Aerial Photo
 				var layers=[];
-				layer = new MapImageLayer({
+				layer = new TileLayer({
 					url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
 				});
 				layers.push(layer);
@@ -111,13 +87,12 @@ function readConfig() {
 				});
 
 				// Add USGS Digital Topo back in. ESRI removed it 6-30-19
-				// try id: f33a34de3a294590ab48f246e99958c9 esri nat geo
-				layer = new MapImageLayer({
-					//url: "https://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"  // no topo
-					url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
+				layer = new TileLayer({
+					url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+					opacity: 0.75
 				});
 				natgeo = new Basemap({
-					baseLayers:[layer],
+					baseLayers:[hillShadeLayer,layer],
 					title:"USGS Digital Topo",
 					id:"natgeo",
 					thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/6d9fa6d159ae4a1f80b9e296ed300767/info/thumbnail/thumbnail.jpeg"
@@ -125,35 +100,36 @@ function readConfig() {
 
 				// USGS Scanned Topo
 				// thumbnail moved no longer esists: //"https://www.arcgis.com/sharing/rest/content/items/931d892ac7a843d7ba29d085e0433465/info/thumbnail/usa_topo.jpg"
-				layer=new MapImageLayer({
+				layer=new TileLayer({
 					url:"https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer",
-					dpi:300
+					dpi:300,
+					opacity: 0.75
 				});
 				topo = new Basemap({
-					baseLayers:[layer],
-					title:"USGS Scanned Topo",
+					baseLayers:[hillShadeLayer,layer],
+					title:"USGS Topo",
 					id:"topo",
 					thumbnailUrl:"assets/images/USA_topo.png"
 				});
 
 				// Aerial with Topos
-				layer=new MapImageLayer({url:"https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer",dpi:300});
+				layer=new TileLayer({url:"https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer",opacity:0.75,dpi:300});
 				imagery_topo = new Basemap({
-				baseLayers:[layer],
-				title:"Aerial Photo with USGS Contours",
-				id: "imagery_topo",
-				dpi:300,
-				thumbnailUrl:"assets/images/aerial_topo.png"
+					baseLayers:[hillShadeLayer,layer],
+					title:"Aerial Photo with USGS Contours",
+					id: "imagery_topo",
+					dpi:300,
+					thumbnailUrl:"assets/images/aerial_topo.png"
 				});
 
 				// ESRI Digital Topo
-				layer=new MapImageLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"});
+				layer=new TileLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer",opacity:0.75});
 				// old thumb thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/30e5fe3149c34df1ba922e6f5bbf808f/info/thumbnail/ago_downloaded.jpg"
 				topo2 = new Basemap({
-				baseLayers:[layer],
-				title:"ESRI Digital Topo",
-				id:"topo2",
-				thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/588f0e0acc514c11bc7c898fed9fc651/info/thumbnail/topo_thumb_b2wm.jpg"
+					baseLayers:[hillShadeLayer,layer],
+					title:"ESRI Digital Topo",
+					id:"topo2",
+					thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/588f0e0acc514c11bc7c898fed9fc651/info/thumbnail/topo_thumb_b2wm.jpg"
 				});
 			});
 		}
@@ -176,7 +152,7 @@ function readConfig() {
 				this.add("streets","Streets","assets/images/streets_thumb.jpg",true);
 				this.add("aerial","Aerial Photo","assets/images/aerial_thumb.jpg",false);
 				this.add("topo","USGS Scanned Topo","assets/images/USA_topo.png",false);
-				this.add("natgeo","USGS Digital Topo","assets/images/natgeothumb.jpg",false);
+				this.add("natgeo","USGS Topo","assets/images/natgeothumb.jpg",false);
 				this.add("imagery_topo","Aerial Photo with USGS Contours","assets/images/aerial_topo.png",false);
 				this.add("topo2","ESRI Digital Topo","assets/images/topo2_thumb.jpg",false);
 				return this.bmGallery;
@@ -1034,10 +1010,10 @@ if (layer.id == 1900) {
 			// search Find a place widget sources to find index of GMU source
 			for (var i=0; i<searchWidget.sources.items.length; i++){
 				if (searchWidget.sources.items[i].name.indexOf("GMUs")>-1){
-					break;
+					return i;
 				}
 			}
-			return i;
+			return -1;
 		}
 		// *********************************
 		// Creates actions in the LayerList.
@@ -1089,6 +1065,7 @@ if (layer.id == 1900) {
 			//     V Elk
 			//     > Moose
 			item.watch("visible", (event) => {
+				if (app.toLowerCase() != "huntingatlas") return;
 				// set gmu species && display GMU layer
 				if (item.title === "Bighorn" && item.visible == true) {
 					gmu = "Bighorn GMU";
@@ -1096,15 +1073,17 @@ if (layer.id == 1900) {
 					if (gmuIndex == -1){
 						gmuIndex=findGMUIndex();
 					}
-					var bighornFL = new FeatureLayer({
-						url: settings.sheepUrl
-					});
-					searchWidget.sources.items[gmuIndex].layer = bighornFL;
-					searchWidget.sources.items[gmuIndex].searchFields = [settings.sheepField];
-					searchWidget.sources.items[gmuIndex].displayField = settings.sheepField;
-					searchWidget.sources.items[gmuIndex].outFields = [settings.sheepField];
-					searchWidget.sources.items[gmuIndex].name = "Bighorn Sheep GMUs (S10)";
-					searchWidget.sources.items[gmuIndex].placeholder = "Search Bighorn GMUs";
+					if (gmuIndex != -1){
+						var bighornFL = new FeatureLayer({
+							url: settings.sheepUrl
+						});
+						searchWidget.sources.items[gmuIndex].layer = bighornFL;
+						searchWidget.sources.items[gmuIndex].searchFields = [settings.sheepField];
+						searchWidget.sources.items[gmuIndex].displayField = settings.sheepField;
+						searchWidget.sources.items[gmuIndex].outFields = [settings.sheepField];
+						searchWidget.sources.items[gmuIndex].name = "Bighorn Sheep GMUs";
+						searchWidget.sources.items[gmuIndex].placeholder = "Search Bighorn GMUs";
+					}
 				}	
 				else if (item.title === "Mountain Goat" && item.visible == true){
 					gmu = "Goat GMU";
@@ -1112,15 +1091,17 @@ if (layer.id == 1900) {
 					if (gmuIndex == -1){
 						gmuIndex=findGMUIndex();
 					}
-					var goatFL = new FeatureLayer({
-						url: settings.goatUrl
-					});
-					searchWidget.sources.items[gmuIndex].layer = goatFL;
-					searchWidget.sources.items[gmuIndex].searchFields = [settings.goatField];
-					searchWidget.sources.items[gmuIndex].displayField = settings.goatField;
-					searchWidget.sources.items[gmuIndex].outFields = [settings.goatField];
-					searchWidget.sources.items[gmuIndex].name = "Mountain Goat GMUs (G12)";
-					searchWidget.sources.items[gmuIndex].placeholder = "Search Goat GMUs";
+					if (gmuIndex != -1){
+						var goatFL = new FeatureLayer({
+							url: settings.goatUrl
+						});
+						searchWidget.sources.items[gmuIndex].layer = goatFL;
+						searchWidget.sources.items[gmuIndex].searchFields = [settings.goatField];
+						searchWidget.sources.items[gmuIndex].displayField = settings.goatField;
+						searchWidget.sources.items[gmuIndex].outFields = [settings.goatField];
+						searchWidget.sources.items[gmuIndex].name = "Mountain Goat GMUs";
+						searchWidget.sources.items[gmuIndex].placeholder = "Search Goat GMUs";
+					}
 				}
 				else {
 					gmu = "Big Game GMU";
@@ -1128,15 +1109,17 @@ if (layer.id == 1900) {
 					if (gmuIndex == -1){
 						gmuIndex=findGMUIndex();
 					}
-					var elkFL = new FeatureLayer({
-						url: settings.elkUrl
-					});
-					searchWidget.sources.items[gmuIndex].layer = elkFL;
-					searchWidget.sources.items[gmuIndex].searchFields = [settings.elkField];
-					searchWidget.sources.items[gmuIndex].displayField = settings.elkField;
-					searchWidget.sources.items[gmuIndex].outFields = [settings.elkField];
-					searchWidget.sources.items[gmuIndex].name = "Big Game GMUs (38)";
-					searchWidget.sources.items[gmuIndex].placeholder = "Search GMUs";
+					if (gmuIndex != -1){
+						var elkFL = new FeatureLayer({
+							url: settings.elkUrl
+						});
+						searchWidget.sources.items[gmuIndex].layer = elkFL;
+						searchWidget.sources.items[gmuIndex].searchFields = [settings.elkField];
+						searchWidget.sources.items[gmuIndex].displayField = settings.elkField;
+						searchWidget.sources.items[gmuIndex].outFields = [settings.elkField];
+						searchWidget.sources.items[gmuIndex].name = "Big Game GMUs";
+						searchWidget.sources.items[gmuIndex].placeholder = "Search GMUs";
+					}
 				}
 				// Show correct GMU layer, hide others
 				layerList.operationalItems.every((opLayer) => { //every break on return false
@@ -1226,15 +1209,7 @@ if (layer.id == 1900) {
 				});
 			}
 			
-			// show legend  
-			/*if (item.layer.type != "group") {
-				// don't show legend twice
-				item.panel = {
-				  content: "legend",
-				  open: true,
-				  title: "Legend"
-				};
-			}*/
+			
 
             // An array of objects defining actions to place in the LayerList.
             // By making this array two-dimensional, you can separate similar
@@ -1251,6 +1226,16 @@ if (layer.id == 1900) {
 						}
 					]
 				];
+			}
+
+			// show legend  
+			if (item.layer.type != "group") {
+				// don't show legend twice
+				item.panel = {
+				  content: "legend",
+				  open: true,
+				  title: "Legend"
+				};
 			}
         }
 
@@ -1286,7 +1271,16 @@ if (layer.id == 1900) {
 							title: "Map Layers",
 							dragEnabled: false, // add drag layers to re-arrange draw order
         					visibilityAppearance: "checkbox",
-							listItemCreatedFunction: defineActions
+							listItemCreatedFunction: defineActions,
+							visibleElements: {
+								catalogLayerList: true,
+								closeButton: true,
+								collapseButton: true,
+								errors: true,
+								filter: true,
+								heading: true,
+								statusIndicators: true
+							  }
 							//container: document.getElementById('layersContent') //tocPane.containerNode.id
 						});
 						const layerListExpand = new Expand({
@@ -1317,7 +1311,7 @@ if (layer.id == 1900) {
 							} else if (id === "information") {
 								// if the information action is triggered, then
 								// open the item details page of the service layer
-								//window.open(layer.url);
+								window.open(layer.url);
 								window.open("/"+app+"/definitions.html");
 							} else if (id === "increase-opacity") {
 								// if the increase-opacity action is triggered, then
@@ -1334,13 +1328,13 @@ if (layer.id == 1900) {
 								}
 							}
 						});
-						if (video == null)
-							alert("Warning: Missing help video in " + app + "/config.xml file for widget Map Layers & Legend.", "Data Error");
-						dom.byId("tocHelp").href = video;
-						if (icon)
-							document.getElementById("tocIcon").src = icon;
-						dom.byId("tocPane").style.display = "block";
-						dom.byId("tocPane").style.visibility = "visible";
+						//if (video == null)
+						//	alert("Warning: Missing help video in " + app + "/config.xml file for widget Map Layers & Legend.", "Data Error");
+						//dom.byId("tocHelp").href = video;
+						//if (icon)
+						//	document.getElementById("tocIcon").src = icon;
+						//dom.byId("tocPane").style.display = "block";
+						//dom.byId("tocPane").style.visibility = "visible";
 						//if (widgetHeight && widgetHeight != "") //cuts off the toc!!!!!
 						//	document.getElementById("tocContent").style.maxHeight = widgetHeight + "px";
 					}
@@ -1425,11 +1419,12 @@ if (layer.id == 1900) {
 						const graphicsLayer = new GraphicsLayer();
 						graphicsLayer.title="Graphics Layer";
 						map.add(graphicsLayer);
-
+// Use Measure widget it lables
 						const sketch = new Sketch({
 							view,
+							title: "Measure",
 							layer: graphicsLayer,
-							container: document.getElementById('drawContent'),
+							//container: document.getElementById('drawContent'),
 							availableCreateTools: ["point", "polyline", "polygon", "rectangle"],
 							creationMode: "update",
 							updateOnGraphicClick: true,
@@ -1442,9 +1437,19 @@ if (layer.id == 1900) {
 									"rectangle-selection":false,
 								},
 								settingsMenu: false,
-								undoRedoMenu: false
+								undoRedoMenu: false,
+								closeButton: true,
+								collapseButton: true,								
+								heading: true
 							}
 						});
+						const sketchExpand = new Expand({
+							view,
+							content: sketch,
+							expandTooltip: "Measure",
+							expandIconClass: "esri-icon-measure"
+						});
+						view.ui.add(sketchExpand, "top-right");
 						const measurements = document.createElement("div");
 						measurements.id = "measurements";
 						measurements.innerHTML = "Measurement Results";
@@ -1624,9 +1629,10 @@ if (layer.id == 1900) {
 					else if (label == "MapLink") {
 						if (icon)
 							document.getElementById("linkIcon").src = icon;
-					} else {
-						alert("Error in " + app + "/config.xml widget. Label: " + label + " was not found.  \n\nAvailable options include:\n\tMap Layers & Legend\n\t" + "<something> Resource Report \n\tFeature Search\n\tAddress\n\tDraw, Label, & Measure\n\tBookmark\n\tFind a Place\n\tPrint\n\t" + "Settings\n\tIdentify\n Edit javascript/readConfig.js to change this.", "Data Error");
-					}
+					} 
+					//else {
+					//	alert("Error in " + app + "/config.xml widget. Label: " + label + " was not found.  \n\nAvailable options include:\n\tMap Layers & Legend\n\t" + "<something> Resource Report \n\tFeature Search\n\tAddress\n\tDraw, Label, & Measure\n\tBookmark\n\tFind a Place\n\tPrint\n\t" + "Settings\n\tIdentify\n Edit javascript/readConfig.js to change this.", "Data Error");
+					//}
 				}
 				// add print widget
 				var printPane = new TitlePane({
@@ -1751,18 +1757,18 @@ if (layer.id == 1900) {
 		}
 
 		//**********************
-		//   Add Find a Place
+		//   Add Search
 		//**********************
 		function addFindPlace(){
 			// Find a Place Widget ESRI default
 			//define layers for boundaries
 			var countyFL = new FeatureLayer({
-				url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1"
-				/*popupTemplate: {
+				url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1",
+				popupTemplate: {
 					// autocasts as new PopupTemplate()
 					title: "{COUNTYNAME} County",
 					overwriteActions: true
-				}*/
+				}
 			});
 			var propertyFL = new FeatureLayer({
 				url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3"
@@ -1809,7 +1815,7 @@ if (layer.id == 1900) {
 						maxSuggestions: 100,
 						minSuggestCharacters: 1,
 						outFields: [settings.elkField],
-						name: "Big Game GMUs (e.g. 38)",
+						name: "Big Game GMUs",
 						placeholder: "Search GMUs"
 					},
 					{
@@ -1836,7 +1842,7 @@ if (layer.id == 1900) {
 						displayField: "COUNTYNAME",
 						exactMatch: false,
 						outFields: ["COUNTYNAME"],
-						name: "Counties (Douglas)",
+						name: "Counties",
 						placeholder: "Search Counties"
 					},
 					// Colorado Place GNIS
@@ -1879,18 +1885,6 @@ if (layer.id == 1900) {
 				// The results are stored in the event Object[]
 				// Highlight and label the result for 10 seconds
 
-				// Check if no results were found for all layers
-				var noResults = true;
-				for (var i=0; i<event.results.length; i++){
-					if(event.results[i].results.length != 0){
-						noResults = false;
-						break;
-					}
-				}
-				if (noResults){
-					alert(event.searchTerm+" was not found. Please try your search again.","Note");
-					return;
-				}
 				// Find which source layer matches name exactly or up to the comma. eg. Fort Collins, Larimer
 				var index = 0;
 				for (var i=0; i<event.results.length; i++){
@@ -1949,7 +1943,7 @@ if (layer.id == 1900) {
 				// Adds the search widget below other elements in
 				// the top left corner of the view
 				view.ui.add(searchWidget, {
-				position: "top-right",
+				position: "top-left",
 				index: 2
 			});	
 		}
@@ -2739,6 +2733,7 @@ if (layer.id == 1900) {
 
 				// Load listener function for when the first or base layer has been successfully added
 				view.when(() => {
+					view.ui.move(["zoom"],"bottom-right");
 					// Update mouse coordinates
 					view.on('pointer-move', (event)=>{
 						showCoordinates(event);  
@@ -2761,10 +2756,10 @@ if (layer.id == 1900) {
 					});
 
 					// Overview window was showing on startup. It is hidden now so now make it visible
-					setTimeout(function(){
+					/*setTimeout(function(){
 						document.getElementById("overviewContainer").style.display = "block";
 						document.getElementById("OVtitle").style.display = "block";
-					},2000);
+					},2000);*/
 
 									
 					// Watch for map scale change
@@ -2786,7 +2781,7 @@ if (layer.id == 1900) {
 					// display current map scale
 					showMapScale(view.scale);
 					addMapLayers();
-					addOverviewMap();
+					//addOverviewMap();
 					addFindPlace();
 
 					// Add Legend
@@ -2884,20 +2879,20 @@ if (layer.id == 1900) {
 					view.ui.add(scalebar, "bottom-left");
 					
 					// Home
-					const homeBtn = new Home({
+					/*const homeBtn = new Home({
 						view: view,
 						expandTooltip: "Full Extent",
 					});
 					// Add the home button to the top left corner of the view
-					view.ui.add(homeBtn, "top-left");
+					view.ui.add(homeBtn, "top-left");*/
 
-					// Add You Location
+					// Add Your Location
 					const locateBtn = new Locate({
 						view: view
 					});
 			
 					// Add the locate widget to the top left corner of the view
-					view.ui.add(locateBtn, "top-left");
+					view.ui.add(locateBtn, "top-right");
 
 					addPrint();
 					

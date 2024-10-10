@@ -942,6 +942,18 @@ function setIdentifyFooter(clickPt) {
                         clearInterval(tim);
                         // set click point
                         projectPoint(clickPoint,idXY);
+                        /*require(["esri/widgets/CoordinateConversion"],
+                            function(CoordinateConversion){
+                            const ccWidget = new CoordinateConversion({
+                                view: view,
+                                formats: ["xy","utm","dd","ddm","dms","basemap"],
+                                currentLocation: clickPt,
+                                container: "idXYlocation",
+                                mode: "capture",
+                                multipleConversions: false
+                            });
+                        
+                        });*/
 
                         // display elevation (use our raster map service)
                         if (elevation_url) {  
@@ -1052,7 +1064,8 @@ function customStuff(theContent){
     //content += "<div style='height:fit-content;padding:5px 12px 5px;'>";
     
     // XY point
-    content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <strong>Location:</strong> <input type='text' value='Loading XY...' id='idXY' disabled='true'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;font-color:var(--calcite-color-brand)'>Copy</a></div>";
+    content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <strong>Location:</strong> <input type='text' value='Loading XY...' id='idXY' disabled='true'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;font-color:var(--calcite-color-brand)'><calcite-icon aria-hidden='true' icon='copy' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon></a></div>";
+    content += "<div id='idXYlocation'></div>"
     // Elevation
     content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='altitude' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <span id='idElevation'>Loading elevation...</span></div>"
     // Zoom To

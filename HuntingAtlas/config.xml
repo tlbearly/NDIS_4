@@ -96,7 +96,7 @@
                 popup_labels: labels for the above fields comma delimited (feature service only)
         -->
         <operationallayers>
-			<layer label="Hunter Reference" open="true" type="dynamic" visible="true" alpha="0.8"
+			<layer label="Hunter Reference" open="true" type="dynamic" visible="true" alpha="0.6"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"/>
             
             <!-- TEST Group layer -->

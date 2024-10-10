@@ -7,72 +7,1431 @@
     <title>Test ArcGIS API for JavaScript 4.29</title>
 
     <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css" async="true"/>
-    <script src="https://js.arcgis.com/4.29/"></script>
+    <script src="https://js.arcgis.com/4.30/"></script>
     <style>
-        html,
-        body,
-        #viewDiv {
-          padding: 0;
-          margin: 0;
-          height: 100%;
-          width: 100%;
-        }
-      </style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+      .esri-expand--auto .esri-expand__container--expanded{
+        z-index: 2!important; /* hide map scale behind panel */
+      }
+      .esri-widget{
+        font-family: Lato, Helvetica, Arial, sans-serif;
+        font-size: medium;
+        border-radius: 12px;
+      }
+      .esri-component{
+        border-radius: 12px;
+      }
+      .esri-widget--button{
+        width: 40px;
+        height: 40px;
+        border-radius:10px;
+      }
+      .esri-zoom .esri-widget--button:first-child{
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+      .esri-zoom .esri-widget--button:last-child{
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+      }
+      .esri-expand{
+        min-width: 40px;
+        min-height: 40px;
+      }
+      .esri-expand__content{
+        border-radius: 15px;
+      }
+      .esri-input {
+        font-size:small;
+      }
+      .esri-input[type=text], .esri-input[type=password], .esri-input[type=number]{
+        min-height: 40px;
+      }
+      .esri-search__sources-button{
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+        border-top-right-radius: 0;
+        border-bottom-right-radius:0;
+      }
+      .esri-search__submit-button{
+        border-top-right-radius: 12px;
+        border-bottom-right-radius:12px;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+      /* mobile background color was black */
+      :root {
+        --calcite-scrim-background: transparent;
+        --calcite-sheet-scrim-background-internal:transparent;
+        --calcite-sheet-scrim-background:transparent;
+      }
+    </style>
     <script>
-        require(["esri/config", "esri/Map", "esri/views/MapView", "esri/Basemap",
-			"esri/layers/VectorTileLayer",
-			"esri/layers/MapImageLayer","esri/geometry/Extent","esri/widgets/BasemapToggle"], 
-            function(esriConfig, Map, MapView, Basemap, VectorTileLayer, MapImageLayer, Extent, BasemapToggle) {
-  
-                //esriConfig.apiKey = "YOUR_API_KEY";
-  
-                let layer = new MapImageLayer({
-                        //url: "https://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"  // no topo
-                        url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"
-                    });
-                let natgeo = new Basemap({
-                    baseLayers:[layer],
-                    title:"USGS Digital Topo",
-                    id:"natgeo",
-                    thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/6d9fa6d159ae4a1f80b9e296ed300767/info/thumbnail/thumbnail.jpeg"
-                });
+      const app = "huntingatlas";
+      const settings = {
+        elkField: "GMUID",
+        elkUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2",
+        sheepField: "BSGMU",
+        sheepUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/15",
+        goatField: "MGGMU",
+        goatUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/16"
+      };
+      var gmu = "Big Game GMU";
+      var searchWidget;
+      const hideGroupSublayers = ["Emergency","Field Office","Chamber of Commerce or Welcome Center","License Agent","Campgrounds and SWA Facilities","GMU boundary (Hunting Units)"];
+      var labelFromURL = false;
+      require(["esri/config",
+        // -- map, basemaps layers --
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/Basemap",
+        "esri/layers/VectorTileLayer",
+        "esri/layers/TileLayer",
+        "esri/layers/MapImageLayer",
+        "esri/layers/FeatureLayer",
+        "esri/layers/GraphicsLayer",
+        "esri/layers/GroupLayer",
+        // -- Geomtry --
+        "esri/PopupTemplate",
+        "esri/Graphic",
+        "esri/geometry/Extent",
+        "esri/geometry/geometryEngine",
 
-                const map = new Map({
-                basemap: natgeo //"streets-vector" // basemap styles service
-                });
-                let initExtent = new Extent({
-                    "xmin":-12350000,
-                    "ymin": 4250000,
-                    "xmax": -11150000,
-                    "ymax": 5250000,
-                    "spatialReference": {
-                        "wkid": 102100
+        // -- widgets --
+        "esri/widgets/BasemapToggle",
+        "esri/widgets/Expand",
+        "esri/widgets/LayerList",
+        "esri/widgets/Legend",
+        "esri/widgets/Locate",
+        "esri/widgets/Search",
+        "esri/widgets/ScaleBar",
+        "esri/widgets/Slider",
+        "esri/widgets/Sketch",
+        "esri/widgets/Print"], 
+        function(esriConfig, Map, MapView, Basemap, VectorTileLayer, TileLayer, MapImageLayer, FeatureLayer, GraphicsLayer, GroupLayer, PopupTemplate, Graphic, Extent, geometryEngine, BasemapToggle, Expand, LayerList, Legend, Locate, Search, ScaleBar, Slider, Sketch, Print) {
+  
+          //esriConfig.apiKey = "YOUR_API_KEY";
+
+          // -- BASEMAP --
+          const hillShadeLayer = new TileLayer({
+            url: "https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer"
+          });
+          // streets-vector
+          var layer = new VectorTileLayer({
+            url:"https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer",
+            opacity: 0.75
+          });
+          const streets = new Basemap({
+            baseLayers:[hillShadeLayer,layer],
+            title:"Streets",
+            id:"streets",
+            thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
+          });
+
+          // Topo
+          layer = new TileLayer({
+            url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer",
+            opacity: 0.75
+          });
+          let natgeo = new Basemap({
+            baseLayers:[hillShadeLayer,layer],
+            title:"USGS Topo",
+            id:"natgeo",
+            thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/6d9fa6d159ae4a1f80b9e296ed300767/info/thumbnail/thumbnail.jpeg"
+          });
+
+           // Aerial
+           layer = new TileLayer({
+            url: "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryTopo/MapServer",
+            opacity: 0.75
+          });
+          let aerial = new Basemap({
+            baseLayers:[hillShadeLayer,layer],
+            title:"USGS Aerial",
+            id:"aerial",
+            thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/6d9fa6d159ae4a1f80b9e296ed300767/info/thumbnail/thumbnail.jpeg"
+          });
+
+          //#region -- MAP LAYERS --
+          let layers = [];
+          // Hunter Reference
+          /*let layer = 
+          layer.popupTemplate = {
+            expressionInfos: [{
+              name: "participation-rate",
+              title: "% of population 16+ participating in the labor force",
+              expression: "Round(($feature.CIVLBFR_CY / $feature.POP_16UP)*100,2)"
+            }],
+            content: "In {NAME} county, {expression/participation-rate}% of the population"
+              + " participates in the labor force."
+          };*/
+
+          // Add map layers in reversion order top most will be on bottom of TOC!!!
+          const map = new Map({
+            basemap: streets,
+            layers: [
+             /*new FeatureLayer({
+                portalItem: { // autocasts as esri/portal/PortalItem
+                  id: "02513fefd87149b4b09b5df4dcd6f5ec" //
+                } 
+              }),
+              // Test identify from database looking up ancestry data from a table joined to the map service
+              new FeatureLayer({
+                url: "https://sampleserver6.arcgisonline.com/arcgis/rest/services/AGP/Census/MapServer",
+                title: "United States Population",
+                visible: false,
+                popupTemplate: {
+                  title: "{states.STATE_NAME}",
+                  content: "{expression/per_ancestry}% of the {states.POP2007} people in {states.STATE_NAME} have "
+                    + "Norwegian ancestry.",
+                  expressionInfos: [{
+                    name: "per_ancestry",
+                    expression: "Round( ( $feature['ancestry.norwegian'] / $feature['states.POP2007'] ) * 100, 1)"
+                  }],
+                  fieldInfos: [{
+                    fieldName: "states.POP2007",
+                    format: {
+                      digitSeparator: true,
+                      places: 0
                     }
-                });
-                
-                const view = new MapView({
-                map: map,
-                //center: [-105.66, 38.95], // Longitude, latitude
-                extent: initExtent,
-                container: "viewDiv" // Div element
-            });
-            view.extent = initExtent;
-
-            
-            view.when(() => {
-                // Add a basemap toggle widget to toggle between basemaps
-                const toggle = new BasemapToggle({
-                    visibleElements: {
-                    title: true
+                  }]
+                },
+                dynamicDataSource: {
+                  type: "data-layer",
+                  dataSource: {
+                    type: "join-table",
+                    leftTableSource: {
+                      type: "map-layer",
+                      mapLayerId: 3
                     },
-                    view: view,
-                    nextBasemap: "streets-vector"
-                });
+                    rightTableSource: {
+                      type: "data-layer",
+                      dataSource: {
+                        type: "table",
+                        workspaceId: "CensusFileGDBWorkspaceID",
+                        dataSourceName: "ancestry"
+                      }
+                    },
+                    leftTableKey: "STATE_NAME",
+                    rightTableKey: "State",
+                    joinType: "left-outer-join"
+                  }
+                }
+              }),*/
 
-                // Add widget to the top right corner of the view
-                view.ui.add(toggle, "top-right");
+              new MapImageLayer({
+                title: "Hunter Reference", // must be named Hunter Reference
+                url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer",
+                sublayers: [
+                  {
+                    title: "License Agent",
+                    id: 4,
+                    listMode: "hide", // hide from TOC show|hide|hide-children
+                    legendEnabled: false,
+                    //minScale: 250000,
+                    popupTemplate: {
+                      title: "{License Agent}",
+                      content: "{Name}<br>{Manager}<br>{Address}<br>{City}<br>{Phone}"
+                    }
+							  	},
+                  {
+                    title: "License Agent",
+                    id: 6,
+                    listMode: "hide", // hide from TOC
+                    //minScale: 250000,
+                    popupTemplate: {
+                      title: "{License Agent}",
+                      content: "{Name}<br>{Manager}<br>{Address}<br>{City}<br>{Phone}"
+                    }
+							  	},
+                ]
+              }),
+              new MapImageLayer({
+                title: "Game Species",
+                url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer",
+                visible: false
+              }),
+              new MapImageLayer({
+                title: "BLM Roads and Trails",
+                url: "https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer",
+                visible: false
+              }),
+              new MapImageLayer({
+                title: "MVUM",
+                url: "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer",
+                visible: true,
+                sublayers: [
+                  {
+                    id:2,
+                    title: "Motor Vehicle Use Map: Trails",
+                    visible: true,
+                    popupTemplate: {
+                      title: "{NAME}",
+                      content: "{NAME}<br>Segment length: {expression/seg-length} mi.<br>{JURISDICTION}<br>Seasonal: {SEASONAL}",
+                      // format segment length to one decimal place
+                      expressionInfos: [{
+                        name: "seg-length",
+                        expression: "Round($feature.SEG_LENGTH , 1)"
+                      }]
+                    }
+                  },
+                  {
+                    id:1,
+                    title: "Motor Vehicle Use Map: Roads",
+                    visible: true,
+                    minScale: 250000,
+                    popupTemplate: {
+                      title: "{NAME}",
+                      content: "Segment length: {expression/seg-length} mi.<br>{JURISDICTION}<br>Seasonal: {SEASONAL}"+
+                        "Passenger vehicle: {PASSENGERVEHICLE}",
+                        // format segment length to one decimal place
+                        expressionInfos: [{
+                          name: "seg-length",
+                          expression: "Round($feature.SEG_LENGTH , 1)"
+                        }]
+                    }
+                  }
+                ]
+              }),
+
+             
+
+              
+              /* new GroupLayer({
+                title: "Game Species",
+                id: "Game Species",
+							  visible: false,
+							  opacity: 0.7,
+							  visibilityMode: "exclusive", // radio buttons
+                layers: [
+                  new GroupLayer({
+                    title: "Mountain Goat",
+                    visible: false,
+                    layers: []
+                  }),
+                  new GroupLayer({
+                    title: "Elk",
+                    visible: true,
+                    layers: [
+                    new FeatureLayer({
+                        title: "Overall Range",
+                        url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/44",
+                        visible: false,
+                        legendEnabled: true,
+                        popupTemplate: {
+                          title: "Elk",
+                          content: "Elk overall range. Last updated: {EDIT_DATE}"
+                        }
+                      }),
+                      new FeatureLayer({
+                        title: "Resident Population Area",
+                        url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/39",
+                        visible: true,
+                        legendEnabled: true,
+                        popupTemplate: {
+                          title: "Elk",
+                          content: "Elk resident population area. Last updated: {EDIT_DATE}"
+                        }
+                      }),
+                      new FeatureLayer({
+                        title: "Summer Range",
+                        url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/36",
+                        visible: true,
+                        legendEnabled: true,
+                        popupTemplate: {
+                          title: "Elk",
+                          content: "Elk summer range. Last updated: {EDIT_DATE}"
+                        }
+                      }),
+                      new FeatureLayer({
+                        title: "Summer Concentration Area",
+                        url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/35",
+                        visible: false,
+                        legendEnabled: true
+                      }),
+                      new FeatureLayer({
+                        title: "Winter Range",
+                        url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/43",
+                        visible: true,
+                        legendEnabled: true
+                      }),
+                      new FeatureLayer({
+                        title: "Winter Concentration Area",
+                        url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/42",
+                        visible: true,
+                        legendEnabled: true
+                      }),
+                      new FeatureLayer({
+                        title: "Migration Corridors",
+                        url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/40",
+                        visible: true,
+                        legendEnabled: true
+                      }),
+                      new FeatureLayer({
+                        title: "Migration Patterns",
+                        url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/33",
+                        visible: false,
+                        legendEnabled: true
+                      })
+                    ]
+                  }),
+                  new GroupLayer({
+                    title: "Bighorn", // Must be named Bighorn
+                    visible: false,
+                    layers: [
+                      new FeatureLayer({
+                        title: "Migration Patterns",
+                        url:"https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/8",
+                        visible: false,
+						            legendEnabled: true
+                      }),
+                      new FeatureLayer({
+                        title: "Migration Corridors",
+                        url: "https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/9",
+                        visible: true,
+						            legendEnabled: true
+                      })
+                    //layerIds="8,9,15-17,10,11,18"
+                    //layerVis="false,true,true,true,true,false,true,false"                     
+                    ]
+                  })
+                ]
+              })*/
+            ]
+          });
+          var openTOCgroups = ["Elk"]; // which group layers should be open in TOC
+          //#endregion
+          const graphicsLayer = new GraphicsLayer();
+				  graphicsLayer.title="Graphics Layer";
+					map.add(graphicsLayer);
+          let initExtent = new Extent({
+            "xmin":-12350000,
+            "ymin": 4250000,
+            "xmax": -11150000,
+            "ymax": 5250000,
+            "spatialReference": {
+              "wkid": 102100
+            }
+          });
+          const view = new MapView({
+            map: map,
+            extent: initExtent,
+            container: "viewDiv", // Div element
+            extent: initExtent,
+            popup: {
+              dockEnabled: true,
+              dockOptions: {
+                // Disables the dock button from the popup
+                buttonEnabled: false,
+                // Ignore the default sizes that trigger responsive docking
+                breakpoint: false,
+                position: "top-left"
+              }
+            }
+          });
+        
+        view.when(() => {
+          view.ui.move("zoom","bottom-right");
+
+            /*view.popup.visibleElements = {
+              closeButton: false
+            };*/
+          addFindPlace();
+
+          // -- Layer List --
+          layerList = new LayerList({
+            view: view,
+            title: "Map Layers",
+            dragEnabled: false, // add drag layers to re-arrange draw order
+            visibilityAppearance: "checkbox",
+            listItemCreatedFunction: defineActions,
+            visibleElements: {
+              catalogLayerList: true,
+              //closeButton: true,
+              //collapseButton: true,
+              errors: true,
+              //filter: true,
+              heading: true,
+              statusIndicators: true
+            }
+          });
+          const layerListExpand = new Expand({
+            view,
+            content: layerList,
+            expandTooltip: "Map Layers",
+            expandIconClass: "esri-icon-layers"
+          });
+          view.ui.add(layerListExpand, "top-right");
+          // Event listener that fires each time an action is triggered
+					layerList.on("trigger-action", (event) => {
+							// The layer visible in the view at the time of the trigger.
+							const layer = event.item.layer;
+				
+							// Capture the action id.
+							const id = event.action.id;
+				
+							if (id === "full-extent") {
+								// if the full-extent action is triggered then navigate
+								// to the full extent of the visible layer
+								view.goTo(visibleLayer.fullExtent)
+								.catch((error) => {
+								if (error.name != "AbortError"){
+									console.error(error);
+								}
+								});
+							} else if (id === "information") {
+								// if the information action is triggered, then
+								// open the item details page of the service layer
+								window.open(layer.url);
+								window.open("/"+app+"/definitions.html");
+							} else if (id === "increase-opacity") {
+								// if the increase-opacity action is triggered, then
+								// increase the opacity of the GroupLayer by 0.25
+				
+								if (layer.opacity < 2) {
+								layer.opacity += 0.25;
+								}
+							} else if (id === "decrease-opacity") {
+								// if the decrease-opacity action is triggered, then
+								// decrease the opacity of the GroupLayer by 0.25
+								if (layer.opacity > 0) {
+								layer.opacity -= 0.25;
+								}
+							}
+						});
+
+            // Add a basemap toggle widget to toggle between basemaps
+          const toggle = new BasemapToggle({
+            title: "Basemaps",
+            visibleElements: {
+              heading: true
+            },
+            view: view,
+            nextBasemap: natgeo
+          });
+          // Add widget to the top right corner of the view
+          view.ui.add(toggle, "top-right");
+
+
+
+          // -- Measure --
+          const sketch = new Sketch({
+							view,
+							title: "Measure",
+							layer: graphicsLayer,
+							availableCreateTools: ["point", "polyline", "polygon", "rectangle"],
+							creationMode: "update",
+							updateOnGraphicClick: true,
+							visibleElements: {
+                heading:  true,
+								createTools: {
+									circle: false
+								},
+								selectionTools:{
+									"lasso-selection": false,
+									"rectangle-selection":false,
+								},
+								settingsMenu: false,
+								undoRedoMenu: false,
+								closeButton: true,
+								collapseButton: true,								
+								heading: true
+							}
+					});
+					const sketchExpand = new Expand({
+							view,
+							content: sketch,
+							expandTooltip: "Measure",
+							expandIconClass: "esri-icon-measure"
+					});
+					view.ui.add(sketchExpand, "bottom-right");
+					const measurements = document.createElement("div");
+					measurements.id = "measurements";
+					measurements.innerHTML = "Measurement Results";
+					var textSymbol = {
+							type: "text",  // autocasts as new TextSymbol()
+							color: "white",
+							haloColor: "black",
+							haloSize: "1px",
+							xoffset: 3,
+							yoffset: 3,
+							font: {  // autocasts as new Font()
+								size: 12,
+								weight: "bold"
+							}
+					};
+					function getArea(polygon) {
+							// if WGS94(4326) or WebMercator (3857) use geodesic Area
+							const geodesicArea = geometryEngine.geodesicArea(polygon, "square-miles");//"square-kilometers");
+							//const planarArea = geometryEngine.planarArea(polygon, "square-kilometers");
+							measurements.innerHTML =
+							"<b>Area</b>:  " + geodesicArea.toFixed(2) + " mi\xB2";
+							/*textSymbol.text = geodesicArea.toFixed(2) + " mi\xB2";
+							var g = new Graphic({
+								geometry: polygon,
+								symbol: textSymbol
+							});
+							graphicsLayer.graphics.add(g);*/
+					}
+				  
+					function getLength(line) {
+							// if WGS94(4326) or WebMercator (3857) use geodesic Area
+							const geodesicLength = geometryEngine.geodesicLength(line, "miles"); //kilometers");
+							//const planarLength = geometryEngine.planarLength(line, "kilometers");
+							measurements.innerHTML =
+							  "<b>Length</b>:  " + geodesicLength.toFixed(2) + " miles";
+							/*textSymbol.text = geodesicLength.toFixed(2) + " mi";
+							var g = new Graphic({
+								geometry: line,
+								symbol: textSymbol
+							});
+							graphicsLayer.graphics.add(g);*/
+					}
+					
+          
+          
+          
+          
+          
+          async function projectPoint(pt, div){
+		require(["esri/geometry/support/webMercatorUtils", "esri/geometry/SpatialReference", "esri/rest/support/ProjectParameters", "esri/rest/geometryService"],
+			function(webMercatorUtils, SpatialReference, ProjectParameters, GeometryService) {
+			// Project point pt to user selected projection from Settings
+			var geoPt;
+
+            var myPrj = document.getElementById("settings_xycoords_combo").value; // user defined projection
+			if (myPrj === "dd") {
+				geoPt = webMercatorUtils.webMercatorToGeographic(pt);
+				if (div && div.value != undefined){
+					div.value = geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";
+					div.setAttribute("size",div.value.length);
+				}
+				else if (div)
+					div.innerHTML = geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";
+				else alert("Warning", "Undefined DOM node id="+div);			
+			} else if (myPrj === "dms") {
+				geoPt = mappoint_to_dms(pt, true);
+				if (div && div.value != undefined){
+					div.value = geoPt[0] + " N, " + geoPt[1] + " W";
+					div.setAttribute("size",div.value.length);
+				}
+				else if (div)
+					div.innerHTML =  geoPt[0] + " N, " + geoPt[1] + " W";
+				else alert("Warning", "Undefined DOM node id="+div);
+			} else if (myPrj === "dm") {
+				geoPt = mappoint_to_dm(pt, true);
+				if (div && div.value != undefined){
+					div.value = geoPt[0] + " N, " + geoPt[1] + " W";
+					div.setAttribute("size",div.value.length);
+				}
+				else if (div)
+					div.innerHTML = geoPt[0] + " N, " + geoPt[1] + " W";
+				else alert("Warning", "Undefined DOM node id="+div);
+			} else { // utm
+				var outSR = new SpatialReference(Number(myPrj));
+				// converts point to selected projection
+				var params = new ProjectParameters({
+					outSpatialReference: outSR,
+					geometries: [pt]
+				});
+				GeometryService.project(geometryService,params).then( (feature) => {
+					var units;
+					if (outSR.wkid == 32612) units = "WGS84 UTM Zone 12N";
+					else if (outSR.wkid == 32613) units = "WGS84 UTM Zone 13N";
+					else if (outSR.wkid == 26912) units = "NAD83 UTM Zone 12N";
+					else if (outSR.wkid == 26913) units = "NAD83 UTM Zone 13N";
+					else if (outSR.wkid == 26712) units = "NAD27 UTM Zone 12N";
+					else if (outSR.wkid == 26713) units = "NAD27 UTM Zone 13N";
+					else units = "unknown units: "+outSR.wkid+" in utilFuncs.js projectPoint()";
+					if (div && div.value != undefined){
+						div.value = feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0) + " " + units;
+						div.setAttribute("size",div.value.length);
+					}
+					else if (div)
+						div.innerHTML = feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0) + " " + units;
+					else alert("Warning", "Undefined DOM node id="+div);
+				}).catch ( (err) => {
+					if (err.details)
+						alert("Problem projecting point. " + err.message + " " + err.details[0], "Warning");
+					else
+						alert("Problem projecting point. " + err.message, "Warning");					
+				});
+			}
+		});
+	}
+
+	function mappoint_to_dms(point, leadingZero) {
+		// Convert a map point to degrees, minutes, seconds. 
+		// Return an array of latitude = arr[0] = 40° 30' 2.12345", longitude = arr[1]= 103° 25' 33.1122"
+		// if leadingZero is true add 0 to left of min and sec
+		var ddPoint;
+		require(["esri/geometry/support/webMercatorUtils"],function(webMercatorUtils){
+			ddPoint = webMercatorUtils.webMercatorToGeographic(point); // convert to lat long decimal degrees
+		});
+		return dd_to_dms(ddPoint, leadingZero);
+	}
+	
+	function dd_to_dms(ddPoint, leadingZero) {
+		// Convert a decimal degree point to degrees, minutes, seconds. 
+		// Return an array of latitude = arr[0] = 40° 30' 2.12345", longitude = arr[1]= 103° 25' 33.1122"
+		// if leadingZero is true add 0 to left of min and sec
+		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.0));
+		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.0));
+		var degY = Math.floor(latAbs / 1000000) + '° ';
+		var minY = Math.floor(  ((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)  + '\' ';
+		var secY = Math.floor( Math.floor(((((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60) - Math.floor(((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)) * 100000) *60/100000 ) + '"'; // latitude
+		if (leadingZero && minY.length == 3) minY = "0" + minY; // add leading zero so it does not shake
+		if (leadingZero && secY.length == 2) secY = "0" + secY; // add leading zero so it does not shake
+		var y = degY + minY + secY;
+		var	degX = Math.floor(lonAbs / 1000000) + '° ';
+		var minX = Math.floor(  ((lonAbs/1000000) - Math.floor(lonAbs/1000000)) * 60)  + '\' ';
+		var secX = Math.floor( Math.floor(((((lonAbs/1000000) - Math.floor(lonAbs/1000000)) * 60) - Math.floor(((lonAbs/1000000) - Math.floor(lonAbs/1000000)) * 60)) * 100000) *60/100000 ) + '"'; // longitude
+		if (leadingZero && minX.length == 3) minX = "0" + minX; // add leading zero so it does not shake
+		if (leadingZero && secX.length == 2) secX = "0" + secX; // add leading zero so it does not shake
+		var x = degX + minX + secX;
+		return [y,x];
+	}
+
+	function mappoint_to_dm(point, leadingZero) {
+		// Convert a map point to degrees, decimal minutes.
+		// Return an array of latitude = arr[0] = 40° 30.12345', longitude = arr[1]= 103° 25.24567'
+		// if leadingZero is true add 0 to left of min and sec
+		var ddPoint;
+		require(["esri/geometry/support/webMercatorUtils"],function(webMercatorUtils){
+			ddPoint = webMercatorUtils.webMercatorToGeographic(point);
+		});
+		let pointArr = [];
+		pointArr = dd_to_dm(ddPoint, leadingZero);
+		return pointArr;
+	}
+	
+	function dd_to_dm(ddPoint, leadingZero) {
+		// Convert a decimal degree point to degrees, decimal minutes.
+		// Return an array of latitude = arr[0] = 40° 30.12345', longitude = arr[1]= 103° 25.24567'
+		// if leadingZero is true add 0 to left of min and sec
+		var lonAbs = Math.abs(Math.round(ddPoint.x * 1000000.0));
+		var latAbs = Math.abs(Math.round(ddPoint.y * 1000000.0));
+		var degY = Math.floor(latAbs / 1000000) + '° ';
+		//var minY = Math.floor(  ((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60)  + '\' '; // truncate minutes
+		var minY = (((latAbs/1000000) - Math.floor(latAbs/1000000)) * 60).toFixed(5)  + '\' '; // decimal minutes
+		if (leadingZero && minY.indexOf(".") == 1) minY = "0" + minY; // add leading zero so it does not shake
+		var y = degY + minY;
+		var	degX = Math.floor(lonAbs / 1000000) + '° ';
+		//var minX = Math.floor(  ((lonAbs/1000000) - Math.floor(lonAbs/1000000)) * 60)  + '\' '; // truncate minutes
+		var minX = (((lonAbs/1000000) - Math.floor(lonAbs/1000000)) * 60).toFixed(5)  + '\' '; // decimal minutes
+		if (leadingZero && minX.indexOf(".") == 1) minX = "0" + minX; // add leading zero so it does not shake
+		var x = degX + minX;
+		return [y,x];
+	}
+
+	function dms_or_dm_to_dd(str) {
+		// takes a degree, minute, second point as "40:30:20.44,104:20:5"
+		// or a degree, decimal minute as "40:30.1,104:20.01"
+		// and returns and array. 
+		// array[0] is lat in decimal degrees
+		// array[1] is long in decimal degrees
+		// array[2] is label in deg, min, sec as: 40° 30' 20.44" N, 104° 20' 5" W 
+		// or in degrees, decimal minutes as: 40° 30.1' N, 104° 20.01' W
+		var pos,pos2,pointX,pointY;
+		
+		pointY = str.substring(0,str.indexOf(","));
+		pointX = str.substring(str.indexOf(",")+1,str.length);
+		pos = pointX.indexOf(":");
+		if (pos == -1) {
+			alert("Missing ':'. Must be in the formate 40:0:0,103:0:0 or 40:0,103:0","Warning");
+			return null;
+		}
+		var degX = Number(pointX.substring(0,pos));
+		// switch from long, lat to lat, long
+		if (!((degX >= -110 && degX <= -100) || (degX >= 100 && degX <= 110))) {
+			var tmp;
+			tmp = pointY;
+			pointY = pointX;
+			pointX = tmp;
+			pos = pointX.indexOf(":");
+			degX = Number(pointX.substring(0,pos));
+		}
+		var secX = 0;
+		var minX;
+
+		// if Seconds. Check if dms or degrees decimal minutes
+		pos2 = pointX.substring(pos+1).indexOf(":");
+		if (pos2 > -1) {
+			minX = Number(pointX.substr(pos+1, pos2));
+			secX = Number(pointX.substring(pos+pos2+2));
+		}
+		else minX = Number(pointX.substring(pos+1));
+		// if degX is the longitude value and it is negative subtract the numbers 11/6/20
+		if (degX < 0)
+			pointX = Number(degX) - Number(minX)/60 - Number(secX)/3600;
+		else
+			pointX = Number(degX) + Number(minX)/60 + Number(secX)/3600;
+		if (pointX >= 100 && pointX <= 110) pointX = pointX*-1;
+		
+		pos = pointY.indexOf(":");
+		if (pos == -1) {
+			alert("Missing ':'. Must be in the formate 40:0:0,103:0:0 or 40:0,103:0","Warning");
+			return null;
+		}
+		var degY = Number(pointY.substring(0,pos));
+		var secY = 0;
+		var minY;
+
+		// if Seconds. Check if dms or degrees decimal minutes
+		pos2 = pointY.substring(pos+1).indexOf(":");
+		if (pos2 > -1) {
+			minY = Number(pointY.substr(pos+1, pos2));
+			secY = Number(pointY.substring(pos+pos2+2));
+		}
+		else minY = Number(pointY.substring(pos+1));
+		// if degY is the longitude value and it is negative subtract the numbers 11/6/20
+		if (degY < 0)
+			pointY = Number(degY) - Number(minY)/60 - Number(secY)/3600;
+		else
+			pointY = Number(degY) + Number(minY)/60 + Number(secY)/3600;
+		label = degY+'° ' +minY+ '\' ';
+		if (secY > 0) label += secY + '" N, ';
+		else label += " N, ";
+		if (pointY >= 100 && pointY <= 110) pointY = pointY*-1;
+		label += degX+'° ' +minX+ '\' ';
+		if (secX > 0) label += secX + '" W';
+		else label += " W";
+		
+		if (!((pointX >= -110 && pointX <= -100) && (pointY >= 35 && pointY <= 42))) {
+			alert("This point is not in Colorado. Latitude of 35 - 42. Longitude of 100 - 110.","Warning");
+			return null;
+		}
+		return [pointY,pointX,label];
+	}
+          function switchType(geom) {
+							switch (geom.type) {
+							  case "polygon":
+								getArea(geom,);
+								break;
+							  case "polyline":
+								getLength(geom);
+								break;
+								case "point":
+									projectPoint(geom, measurements);
+							  default:
+								console.log("No defined geometry type found. Must be polygon, polyline, or point.");
+							}
+					}
+					sketch.on("update", (e) => {
+							view.closePopup();
+							const geometry = e.graphics[0].geometry;
+				  
+							if (e.state === "start") {
+							  switchType(geometry);
+							}
+				  
+							if (e.state === "complete") {
+							  // remove label
+							  //graphicsLayer.remove(graphicsLayer.graphics.getItemAt(1));
+							  graphicsLayer.remove(graphicsLayer.graphics.getItemAt(0));
+							  measurements.innerHTML = null;
+							}
+				  
+							if (
+							  e.toolEventInfo &&
+							  (e.toolEventInfo.type === "scale-stop" ||
+								e.toolEventInfo.type === "reshape-stop" ||
+								e.toolEventInfo.type === "move-stop")
+							) {
+							  switchType(geometry);
+							}
+           });
+
+           // MARK: -- Location --
+					const locateBtn = new Locate({
+						view: view
+					});
+					// Add the locate widget to the top left corner of the view
+					view.ui.add(locateBtn, "bottom-right");
+
+
+          // -- Print --    
+          createPrintWidget("prtDisclaimer");
+        }); // view.when
+    
+
+    // *********************************
+    // Creates actions in the LayerList.
+    // *********************************
+    var layerList;
+    var gmuIndex = -1;
+
+        function findGMUIndex(){
+          // search Find a place widget sources to find index of GMU source
+          for (var i=0; i<searchWidget.sources.items.length; i++){
+            if (searchWidget.sources.items[i].name.indexOf("GMUs")>-1){
+              return i;
+            }
+          }
+          return -1;
+        }
+        async function defineActions(event) {
+                // The event object contains an item property.
+                // is is a ListItem referencing the associated layer
+                // and other properties. You can control the visibility of the
+                // item, its title, and actions using this object.
+
+          const item = event.item;
+          await item.layer.when();
+
+          if(item.title === "Graphics Layer"){
+            item.hidden = true;
+            return;
+          }
+
+          // hide group sub layers
+          //if (item.title === "Hunter Reference"){
+            item.children.forEach((subLayer) => {
+              // hide children 2 layers deep if found in hideGroupSublayers
+              if (hideGroupSublayers.includes(subLayer.title)){
+                // hide child layers
+                subLayer.children.forEach((subSubLayer) => {
+                  subSubLayer.hidden = true;
+                  console.log("hiding "+subSubLayer.title);
+                });
+              }
+              // hide children 3 layers deep if found in hideGroupSublayers
+              subLayer.children.forEach((subSubLayer) => {
+                if (hideGroupSublayers.includes(subSubLayer.title)){
+                  // hide child layers
+                  subSubLayer.children.forEach((subSubSubLayer) => {
+                    subSubSubLayer.hidden = true;
+                    console.log("hiding "+subSubSubLayer.title);
+                  });
+                }
+              });
             });
-        });
+          //}
+          
+
+          // Watch for layer change to visible. For exclusive layers, open selected layer and toggle other layers closed.
+          // V Game Species (visibilityMode = exclusive)
+          //     > Bighorn
+          //     V Elk
+          //     > Moose
+          item.watch("visible", (event) => {
+            if (app.toLowerCase() != "huntingatlas") return;
+            // set gmu species && display GMU layer
+            if (item.title === "Bighorn" && item.visible == true) {
+              gmu = "Bighorn GMU";
+
+              // switch searchWidget GMU layer to Bighorn GMUs
+              // find the index of the Find a Place GMUs
+              if (gmuIndex == -1){
+                gmuIndex=findGMUIndex();
+              }
+              if (gmuIndex != -1){
+                var bighornFL = new FeatureLayer({
+                  url: settings.sheepUrl
+                });
+                searchWidget.sources.items[gmuIndex].layer = bighornFL;
+                searchWidget.sources.items[gmuIndex].searchFields = [settings.sheepField];
+                searchWidget.sources.items[gmuIndex].displayField = settings.sheepField;
+                searchWidget.sources.items[gmuIndex].outFields = [settings.sheepField];
+                searchWidget.sources.items[gmuIndex].name = "Bighorn Sheep GMUs";
+                searchWidget.sources.items[gmuIndex].placeholder = "Search Bighorn GMUs";
+              }
+            }	
+            else if (item.title === "Mountain Goat" && item.visible == true){
+              gmu = "Goat GMU";
+              // find the index of the Find a Place GMUs
+              if (gmuIndex == -1){
+                gmuIndex=findGMUIndex();
+              }
+              if (gmuIndex != -1){
+                var goatFL = new FeatureLayer({
+                  url: settings.goatUrl
+                });
+                searchWidget.sources.items[gmuIndex].layer = goatFL;
+                searchWidget.sources.items[gmuIndex].searchFields = [settings.goatField];
+                searchWidget.sources.items[gmuIndex].displayField = settings.goatField;
+                searchWidget.sources.items[gmuIndex].outFields = [settings.goatField];
+                searchWidget.sources.items[gmuIndex].name = "Mountain Goat GMUs";
+                searchWidget.sources.items[gmuIndex].placeholder = "Search Goat GMUs";
+              }
+            }
+            else {
+              gmu = "Big Game GMU";
+              // find the index of the Find a Place GMUs
+              if (gmuIndex == -1){
+                gmuIndex=findGMUIndex();
+              }
+              if (gmuIndex != -1){
+                var elkFL = new FeatureLayer({
+                  url: settings.elkUrl
+                });
+                searchWidget.sources.items[gmuIndex].layer = elkFL;
+                searchWidget.sources.items[gmuIndex].searchFields = [settings.elkField];
+                searchWidget.sources.items[gmuIndex].displayField = settings.elkField;
+                searchWidget.sources.items[gmuIndex].outFields = [settings.elkField];
+                searchWidget.sources.items[gmuIndex].name = "Big Game GMUs";
+                searchWidget.sources.items[gmuIndex].placeholder = "Search GMUs";
+              }
+            }
+            // Show correct GMU layer, hide others
+            layerList.operationalItems.every((opLayer) => { //every break on return false
+              if (opLayer.title==="Hunter Reference"){
+                opLayer.children.every((layerView) => {
+                  if (layerView.title==="GMU boundary (Hunting Units)"){
+                    layerView.children.forEach((gmuScale) => {
+                      // Big Game GMU, Bighorn GMU, and Goat GMU
+                      gmuScale.children.forEach((gmuAnimal) => {
+                        switch (gmu) {
+                          case "Big Game GMU":
+                            if (gmuAnimal.title === "Big Game GMU"){
+                              gmuAnimal.visible = true;
+                            }
+                            else {
+                              gmuAnimal.visible = false; // don't show on map
+                            }
+                            break;
+                          case "Bighorn GMU":
+                            if (gmuAnimal.title === "Bighorn GMU"){
+                              gmuAnimal.visible = true;
+                            }
+                            else {
+                              gmuAnimal.visible = false; // don't show on map
+                            }
+                            break;
+                          case "Goat GMU":
+                            if (gmuAnimal.title === "Goat GMU"){
+                              gmuAnimal.visible = true;
+                            }
+                            else {
+                              gmuAnimal.visible = false; // don't show on map
+                            }
+                            break;
+                        }	
+                      });
+                    });
+                    return false; // "GMU boundary (Hunting Units)" found, quit loop
+                  }
+                  return true; // "GMU boundary (Hunting Units)" not found yet
+                });
+                return false; // Hunter Reference found, quit loop
+              }
+              return true; // Hunter Reference not found yet
+            });
+            
+            // open the selected radio button layers and close other radio buttons
+            layerList.operationalItems.forEach((opLayer) => {
+              opLayer.children.forEach((layerView) => {
+                if ((item.parent && item.parent.title === layerView.parent.title) && (item.parent.visibilityMode === "exclusive")){
+                  if (layerView.layer.id != item.layer.id) {
+                    layerView.open = false;
+                  }else{
+                    layerView.open = true;
+                  }
+                }
+              });
+            });
+          });
+
+          // open the layer if specified in config.xml
+          if (openTOCgroups.includes(item.title))
+            item.open = true;
+
+          // Adds a slider for updating a top level group or individual layer's opacity
+          for (var i=0; i<item.children.items.length;i++){
+          //if(item.children.length == 0 && item.parent) { // || item.parent === null ){
+            const slider = new Slider({
+              min: 0,
+              max: 1,
+              precision: 2,
+              //values: [ item.layer.opacity ],
+              values: [ item.children.items[i].layer.opacity],
+              visibleElements: {
+                labels: true,
+                rangeLabels: true
+                },
+                index: i // tlb save the child index children.items[index]
+            });
+
+            item.children.items[i].panel = {
+              content: slider,
+              className: "esri-icon-sliders-horizontal",
+              title: "Change layer opacity"
+            };
+            
+            slider.on("thumb-drag", (event) => {
+              const { value } = event;
+              item.children.items[slider.key.index].layer.opacity = value;
+            });
+          }
+          
+          
+
+          // An array of objects defining actions to place in the LayerList.
+          // By making this array two-dimensional, you can separate similar
+          // actions into separate groups with a breaking line.
+
+          // Add Information icon to top layers
+          if(item.parent === null ){
+            item.actionsSections = [
+              [
+                {
+                  title: "Layer information",
+                  className: "esri-icon-description",
+                  id: "information"
+                }
+              ]
+            ];
+          }
+
+          // show legend  
+          //if (item.layer.type != "group") {
+          if (item.parent == null){
+          // don't show legend twice
+            item.panel = {
+              content: "legend",
+              open: false,
+              title: "Legend"
+            };
+          }
+        }
+
+
+
+        function addTempLabel(point, label, fontSize, shouldFade){
+		// Add text at a point. Fade out after 10 seconds.
+		// point: Point, label: text, fontSize: int
+		// if point is a polygon use the centroid
+		// noFade: should it fade away? default is true
+		require(["esri/symbols/TextSymbol","esri/Graphic"], function (TextSymbol, Graphic) {
+			//var shouldFade = true;
+			//if (arguments.length >= 2) fontSize = 11;
+			//else fontSize = arguments[2];
+			//if (arguments.length == 4) shouldFade = false;
+			
+			label=label.replace(/''/g, "'");
+			let textSymbol = new TextSymbol({
+				text: label,
+				color: "black",//[255, 255, 255],
+				haloColor: [255,255,153,1.0],//[1, 68, 33],
+				haloSize: "2px",
+				yoffset: -23,//-1 * (fontSize) - 3,
+				font: {
+				family: "Arial Unicode MS",
+				size: fontSize
+				}
+			});
+			if (point.geometry && point.geometry.type === "polygon")
+				point = point.geometry.centroid;
+			let pointText = new Graphic({
+				geometry: point,
+				symbol: textSymbol
+			});
+			view.graphics.add(pointText);
+			let fade = 1.0; // starting transparency
+			let width = pointText.symbol.haloSize / 4;
+			// should fade out?
+			if (shouldFade){
+				setTimeout(function(){
+					let tim = setInterval(function(){
+						fade = fade - 0.25;
+						pointText.symbol.color.a = fade;
+						pointText.symbol.haloSize = pointText.symbol.haloSize - width;
+						pointText.symbol.haloColor.a = fade;
+						if (fade == 0) {
+							clearTimeout(tim);
+							view.graphics.remove(pointText);
+						}
+					},2000);
+				},5000);
+			}
+		});
+	  }
+	  function addTempPoint(pt,shouldFade){
+		// pt: Point
+		// add point and remove it in 10 seconds
+		// if noFade is passed in do not fade
+		// added 4/25/24
+		//var shouldFade = true;	
+		//if (arguments.length == 2) shouldFade = false;
+		require(["esri/symbols/PictureMarkerSymbol","esri/Graphic"], function (PictureMarkerSymbol, Graphic) {
+			const symbol = {
+				type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
+				url: "/assets/images/i_flag.png",
+				size: 24,
+				width: 24,
+				height: 24,
+				xoffset: 0,
+				yoffset: -12
+			};
+			let point = new Graphic({
+				geometry: pt,
+				symbol: symbol
+			});
+			view.graphics.add(point);
+			if (shouldFade){
+				setTimeout(function(){
+					view.graphics.remove(point);
+				},13000);
+			}
+		});
+	  }
+
+    const polySymbol = {
+				type: "simple-line",  // autocasts as SimpleLineSymbol()
+				color: [0,255,255], //[226, 119, 40],
+				width: 3
+			}
+	  function addTempPolygon(feature,shouldFade){
+		// add polygon outline and remove it in 10 seconds
+		// if noFade is passed in do not fade
+		//var shouldFade = true;	
+		//if (arguments.length == 2) shouldFade = false;
+		require(["esri/geometry/Polygon", "esri/Graphic"],
+			function (Polygon, Graphic) {
+			
+			const polygon = new Polygon({
+				rings: feature.geometry.rings,
+				spatialReference: feature.geometry.spatialReference
+			});
+			const poly = new Graphic({
+				geometry: polygon,
+				symbol: polySymbol
+			});
+			view.graphics.add(poly);
+			if (shouldFade){
+				setTimeout(function(){
+					view.graphics.remove(poly);
+				},13000);
+			}
+		});
+	  }
+        //**********************
+		//   Add Search Widget
+		//**********************
+		function addFindPlace(){
+			// Find a Place Widget ESRI default
+			//define layers for boundaries
+			var countyFL = new FeatureLayer({
+				url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1",
+				popupTemplate: {
+					// autocasts as new PopupTemplate()
+					title: "{COUNTYNAME} County",
+					overwriteActions: true
+				}
+			});
+			var propertyFL = new FeatureLayer({
+				url:"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3"
+			});
+			var gmuFL = new FeatureLayer({
+				url: settings.elkUrl //"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2"
+			});
+			var forestFL = new FeatureLayer({
+				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5"
+			});
+			var wildernessFL = new FeatureLayer({
+				url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/4"
+			});
+			
+			searchWidget = new Search({
+				view: view,
+				includeDefaultSources:false, // include ESRI geocode service "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+				searchAllEnabled:true, // if true has drop down list of sources includeing ESRI's
+				popupEnabled:false,
+				locationEnabled:false, // Adds option to go to current location
+				resultGraphicEnabled:false, // Disable ESRI's graphic symbol, we will handle this below
+				maxResults: 6,
+				maxSuggestions: 50,
+				suggestionsEnabled: true,
+				minSuggestCharacters: 2,
+				allPlaceholder: "Search",
+				sources: [
+					{
+						layer: propertyFL,
+						searchFields: ["PropName"],
+						displayField: "PropName",
+						exactMatch: false,
+						maxSuggestions: 1000,
+						outFields: ["PropName"],
+						name: "CPW Properties (STL, SWA, SFU, or WWA)",
+						placeholder: "Search CPW Properties"
+					},
+					{
+						layer: gmuFL,
+						searchFields: [settings.elkField],
+						displayField: settings.elkField,
+						exactMatch: false,
+						maxResults: 6,
+						maxSuggestions: 100,
+						minSuggestCharacters: 1,
+						outFields: [settings.elkField],
+						name: "Big Game GMUs",
+						placeholder: "Search GMUs"
+					},
+					{
+						layer: forestFL,
+						searchFields: ["MapName"],
+						displayField: "MapName",
+						exactMatch: false,
+						outFields: ["MapName"],
+						name: "Forests or Grasslands",
+						placeholder: "Search Forests/Grasslands"
+					},
+					{
+						layer: wildernessFL,
+						searchFields: ["NAME"],
+						displayField: "NAME",
+						exactMatch: false,
+						outFields: ["NAME"],
+						name: "Wildernesses",
+						placeholder: "Search Wildernesses"
+					},
+					{
+						layer: countyFL,
+						searchFields: ["COUNTYNAME"],
+						displayField: "COUNTYNAME",
+						exactMatch: false,
+						outFields: ["COUNTYNAME"],
+						name: "Counties",
+						placeholder: "Search Counties"
+					},
+					// Colorado Place GNIS
+					{
+						url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer",
+						singleLineFieldName: "SingleLine",
+						outFields: ["*"],
+						name: "Colorado Places",
+						placeholder: "Search Colorado Places"
+					},
+					// Address limit search to Colorado
+					{
+						filter: {
+							geometry: new Extent({
+								//-12350000 4250000 -11150000 5250000
+							  xmax: -11150000,
+							  xmin: -12350000,
+							  ymax: 5250000,
+							  ymin: 4250000,
+							  spatialReference: {
+								wkid: 102100
+							  }
+							})
+						},
+						url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/",
+						singleLineFieldName: "SingleLine",
+						outFields: ["*"],
+						name: "Address",
+						placeholder: "Search Address"
+					}
+				]
+			});
+				
+			searchWidget.goToOverride = function(view, goToParams) {
+				// Don't zoom in, we will handle it below
+				return null;
+			};
+			
+			searchWidget.on("search-complete", function(event){
+				// The results are stored in the event Object[]
+				// Highlight and label the result for 10 seconds
+
+				// Find which source layer matches name exactly or up to the comma. eg. Fort Collins, Larimer
+				var index = 0;
+				for (var i=0; i<event.results.length; i++){
+					if (event.results[i].results.length == 0) continue;
+					var name = event.results[i].results[0].name.toLowerCase();
+					if (event.searchTerm.toLowerCase() === name.substring(0,name.indexOf(",")) ||
+						event.searchTerm.toLowerCase() === name) {
+						index = i;
+						break;
+					}
+				}
+				const obj = event.results[index];
+				var newExtent = obj.results[0].extent;
+				var pt;
+        var fontsize = 11;
+				for(i=0; i<obj.results.length; i++){
+					if (obj.results[i].feature.geometry.type === "point"){
+						require(["esri/geometry/Point"],function(Point){
+							pt = new Point(obj.results[i].feature.geometry.x, obj.results[i].feature.geometry.y, obj.results[i].feature.geometry.spatialReference);
+							addTempPoint(pt,true);
+							if (labelFromURL){
+								addTempLabel(pt, queryObj.label,fontsize,true);
+								labelFromURL = false;
+							}
+							else addTempLabel(pt, obj.results[i].name,fontsize,true);
+						});
+					}
+					else if (obj.results[i].feature.geometry.type === "polygon"){
+						addTempPolygon(obj.results[i].feature,true);
+						if (labelFromURL){
+							addTempLabel(obj.results[i].feature, queryObj.label,fontsize,true);
+							labelFromURL = false;
+						}
+						else if (obj.results[i].feature.sourceLayer.title.indexOf("GMU")>-1)
+							addTempLabel(obj.results[i].feature, "GMU "+obj.results[i].name,fontsize,true); // label each GMU polygon
+						else if (obj.results[i].feature.sourceLayer.title.indexOf("County")>-1){
+							var label = obj.results[i].name.toLowerCase();
+							var ch = label.substring(0,1).toUpperCase();
+							label = ch+label.substring(1)+" County";
+							addTempLabel(obj.results[i].feature, label,fontsize,true); // label each county polygon
+						}
+						else addTempLabel(obj.results[i].feature, obj.results[i].name,fontsize,true); // label each polygon
+						var thisExtent = obj.results[i].feature.geometry.extent;
+						// making a union of the polygon extents  
+						newExtent = newExtent.union(thisExtent);
+					}
+				}
+				this.clear();
+				if (obj.results[0].feature.geometry.type === "point")
+					view.goTo({
+						target: pt,
+						scale: 24000
+					});
+				else
+					view.extent = newExtent;
+				});
+				// Adds the search widget below other elements in
+				// the top left corner of the view
+				view.ui.add(searchWidget, {
+				position: "top-left",
+				index: 2
+			});	
+		}
+
+
+    function createPrintWidget(prtDisclaimer){
+			const print = new Print({
+				view: view,
+				// specify your own print service
+				//printServiceUrl: printServiceUrl, // our print service does not print wildfire icons correctly (visual variables)
+				allowedFormats: ["pdf","jpg"],
+				allowedLayouts: ["Letter ANSI A landscape", "Letter ANSI A portrait", "Tabloid ANSI B landscape", "Tabloid ANSI B portrait"],
+				templateOptions: {
+					author: prtDisclaimer,
+					legendEnabled: true,
+					dpi: 300
+				},
+				templateCustomTextElements: {
+					"Subtitle": "subtitle"
+				}
+			});
+			const printExpand = new Expand({
+				view,
+				content: print,
+				expandTooltip: "Print",
+				expandIconClass: "esri-icon-printer"
+			});
+			view.ui.add(printExpand, "bottom-right");
+		}
+
+      });
     </script>
   </head>
   <body>
