@@ -85,7 +85,7 @@
       };
       var gmu = "Big Game GMU";
       var searchWidget;
-      const hideGroupSublayers = ["Emergency","Field Office","Chamber of Commerce or Welcome Center","License Agent","Campgrounds and SWA Facilities","GMU boundary (Hunting Units)"];
+      const hideGroupSublayers = ["Emergency","Field Office","Chamber of Commerce or Welcome Center","2License Agent","Campgrounds and SWA Facilities","GMU boundary (Hunting Units)"];
       var labelFromURL = false;
       require(["esri/config",
         // -- map, basemaps layers --
@@ -126,7 +126,7 @@
           // streets-vector
           var layer = new VectorTileLayer({
             url:"https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer",
-            opacity: 0.75
+            opacity: 0.75,
           });
           const streets = new Basemap({
             baseLayers:[hillShadeLayer,layer],
@@ -159,25 +159,9 @@
             thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/6d9fa6d159ae4a1f80b9e296ed300767/info/thumbnail/thumbnail.jpeg"
           });
 
-          //#region -- MAP LAYERS --
-          let layers = [];
-          // Hunter Reference
-          /*let layer = 
-          layer.popupTemplate = {
-            expressionInfos: [{
-              name: "participation-rate",
-              title: "% of population 16+ participating in the labor force",
-              expression: "Round(($feature.CIVLBFR_CY / $feature.POP_16UP)*100,2)"
-            }],
-            content: "In {NAME} county, {expression/participation-rate}% of the population"
-              + " participates in the labor force."
-          };*/
 
-          // Add map layers in reversion order top most will be on bottom of TOC!!!
-          const map = new Map({
-            basemap: streets,
-            layers: [
-             /*new FeatureLayer({
+          // TEST reading data from database
+          /*layer = new FeatureLayer({
                 portalItem: { // autocasts as esri/portal/PortalItem
                   id: "02513fefd87149b4b09b5df4dcd6f5ec" //
                 } 
@@ -226,80 +210,146 @@
                 }
               }),*/
 
-              new MapImageLayer({
+
+
+          //#region -- MAP LAYERS --
+          var mapLayers = [];
+
+          // Hunter Reference
+              // TileLayer sublayers are read only except for legendEnabled, popupEnabled, popupTemplate, and title. Error incompatible with basemap spatial reference
+          var layer = new MapImageLayer({
+                title: "Hunter Reference", // must be named Hunter Reference
+                url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"
+          });
+          layer.when((event) => {
+            for(var i=0; i<event.sublayers.items.length; i++){
+              if (event.sublayers.items[i].title.indexOf("Land Management") > -1){
+                event.sublayers.items[i].popupTemplate = {
+                  title: "Land Management",
+                  content: "{NAME}<br>{MANAGER}"
+                };
+                event.sublayers.items[i].opacity = 0.4;
+              }
+            }
+
+            console.log("Hunter Reference loaded");
+          });
+          mapLayers.push(layer);
+          
+          
+             
+          /*new MapImageLayer({
                 title: "Hunter Reference", // must be named Hunter Reference
                 url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer",
                 sublayers: [
                   {
-                    title: "License Agent",
-                    id: 4,
-                    listMode: "hide", // hide from TOC show|hide|hide-children
-                    legendEnabled: false,
-                    //minScale: 250000,
+                    title: "Land Management (COMaP v20240702)",
+                    id: 103,
                     popupTemplate: {
-                      title: "{License Agent}",
-                      content: "{Name}<br>{Manager}<br>{Address}<br>{City}<br>{Phone}"
-                    }
-							  	},
-                  {
-                    title: "License Agent",
-                    id: 6,
-                    listMode: "hide", // hide from TOC
-                    //minScale: 250000,
-                    popupTemplate: {
-                      title: "{License Agent}",
-                      content: "{Name}<br>{Manager}<br>{Address}<br>{City}<br>{Phone}"
-                    }
-							  	},
-                ]
-              }),
-              new MapImageLayer({
-                title: "Game Species",
-                url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer",
-                visible: false
-              }),
-              new MapImageLayer({
-                title: "BLM Roads and Trails",
-                url: "https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer",
-                visible: false
-              }),
-              new MapImageLayer({
-                title: "MVUM",
-                url: "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer",
-                visible: true,
-                sublayers: [
-                  {
-                    id:2,
-                    title: "Motor Vehicle Use Map: Trails",
-                    visible: true,
-                    popupTemplate: {
-                      title: "{NAME}",
-                      content: "{NAME}<br>Segment length: {expression/seg-length} mi.<br>{JURISDICTION}<br>Seasonal: {SEASONAL}",
-                      // format segment length to one decimal place
-                      expressionInfos: [{
-                        name: "seg-length",
-                        expression: "Round($feature.SEG_LENGTH , 1)"
-                      }]
+                      title: "Land Management",
+                      content: "{NAME}<br>{MANAGER}"
                     }
                   },
                   {
-                    id:1,
-                    title: "Motor Vehicle Use Map: Roads",
-                    visible: true,
-                    minScale: 250000,
+                    title: "Township Range boundary",
+                    id: 99,
+                    listMode: "hide",
+                    legendEnabled: true
+                  },
+                  {
+                    title: "Section boundary",
+                    id: 98,
+                    listMode: "hide",
+                    legendEnabled: true
+                  },
+                  {
+                    title: "Township Range Sections",
+                    id: 97,
+                    visible: false,
+                    listMode: "show",
+                    legendEnabled: true
+                  },
+                  {
+                    title: "Continental Divide",
+                    id: 96,
+                    listMode: "hide",
+                    legendEnabled: true,
+                    minScale: 250000
+                  },
+                  {
+                    title: "License Agent",
+                    id: 2,
+                    listMode: "show", // visible in TOC? show|hide|hide-children
+                    legendEnabled: true, // visible in legend? true|false
                     popupTemplate: {
-                      title: "{NAME}",
-                      content: "Segment length: {expression/seg-length} mi.<br>{JURISDICTION}<br>Seasonal: {SEASONAL}"+
-                        "Passenger vehicle: {PASSENGERVEHICLE}",
-                        // format segment length to one decimal place
-                        expressionInfos: [{
-                          name: "seg-length",
-                          expression: "Round($feature.SEG_LENGTH , 1)"
-                        }]
+                      title: "{License Agent}",
+                      content: "{Name}<br>{Manager}<br>{Address}<br>{City}<br>{Phone}"
                     }
-                  }
+							  	}
+                  
+                 
                 ]
-              }),
+              }),*/
+          
+          // Game Species
+          layer = new MapImageLayer({
+            title: "Game Species",
+            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer",
+            visible: false
+          });
+          layer.when((event) => {
+            console.log("Game Species loaded");
+          });
+          mapLayers.push(layer);
+
+          // BLM Roads and Trails
+          layer = new MapImageLayer({
+            title: "BLM Roads and Trails",
+            url: "https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer",
+            visible: false
+          });
+          mapLayers.push(layer);
+
+          // MVUM Roads and Trails
+          layer = new MapImageLayer({
+            title: "MVUM",
+            url: "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer",
+            visible: true,
+            sublayers: [
+              {
+                id:2,
+                title: "Motor Vehicle Use Map: Trails",
+                visible: true,
+                minScale: 250000,
+                popupTemplate: {
+                  title: "{NAME}",
+                  content: "{NAME}<br>Segment length: {expression/seg-length} mi.<br>{JURISDICTION}<br>Seasonal: {SEASONAL}",
+                  // format segment length to one decimal place
+                  expressionInfos: [{
+                    name: "seg-length",
+                    expression: "Round($feature.SEG_LENGTH , 1)"
+                  }]
+                }
+              },
+              {
+                id:1,
+                title: "Motor Vehicle Use Map: Roads",
+                visible: true,
+                minScale: 250000,
+                popupTemplate: {
+                  title: "{NAME}",
+                  content: "Segment length: {expression/seg-length} mi.<br>{JURISDICTION}<br>Seasonal: {SEASONAL}"+
+                    "Passenger vehicle: {PASSENGERVEHICLE}",
+                    // format segment length to one decimal place
+                    expressionInfos: [{
+                      name: "seg-length",
+                      expression: "Round($feature.SEG_LENGTH , 1)"
+                    }]
+                }
+              }
+            ]
+          });
+          mapLayers.push(layer);
 
              
 
@@ -404,7 +454,27 @@
                   })
                 ]
               })*/
-            ]
+            
+
+          // Hunter Reference
+          /*let layer = 
+          layer.popupTemplate = {
+            expressionInfos: [{
+              name: "participation-rate",
+              title: "% of population 16+ participating in the labor force",
+              expression: "Round(($feature.CIVLBFR_CY / $feature.POP_16UP)*100,2)"
+            }],
+            content: "In {NAME} county, {expression/participation-rate}% of the population"
+              + " participates in the labor force."
+          };*/
+
+          // Add map layers in reversion order top most will be on bottom of TOC!!!
+          const map = new Map({
+            basemap: streets,
+            spatialReference: {
+              wkid: 102100
+            },
+            layers: mapLayers 
           });
           var openTOCgroups = ["Elk"]; // which group layers should be open in TOC
           //#endregion
@@ -437,6 +507,10 @@
             }
           });
         
+        view.on("layerview-create-error", layerLoadFailedHandler);
+        function layerLoadFailedHandler(event){
+          console.log("layer failed");
+        }
         view.when(() => {
           view.ui.move("zoom","bottom-right");
 
