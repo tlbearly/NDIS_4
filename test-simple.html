@@ -3,11 +3,27 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
-    <meta charset="utf-8" />
-    <title>Test ArcGIS API for JavaScript 4.29</title>
+    
+    <!-- never load from cache -->
+    <meta http-equiv="cache-control" content="no-cache, must-revalidate, post-check=0, pre-check=0" />
+    <meta http-equiv="cache-control" content="max-age=0" />
+    <meta http-equiv="expires" content="0" />
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9,IE=10,IE=11" />
 
-    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css" async="true"/>
+    <title>Test ArcGIS API for JavaScript 4.30</title>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" async="true"/>
     <script src="https://js.arcgis.com/4.30/"></script>
+   
+    <script type="text/javascript" src="js/customBasemaps.js?v=10" async="true"></script>
+    <script type="text/javascript" src="js/myCustomLayerList.js?v=11" async="true"></script>
+
+	  <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
+	  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" />
+
     <style>
       html,
       body,
@@ -17,16 +33,27 @@
         height: 100%;
         width: 100%;
       }
+
+      calcite-tab-title {
+        font-weight: 600;
+        /*font-size: var (--calcite-font-size-2)!important;*/
+      }
+      /* remove accessiblity focus outline NOT WORKING!!!! */
+      calcite-tab-title:focus calcite-tab-title:active{
+        outline: none;
+        border-color: inherit;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+      }
       .esri-expand--auto .esri-expand__container--expanded{
         z-index: 2!important; /* hide map scale behind panel */
       }
       .esri-widget{
-        font-family: Lato, Helvetica, Arial, sans-serif;
-        font-size: medium;
-        border-radius: 12px;
+        /*font-size: medium;*/
+        border-radius: 12px!important;
       }
       .esri-component{
-        border-radius: 12px;
+        border-radius: 12px!important;
       }
       .esri-widget--button{
         width: 40px;
@@ -45,8 +72,8 @@
         min-width: 40px;
         min-height: 40px;
       }
-      .esri-expand__content{
-        border-radius: 15px;
+      .esri-expand__content-container{
+        border-radius: 12px;
       }
       .esri-input {
         font-size:small;
@@ -71,10 +98,53 @@
         --calcite-scrim-background: transparent;
         --calcite-sheet-scrim-background-internal:transparent;
         --calcite-sheet-scrim-background:transparent;
+        --calcite-corner-radius-round: 12px;
       }
+
+      /*.esri-layer-list__item-content {
+        font-size:  var(--calcite-font-size-0)!important;
+      }*/
+      #bmGallery{
+        background-color: #fff;
+        min-height: 200px;
+        text-align: center;
+      }
+@media only screen and (min-width: 1200px){
+	#bmGallery{
+		height: 300px; /*calc(100vh - 265px);*/
+		min-width: 280px;
+	}
+}
+/*#bmGallery ul{
+	list-style: none;text-align: center;display:flex;padding-left:0;flex-flow: wrap;justify-content: center;
+}
+#bmGallery li{
+	padding:5px;
+	width:110px;
+  cursor: pointer;
+}
+#bmGallery img{
+	object-fit:cover;
+  padding: 5px;
+}
+.bmUnselected img {
+	border:none;
+	width: 100px;
+	height: 70px;
+}
+.bmSelected img {
+	border:3px solid gold;
+	width: 100px;
+	height: 70px;
+}*/
+      /* increase header font size 
+      .header-content .heading {
+      font-size: var(--calcite-font-size-2)!important;
+      }*/
     </style>
     <script>
       const app = "huntingatlas";
+      var map, view;
       const settings = {
         elkField: "GMUID",
         elkUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2",
@@ -91,7 +161,6 @@
         // -- map, basemaps layers --
         "esri/Map",
         "esri/views/MapView",
-        "esri/Basemap",
         "esri/layers/VectorTileLayer",
         "esri/layers/TileLayer",
         "esri/layers/MapImageLayer",
@@ -105,7 +174,6 @@
         "esri/geometry/geometryEngine",
 
         // -- widgets --
-        "esri/widgets/BasemapToggle",
         "esri/widgets/Expand",
         "esri/widgets/LayerList",
         "esri/widgets/Legend",
@@ -115,12 +183,12 @@
         "esri/widgets/Slider",
         "esri/widgets/Sketch",
         "esri/widgets/Print"], 
-        function(esriConfig, Map, MapView, Basemap, VectorTileLayer, TileLayer, MapImageLayer, FeatureLayer, GraphicsLayer, GroupLayer, PopupTemplate, Graphic, Extent, geometryEngine, BasemapToggle, Expand, LayerList, Legend, Locate, Search, ScaleBar, Slider, Sketch, Print) {
+        function(esriConfig, Map, MapView, VectorTileLayer, TileLayer, MapImageLayer, FeatureLayer, GraphicsLayer, GroupLayer, PopupTemplate, Graphic, Extent, geometryEngine, Expand, LayerList, Legend, Locate, Search, ScaleBar, Slider, Sketch, Print) {
   
           //esriConfig.apiKey = "YOUR_API_KEY";
 
           // -- BASEMAP --
-          const hillShadeLayer = new TileLayer({
+          /*const hillShadeLayer = new TileLayer({
             url: "https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer"
           });
           // streets-vector
@@ -157,7 +225,7 @@
             title:"USGS Aerial",
             id:"aerial",
             thumbnailUrl:"https://usfs.maps.arcgis.com/sharing/rest/content/items/6d9fa6d159ae4a1f80b9e296ed300767/info/thumbnail/thumbnail.jpeg"
-          });
+          });*/
 
 
           // TEST reading data from database
@@ -351,8 +419,13 @@
           });
           mapLayers.push(layer);
 
-             
-
+            // wildfire
+			layer = new FeatureLayer({
+				title: "Wildfire",
+				url: "https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer",
+				visible: false
+			});
+			mapLayers.push(layer);
               
               /* new GroupLayer({
                 title: "Game Species",
@@ -469,8 +542,7 @@
           };*/
 
           // Add map layers in reversion order top most will be on bottom of TOC!!!
-          const map = new Map({
-            basemap: streets,
+          map = new Map({
             spatialReference: {
               wkid: 102100
             },
@@ -490,7 +562,7 @@
               "wkid": 102100
             }
           });
-          const view = new MapView({
+          view = new MapView({
             map: map,
             extent: initExtent,
             container: "viewDiv", // Div element
@@ -511,7 +583,16 @@
         function layerLoadFailedHandler(event){
           console.log("layer failed");
         }
+
+        // Handle Filling Identify Content Here
+        /*view.on("click", function (event) {
+          var pt = event.MapPoint();
+          //alert("identify");
+        });*/
+
         view.when(() => {
+          
+		  // + - zoom buttons
           view.ui.move("zoom","bottom-right");
 
             /*view.popup.visibleElements = {
@@ -520,7 +601,41 @@
           addFindPlace();
 
           // -- Layer List --
-          layerList = new LayerList({
+          const customLayerList = new myCustomLayerList();
+          customLayerList.addEventListener("click", function (event) {
+                  if (basemapLayers.includes(event.target.id)) myToggleBasemap(event);
+              });
+              view.ui.add(customLayerList);
+          const layerListExpand = document.createElement("calcite-button");
+          layerListExpand.id = "layerListExpand";
+          layerListExpand.iconStart = "layers";
+          layerListExpand.className="esri-widget--button";
+          layerListExpand.title = "Map Layers";
+          layerListExpand.label = "Map Layers";
+          layerListExpand.alignment="center";
+          layerListExpand.appearance="solid";
+          layerListExpand.kind ="neutral";
+          layerListExpand.scale = "s";
+          layerListExpand.style.width = "120px";
+          const layerListLabel = document.createElement("span");
+          layerListLabel.innerHTML = "Map Layers";
+          layerListLabel.style.fontWeight = "bold";
+          layerListExpand.appendChild(layerListLabel);
+          //layerListExpand.content = customLayerList;
+          view.ui.add(layerListExpand, "top-right");
+
+          /*customLayerListExpand = new Expand({
+            view,
+            content: customLayerList,
+            expandTooltip: "Map Layers",
+            expandIconClass: "esri-icon-layers",
+            label: "Map Layers",
+            default: "Map Layers"
+          });
+          view.ui.add(customLayerListExpand, "top-right");*/
+
+          // Old layer list
+          /*layerList = new LayerList({
             view: view,
             title: "Map Layers",
             dragEnabled: false, // add drag layers to re-arrange draw order
@@ -539,8 +654,8 @@
           const layerListExpand = new Expand({
             view,
             content: layerList,
-            expandTooltip: "Map Layers",
-            expandIconClass: "esri-icon-layers"
+            expandTooltip: "Map Layers2",
+            expandIconClass: "esri-icon-legend"
           });
           view.ui.add(layerListExpand, "top-right");
           // Event listener that fires each time an action is triggered
@@ -580,20 +695,8 @@
 								}
 							}
 						});
-
-            // Add a basemap toggle widget to toggle between basemaps
-          const toggle = new BasemapToggle({
-            title: "Basemaps",
-            visibleElements: {
-              heading: true
-            },
-            view: view,
-            nextBasemap: natgeo
-          });
-          // Add widget to the top right corner of the view
-          view.ui.add(toggle, "top-right");
-
-
+*/
+				
 
           // -- Measure --
           const sketch = new Sketch({
@@ -1289,7 +1392,7 @@
         //**********************
 		//   Add Search Widget
 		//**********************
-		function addFindPlace(){
+		async function addFindPlace(){
 			// Find a Place Widget ESRI default
 			//define layers for boundaries
 			var countyFL = new FeatureLayer({
@@ -1506,6 +1609,78 @@
 		}
 
       });
+	  
+	  
+	  // Custom Layer List
+	  
+	class CustomLayerList{
+		constructor(){
+			//this.view = view;
+			const layerList = document.createElement("div");
+			layerList.className = "esri-layer-list esri-widget esri-widget--panel";
+			const flow = document.createElement("calcite-flow");
+			layerList.appendChild(flow);
+			
+			// header
+			const header = document.createElement("h2");
+			header.innerHTML = "Map Layers";
+			header.style.textAlign = "center";
+			header.style.borderBottom = "1px solid gray";
+			header.style.padding = "15px";
+			header.style.margin = "0";
+			flow.appendChild(header);
+			
+			// content
+			const content = document.createElement("div");
+			content.style.padding = "10px";
+			
+			flow.appendChild(content);
+			
+			// tabs
+			const tabs = document.createElement("calcite-tabs");
+			content.appendChild(tabs);
+			const tabNav = document.createElement("calcite-tab-nav");
+			tabNav.slot = "title-group";
+			tabs.appendChild(tabNav);
+			const tabTitle1 = document.createElement("calcite-tab-title");
+			tabTitle1.select = true;
+			tabTitle1.innerHTML = "Layers";
+      tabTitle1.style.border = "none";
+			tabNav.appendChild(tabTitle1);
+			const tabTitle2 = document.createElement("calcite-tab-title");
+			tabTitle2.innerHTML = "Basemaps";
+			tabNav.appendChild(tabTitle2);
+			
+			
+			// Layer List
+            const tab1 = document.createElement("calcite-tab");
+			tab1.select = true;
+			const tab1Content = document.createElement("div");
+      tab1Content.style.overflowY = "auto";
+			tab1Content.innerHTML = "Layer Name";
+			tab1.appendChild(tab1Content);
+			tabs.appendChild(tab1);
+			
+			
+			// Basemaps
+			const tab2 = document.createElement("calcite-tab");
+			const tab2Content = document.createElement("div");
+      tab2Content.id = "bmGallery";
+      tab2Content.style.overflowY = "auto";
+			tab2Content.innerHTML = myCustomBasemaps();
+			tab2.appendChild(tab2Content);
+			tabs.appendChild(tab2);
+			
+			
+        
+			/*const button = document.createElement("calcite-button");
+			button.innerHTML = "Wildfire";
+			button.style.width = "100%";
+			content.appendChild(button);*/
+			return layerList;
+		}
+	}
+		
     </script>
   </head>
   <body>
