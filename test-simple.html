@@ -19,7 +19,8 @@
     <script src="https://js.arcgis.com/4.30/"></script>
    
     <script type="text/javascript" src="js/customBasemaps.js?v=10" async="true"></script>
-    <script type="text/javascript" src="js/myCustomLayerList.js?v=11" async="true"></script>
+    <script type="text/javascript" src="js/myCustomLayerList.js?v=28" async="true"></script>
+    <script type="text/javascript" src="js/myMapLayers.js?v=1" async="true"></script>
 
 	  <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
 	  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" />
@@ -34,6 +35,10 @@
         width: 100%;
       }
 
+      .esri-layer-list__item-content{
+        font-size: 1rem!important;
+        padding: 5px 0;
+      }
       calcite-tab-title {
         font-weight: 600;
         /*font-size: var (--calcite-font-size-2)!important;*/
@@ -600,7 +605,31 @@
             };*/
           addFindPlace();
 
-          // -- Layer List --
+          // -- Layer List and Basemap tabs using esri widgets
+          const mapLayersExpand = document.createElement("calcite-button");
+          mapLayersExpand.id = "layerListExpand2";
+          mapLayersExpand.iconStart = "layers";
+          mapLayersExpand.className="esri-widget--button";
+          mapLayersExpand.title = "Map Layers";
+          mapLayersExpand.label = "Map Layers";
+          mapLayersExpand.alignment="center";
+          mapLayersExpand.appearance="solid";
+          mapLayersExpand.kind ="neutral";
+          mapLayersExpand.scale = "s";
+          mapLayersExpand.style.width = "120px";
+          const mapLayersLabel = document.createElement("span");
+          mapLayersLabel.innerHTML = "Map Layers";
+          mapLayersLabel.style.fontWeight = "bold";
+          mapLayersExpand.appendChild(mapLayersLabel);
+          //mapLayersExpand.content = customLayerList;
+          view.ui.add(mapLayersExpand, "top-right");
+          myMapLayers();  
+          
+
+
+          
+
+          // -- Layer List from Scratch--
           const customLayerList = new myCustomLayerList();
           customLayerList.addEventListener("click", function (event) {
                   if (basemapLayers.includes(event.target.id)) myToggleBasemap(event);
@@ -635,15 +664,15 @@
           view.ui.add(customLayerListExpand, "top-right");*/
 
           // Old layer list
-          /*layerList = new LayerList({
+          layerList = new LayerList({
             view: view,
             title: "Map Layers",
             dragEnabled: false, // add drag layers to re-arrange draw order
-            visibilityAppearance: "checkbox",
+            //visibilityAppearance: "checkbox",
             listItemCreatedFunction: defineActions,
             visibleElements: {
               catalogLayerList: true,
-              //closeButton: true,
+              closeButton: true,
               //collapseButton: true,
               errors: true,
               //filter: true,
@@ -651,13 +680,13 @@
               statusIndicators: true
             }
           });
-          const layerListExpand = new Expand({
+          const layerListExpand2 = new Expand({
             view,
             content: layerList,
             expandTooltip: "Map Layers2",
-            expandIconClass: "esri-icon-legend"
+            expandIconClass: "esri-icon-layers"
           });
-          view.ui.add(layerListExpand, "top-right");
+          view.ui.add(layerListExpand2, "top-right");
           // Event listener that fires each time an action is triggered
 					layerList.on("trigger-action", (event) => {
 							// The layer visible in the view at the time of the trigger.
@@ -680,22 +709,21 @@
 								// open the item details page of the service layer
 								window.open(layer.url);
 								window.open("/"+app+"/definitions.html");
-							} else if (id === "increase-opacity") {
+              }else if (id === "increase-opacity") {
 								// if the increase-opacity action is triggered, then
 								// increase the opacity of the GroupLayer by 0.25
-				
 								if (layer.opacity < 2) {
-								layer.opacity += 0.25;
+								  layer.opacity += 0.25;
 								}
 							} else if (id === "decrease-opacity") {
 								// if the decrease-opacity action is triggered, then
 								// decrease the opacity of the GroupLayer by 0.25
 								if (layer.opacity > 0) {
-								layer.opacity -= 0.25;
+								  layer.opacity -= 0.25;
 								}
 							}
 						});
-*/
+
 				
 
           // -- Measure --
@@ -1268,8 +1296,8 @@
           }
 
           // show legend  
-          //if (item.layer.type != "group") {
-          if (item.parent == null){
+          if (item.layer.type != "group") {
+          //if (item.parent == null){
           // don't show legend twice
             item.panel = {
               content: "legend",
@@ -1389,7 +1417,7 @@
 			}
 		});
 	  }
-        //**********************
+    //**********************
 		//   Add Search Widget
 		//**********************
 		async function addFindPlace(){
@@ -1653,7 +1681,7 @@
 			
 			
 			// Layer List
-            const tab1 = document.createElement("calcite-tab");
+      const tab1 = document.createElement("calcite-tab");
 			tab1.select = true;
 			const tab1Content = document.createElement("div");
       tab1Content.style.overflowY = "auto";
