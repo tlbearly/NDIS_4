@@ -33,6 +33,11 @@ function myMapLayers(){
             // Layer List
             const tab1 = document.createElement("calcite-tab");
             tab1.select = true;
+            const tab1Content = document.createElement("div");
+            tab1Content.id = "layers";
+            tab1Content.style.overflowY = "auto";
+            tab1.style.height="auto";
+            tab1.appendChild(tab1Content)
             tabs.appendChild(tab1);
 
             const layerList = new LayerList({
@@ -50,8 +55,9 @@ function myMapLayers(){
                     heading: false,
                     statusIndicators: true
                 },
-                container: tab1
+                container: tab1Content
             });
+            tab1.className = "";
 
            
             //    tab1.appendChild(layerList.innerHTML);
