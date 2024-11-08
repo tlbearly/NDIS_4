@@ -1,11 +1,14 @@
 var openTOCgroups = ["Elk"]; // which group layers should be open in TOC
 var gmuIndex = -1;
-
+var layerList;
 function myMapLayers(){
    
         require(["esri/widgets/LayerList"],function (LayerList){
             // TOC parent layers list
             const mapLayersWidget = document.createElement("calcite-popover");
+            mapLayersWidget.addEventListener("click", function (event) {
+                if (basemapLayers.includes(event.target.id)) myToggleBasemap(event);
+            });
             mapLayersWidget.heading = "Map Layers";
             mapLayersWidget.label = "Map layers";
             mapLayersWidget.setAttribute("reference-element", "layerListExpand2");
@@ -40,12 +43,12 @@ function myMapLayers(){
             tab1.appendChild(tab1Content)
             tabs.appendChild(tab1);
 
-            const layerList = new LayerList({
+            layerList = new LayerList({
                 view: view,
                 title: "Map Layers",
                 dragEnabled: false, // add drag layers to re-arrange draw order
                 //visibilityAppearance: "checkbox",
-                listItemCreatedFunction: this.defineActions,
+                listItemCreatedFunction: defineActions2,
                 visibleElements: {
                     catalogLayerList: true,
                     closeButton: false,
@@ -105,9 +108,12 @@ function myMapLayers(){
 
             // Basemaps
             const tab2 = document.createElement("calcite-tab");
+            const br = document.createElement("br");
+            tab2.appendChild(br);
             const tab2Content = document.createElement("div");
             tab2Content.id = "bmGallery";
             tab2Content.style.overflowY = "auto";
+            tab2Content.style.textAlign = "center";
             tab2Content.innerHTML = myCustomBasemaps();
             tab2.appendChild(tab2Content);
             tabs.appendChild(tab2);
@@ -130,7 +136,7 @@ function myMapLayers(){
         return -1;
     }
 
-    async function defineActions(event) {
+    async function defineActions2(event) {
         // The event object contains an item property.
         // is is a ListItem referencing the associated layer
         // and other properties. You can control the visibility of the
@@ -143,6 +149,8 @@ function myMapLayers(){
             item.hidden = true;
             return;
         }
+        // radio buttons
+        if (item.title === "Game Species") item.visibilityMode2 = "exclusive";
 
         // hide group sub layers
         //if (item.title === "Hunter Reference"){
@@ -174,119 +182,122 @@ function myMapLayers(){
         //     V Elk
         //     > Moose
         item.watch("visible", (event) => {
-            if (app.toLowerCase() != "huntingatlas") return;
-            // set gmu species && display GMU layer
-            if (item.title === "Bighorn" && item.visible == true) {
-                gmu = "Bighorn GMU";
+            require(["esri/layers/FeatureLayer"],function (FeatureLayer){
+                if (app.toLowerCase() != "huntingatlas") return;
 
-                // switch searchWidget GMU layer to Bighorn GMUs
-                // find the index of the Find a Place GMUs
-                if (this.gmuIndex == -1){
-                    this.gmuIndex=findGMUIndex();
-                }
-                if (this.gmuIndex != -1){
-                    var bighornFL = new FeatureLayer({
-                        url: settings.sheepUrl
-                    });
-                    searchWidget.sources.items[this.gmuIndex].layer = bighornFL;
-                    searchWidget.sources.items[this.gmuIndex].searchFields = [settings.sheepField];
-                    searchWidget.sources.items[this.gmuIndex].displayField = settings.sheepField;
-                    searchWidget.sources.items[this.gmuIndex].outFields = [settings.sheepField];
-                    searchWidget.sources.items[this.gmuIndex].name = "Bighorn Sheep GMUs";
-                    searchWidget.sources.items[this.gmuIndex].placeholder = "Search Bighorn GMUs";
-                }
-            }	
-            else if (item.title === "Mountain Goat" && item.visible == true){
-                gmu = "Goat GMU";
-                // find the index of the Find a Place GMUs
-                if (this.gmuIndex == -1){
-                    this.gmuIndex=findGMUIndex();
-                }
-                if (this.gmuIndex != -1){
-                    var goatFL = new FeatureLayer({
-                        url: settings.goatUrl
-                    });
-                    searchWidget.sources.items[this.gmuIndex].layer = goatFL;
-                    searchWidget.sources.items[this.gmuIndex].searchFields = [settings.goatField];
-                    searchWidget.sources.items[this.gmuIndex].displayField = settings.goatField;
-                    searchWidget.sources.items[this.gmuIndex].outFields = [settings.goatField];
-                    searchWidget.sources.items[this.gmuIndex].name = "Mountain Goat GMUs";
-                    searchWidget.sources.items[this.gmuIndex].placeholder = "Search Goat GMUs";
-                }
-            }
-            else {
-                gmu = "Big Game GMU";
-                // find the index of the Find a Place GMUs
-                if (this.gmuIndex == -1){
-                    this.gmuIndex=findGMUIndex();
-                }
-                if (this.gmuIndex != -1){
-                    var elkFL = new FeatureLayer({
-                        url: settings.elkUrl
-                    });
-                    searchWidget.sources.items[this.gmuIndex].layer = elkFL;
-                    searchWidget.sources.items[this.gmuIndex].searchFields = [settings.elkField];
-                    searchWidget.sources.items[this.gmuIndex].displayField = settings.elkField;
-                    searchWidget.sources.items[this.gmuIndex].outFields = [settings.elkField];
-                    searchWidget.sources.items[this.gmuIndex].name = "Big Game GMUs";
-                    searchWidget.sources.items[this.gmuIndex].placeholder = "Search GMUs";
-                }
-            }
-            // Show correct GMU layer, hide others
-            layerList.operationalItems.every((opLayer) => { //every break on return false
-                if (opLayer.title==="Hunter Reference"){
-                opLayer.children.every((layerView) => {
-                    if (layerView.title==="GMU boundary (Hunting Units)"){
-                    layerView.children.forEach((gmuScale) => {
-                        // Big Game GMU, Bighorn GMU, and Goat GMU
-                        gmuScale.children.forEach((gmuAnimal) => {
-                        switch (gmu) {
-                            case "Big Game GMU":
-                            if (gmuAnimal.title === "Big Game GMU"){
-                                gmuAnimal.visible = true;
-                            }
-                            else {
-                                gmuAnimal.visible = false; // don't show on map
-                            }
-                            break;
-                            case "Bighorn GMU":
-                            if (gmuAnimal.title === "Bighorn GMU"){
-                                gmuAnimal.visible = true;
-                            }
-                            else {
-                                gmuAnimal.visible = false; // don't show on map
-                            }
-                            break;
-                            case "Goat GMU":
-                            if (gmuAnimal.title === "Goat GMU"){
-                                gmuAnimal.visible = true;
-                            }
-                            else {
-                                gmuAnimal.visible = false; // don't show on map
-                            }
-                            break;
-                        }	
+                // set gmu species && display GMU layer
+                if (item.title === "Bighorn Sheep" && item.visible == true) {
+                    gmu = "Bighorn GMU";
+
+                    // switch searchWidget GMU layer to Bighorn GMUs
+                    // find the index of the Find a Place GMUs
+                    if (this.gmuIndex == -1){
+                        this.gmuIndex=findGMUIndex();
+                    }
+                    if (this.gmuIndex != -1){
+                        var bighornFL = new FeatureLayer({
+                            url: settings.sheepUrl
                         });
-                    });
-                    return false; // "GMU boundary (Hunting Units)" found, quit loop
+                        searchWidget.sources.items[this.gmuIndex].layer = bighornFL;
+                        searchWidget.sources.items[this.gmuIndex].searchFields = [settings.sheepField];
+                        searchWidget.sources.items[this.gmuIndex].displayField = settings.sheepField;
+                        searchWidget.sources.items[this.gmuIndex].outFields = [settings.sheepField];
+                        searchWidget.sources.items[this.gmuIndex].name = "Bighorn Sheep GMUs";
+                        searchWidget.sources.items[this.gmuIndex].placeholder = "Search Bighorn GMUs";
                     }
-                    return true; // "GMU boundary (Hunting Units)" not found yet
-                });
-                return false; // Hunter Reference found, quit loop
+                }	
+                else if (item.title === "Mountain Goat" && item.visible == true){
+                    gmu = "Goat GMU";
+                    // find the index of the Find a Place GMUs
+                    if (this.gmuIndex == -1){
+                        this.gmuIndex=findGMUIndex();
+                    }
+                    if (this.gmuIndex != -1){
+                        var goatFL = new FeatureLayer({
+                            url: settings.goatUrl
+                        });
+                        searchWidget.sources.items[this.gmuIndex].layer = goatFL;
+                        searchWidget.sources.items[this.gmuIndex].searchFields = [settings.goatField];
+                        searchWidget.sources.items[this.gmuIndex].displayField = settings.goatField;
+                        searchWidget.sources.items[this.gmuIndex].outFields = [settings.goatField];
+                        searchWidget.sources.items[this.gmuIndex].name = "Mountain Goat GMUs";
+                        searchWidget.sources.items[this.gmuIndex].placeholder = "Search Goat GMUs";
+                    }
                 }
-                return true; // Hunter Reference not found yet
-            });
-
-            // open the selected radio button layers and close other radio buttons
-            layerList.operationalItems.forEach((opLayer) => {
-                opLayer.children.forEach((layerView) => {
-                    if ((item.parent && item.parent.title === layerView.parent.title) && (item.parent.visibilityMode === "exclusive")){
-                        if (layerView.layer.id != item.layer.id) {
-                            layerView.open = false;
-                        }else{
-                            layerView.open = true;
-                        }
+                else {
+                    gmu = "Big Game GMU";
+                    // find the index of the Find a Place GMUs
+                    if (this.gmuIndex == -1){
+                        this.gmuIndex=findGMUIndex();
                     }
+                    if (this.gmuIndex != -1){
+                        var elkFL = new FeatureLayer({
+                            url: settings.elkUrl
+                        });
+                        searchWidget.sources.items[this.gmuIndex].layer = elkFL;
+                        searchWidget.sources.items[this.gmuIndex].searchFields = [settings.elkField];
+                        searchWidget.sources.items[this.gmuIndex].displayField = settings.elkField;
+                        searchWidget.sources.items[this.gmuIndex].outFields = [settings.elkField];
+                        searchWidget.sources.items[this.gmuIndex].name = "Big Game GMUs";
+                        searchWidget.sources.items[this.gmuIndex].placeholder = "Search GMUs";
+                    }
+                }
+                // Show correct GMU layer, hide others
+                layerList.operationalItems.items.every((opLayer) => { //every break on return false
+                    if (opLayer.title==="Hunter Reference"){
+                    opLayer.children.items.every((layerView) => {
+                        if (layerView.title==="GMU boundary (Hunting Units)"){
+                        layerView.children.items.forEach((gmuScale) => {
+                            // Big Game GMU, Bighorn GMU, and Goat GMU
+                            gmuScale.children.items.forEach((gmuAnimal) => {
+                            switch (gmu) {
+                                case "Big Game GMU":
+                                if (gmuAnimal.title === "Big Game GMU"){
+                                    gmuAnimal.visible = true;
+                                }
+                                else {
+                                    gmuAnimal.visible = false; // don't show on map
+                                }
+                                break;
+                                case "Bighorn GMU":
+                                if (gmuAnimal.title === "Bighorn GMU"){
+                                    gmuAnimal.visible = true;
+                                }
+                                else {
+                                    gmuAnimal.visible = false; // don't show on map
+                                }
+                                break;
+                                case "Goat GMU":
+                                if (gmuAnimal.title === "Goat GMU"){
+                                    gmuAnimal.visible = true;
+                                }
+                                else {
+                                    gmuAnimal.visible = false; // don't show on map
+                                }
+                                break;
+                            }	
+                            });
+                        });
+                        return false; // "GMU boundary (Hunting Units)" found, quit loop
+                        }
+                        return true; // "GMU boundary (Hunting Units)" not found yet
+                    });
+                    return false; // Hunter Reference found, quit loop
+                    }
+                    return true; // Hunter Reference not found yet
+                });
+
+                // open the selected radio button layers and close other radio buttons
+                layerList.operationalItems.items.forEach((opLayer) => {
+                    opLayer.children.items.forEach((layerView) => {
+                        if ((item.parent && item.parent.title === layerView.parent.title) && (item.parent.visibilityMode2 === "exclusive")){
+                            if (layerView.layer.id != item.layer.id) {
+                                layerView.open = false;
+                            }else{
+                                layerView.open = true;
+                            }
+                        }
+                    });
                 });
             });
         });

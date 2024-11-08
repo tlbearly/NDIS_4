@@ -18,9 +18,9 @@
     <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" async="true"/>
     <script src="https://js.arcgis.com/4.30/"></script>
    
-    <script type="text/javascript" src="js/customBasemaps.js?v=10" async="true"></script>
-    <script type="text/javascript" src="js/myCustomLayerList.js?v=28" async="true"></script>
-    <script type="text/javascript" src="js/myMapLayers.js?v=2" async="true"></script>
+    <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
+    <script type="text/javascript" src="js/myCustomLayerList.js?v=38" async="true"></script>
+    <script type="text/javascript" src="js/myMapLayers.js?v=12" async="true"></script>
 
 	  <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
 	  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" />
@@ -311,58 +311,57 @@
           
           
              
-          /*new MapImageLayer({
-                title: "Hunter Reference", // must be named Hunter Reference
-                url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer",
-                sublayers: [
-                  {
-                    title: "Land Management (COMaP v20240702)",
-                    id: 103,
-                    popupTemplate: {
-                      title: "Land Management",
-                      content: "{NAME}<br>{MANAGER}"
-                    }
-                  },
-                  {
-                    title: "Township Range boundary",
-                    id: 99,
-                    listMode: "hide",
-                    legendEnabled: true
-                  },
-                  {
-                    title: "Section boundary",
-                    id: 98,
-                    listMode: "hide",
-                    legendEnabled: true
-                  },
-                  {
-                    title: "Township Range Sections",
-                    id: 97,
-                    visible: false,
-                    listMode: "show",
-                    legendEnabled: true
-                  },
-                  {
-                    title: "Continental Divide",
-                    id: 96,
-                    listMode: "hide",
-                    legendEnabled: true,
-                    minScale: 250000
-                  },
-                  {
-                    title: "License Agent",
-                    id: 2,
-                    listMode: "show", // visible in TOC? show|hide|hide-children
-                    legendEnabled: true, // visible in legend? true|false
-                    popupTemplate: {
-                      title: "{License Agent}",
-                      content: "{Name}<br>{Manager}<br>{Address}<br>{City}<br>{Phone}"
-                    }
-							  	}
-                  
-                 
-                ]
-              }),*/
+          layer = new MapImageLayer({
+            title: "Hunter Reference2", // must be named Hunter Reference
+            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer",
+            sublayers: [
+              {
+                title: "Land Management (COMaP v20240702)",
+                id: 103,
+                popupTemplate: {
+                  title: "Land Management",
+                  content: "{NAME}<br>{MANAGER}"
+                }
+              },
+              {
+                title: "Township Range boundary",
+                id: 99,
+                listMode: "hide",
+                legendEnabled: true
+              },
+              {
+                title: "Section boundary",
+                id: 98,
+                listMode: "hide",
+                legendEnabled: true
+              },
+              {
+                title: "Township Range Sections",
+                id: 97,
+                visible: false,
+                listMode: "show",
+                legendEnabled: true
+              },
+              {
+                title: "Continental Divide",
+                id: 96,
+                listMode: "hide",
+                legendEnabled: true,
+                minScale: 250000
+              },
+              {
+                title: "License Agent",
+                id: 2,
+                listMode: "show", // visible in TOC? show|hide|hide-children
+                legendEnabled: true, // visible in legend? true|false
+                popupTemplate: {
+                  title: "{License Agent}",
+                  content: "{Name}<br>{Manager}<br>{Address}<br>{City}<br>{Phone}"
+                }
+              }
+            ]
+          });
+          mapLayers.push(layer);
           
           // Game Species
           layer = new MapImageLayer({
@@ -391,7 +390,7 @@
             sublayers: [
               {
                 id:2,
-                title: "Motor Vehicle Use Map: Trails",
+                title: "Trails",
                 visible: true,
                 minScale: 250000,
                 popupTemplate: {
@@ -406,7 +405,7 @@
               },
               {
                 id:1,
-                title: "Motor Vehicle Use Map: Roads",
+                title: "Roads",
                 visible: true,
                 minScale: 250000,
                 popupTemplate: {
@@ -424,11 +423,11 @@
           });
           mapLayers.push(layer);
 
-            // wildfire
+      // wildfire
 			layer = new FeatureLayer({
 				title: "Wildfire",
 				url: "https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer",
-				visible: false
+				visible: true
 			});
 			mapLayers.push(layer);
               
@@ -664,7 +663,7 @@
           view.ui.add(customLayerListExpand, "top-right");*/
 
           // Old layer list
-          layerList = new LayerList({
+          layerList2 = new LayerList({
             view: view,
             title: "Map Layers",
             dragEnabled: false, // add drag layers to re-arrange draw order
@@ -682,13 +681,13 @@
           });
           const layerListExpand2 = new Expand({
             view,
-            content: layerList,
+            content: layerList2,
             expandTooltip: "Map Layers2",
             expandIconClass: "esri-icon-layers"
           });
           view.ui.add(layerListExpand2, "top-right");
           // Event listener that fires each time an action is triggered
-					layerList.on("trigger-action", (event) => {
+					layerList2.on("trigger-action", (event) => {
 							// The layer visible in the view at the time of the trigger.
 							const layer = event.item.layer;
 				
@@ -1186,7 +1185,7 @@
               }
             }
             // Show correct GMU layer, hide others
-            layerList.operationalItems.every((opLayer) => { //every break on return false
+            layerList2.operationalItems.every((opLayer) => { //every break on return false
               if (opLayer.title==="Hunter Reference"){
                 opLayer.children.every((layerView) => {
                   if (layerView.title==="GMU boundary (Hunting Units)"){
@@ -1231,7 +1230,7 @@
             });
             
             // open the selected radio button layers and close other radio buttons
-            layerList.operationalItems.forEach((opLayer) => {
+            layerList2.operationalItems.forEach((opLayer) => {
               opLayer.children.forEach((layerView) => {
                 if ((item.parent && item.parent.title === layerView.parent.title) && (item.parent.visibilityMode === "exclusive")){
                   if (layerView.layer.id != item.layer.id) {
@@ -1693,7 +1692,7 @@
 			// Basemaps
 			const tab2 = document.createElement("calcite-tab");
 			const tab2Content = document.createElement("div");
-      tab2Content.id = "bmGallery";
+      tab2Content.id = "bmGallery3";
       tab2Content.style.overflowY = "auto";
 			tab2Content.innerHTML = myCustomBasemaps();
 			tab2.appendChild(tab2Content);

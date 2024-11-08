@@ -1,7 +1,7 @@
 // store each basemap layer for switching
-var natgeo,streets,aerial,topo,fsTopo,imagery_topo,topo2;
+var natgeo,streets,aerial,topo,fsTopo,imagery_topo,topo2,high_contrast_light,high_contrast_dark;
 // array of basemap layer ids
-const basemapLayers = ["natgeo","streets","aerial","topo","fsTopo","imagery_topo","topo2"];
+const basemapLayers = ["natgeo","streets","aerial","topo","fsTopo","imagery_topo","topo2","high_contrast_light","high_contrast_dark"];
 function myCustomBasemaps() {
     try {
         const bmGallery = document.createElement("div"); // needed so that we can pass back innerHTML
@@ -14,15 +14,18 @@ function myCustomBasemaps() {
         tileGroup.setAttribute("scale","s");
         bmGallery.appendChild(tileGroup);
 
+        setupBasemapLayers();
         // add basemap layers
-        add(tileGroup, "streets","Streets","assets/images/streets_thumb.jpg",true);
-        add(tileGroup, "aerial","Aerial Photo","assets/images/aerial_thumb.jpg",false);
+        add(tileGroup, "streets","Streets","https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg",true)
         add(tileGroup, "topo","USGS Scanned Topo","assets/images/USA_topo.png",false);
+        add(tileGroup, "high_contrast_light","High Contrast 1","https://www.arcgis.com/sharing/rest/content/items/084291b0ecad4588b8c8853898d72445/info/thumbnail/thumbnail1655848049464.png?f=json",false);
+        add(tileGroup, "high_contrast_dark","High Contrast 2","https://www.arcgis.com/sharing/rest/content/items/3e23478909194c54992eaaee78b5f754/info/thumbnail/thumbnail1655848922604.png?f=json",false);
         add(tileGroup, "natgeo","USGS Topo","assets/images/natgeothumb.jpg",false);
+        add(tileGroup, "aerial","Aerial Photo","assets/images/aerial_thumb.jpg",false);
         add(tileGroup, "imagery_topo","Aerial Photo2","assets/images/aerial_topo.png",false);
         add(tileGroup, "topo2","ESRI Digital Topo","assets/images/topo2_thumb.jpg",false);
 
-        setupBasemapLayers();
+        
         return bmGallery.innerHTML;
     }catch (e) {
             alert("Error in myBasemapGallery. "+e.getMessage, "Error");
@@ -52,6 +55,18 @@ function myCustomBasemaps() {
                     thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg"
                 });
                 map.basemap = streets;
+
+                // open street map --- Fails to load!!!! need apikey??
+                /*layer = new VectorTileLayer({
+                    url: "https://www.arcgis.com/home/item.html?id=8978501dcd724175be8913ed87166b2f",
+                    opacity: 0.75
+                });
+                streets = new Basemap({
+                    basemapLayers:[hillShadeLayer,layer],
+                    title: "Streets",
+                    id: "streets"
+                });
+                map.basemap = streets;*/
 
                 // Aerial Photo
                 var layers=[];
@@ -115,6 +130,31 @@ function myCustomBasemaps() {
                     id:"topo2",
                     thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/588f0e0acc514c11bc7c898fed9fc651/info/thumbnail/topo_thumb_b2wm.jpg"
                 });
+
+                // Hight Contrast Light
+                /*layer = new VectorTileLayer({
+                    url: "https://www.arcgis.com/sharing/rest/content/items/084291b0ecad4588b8c8853898d72445/resources/styles/root.json",
+                    title: "High Contrast Light"
+                });*/
+                high_contrast_light = new Basemap({
+                    portalItem: {
+                      id: "084291b0ecad4588b8c8853898d72445"
+                    },
+                   // baseLayers: [layer], //url:"https://www.arcgis.com/sharing/rest/content/items/084291b0ecad4588b8c8853898d72445",
+                    title: "High contrast light theme",
+                    id: "high_contrast_light",
+                    thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/084291b0ecad4588b8c8853898d72445/info/thumbnail/thumbnail1655848049464.png?f=json"
+                  });
+                  
+                  high_contrast_dark = new Basemap({
+                    //portalItem: {
+                    //    id: "3e23478909194c54992eaaee78b5f754",
+                    //},
+                    url: "https://cdn.arcgis.com/sharing/rest/content/items/3e23478909194c54992eaaee78b5f754", //"https://www.arcgis.com/home/item.html?id=3e23478909194c54992eaaee78b5f754", //"https://hub.arcgis.com/maps/3e23478909194c54992eaaee78b5f754",
+                    title: "High contrast dark theme",
+                    id: "high_contrast_dark",
+                    thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/588f0e0acc514c11bc7c898fed9fc651/info/thumbnail/topo_thumb_b2wm.jpg"
+                  });
             }catch(error){
                 console.log(error.message);
             }
@@ -127,6 +167,7 @@ function myCustomBasemaps() {
         // selected - true or false
         try {
             const basemap = document.createElement("calcite-tile");
+            basemap.style.border = "1px solid lightgray";
             basemap.setAttribute("heading",title);
             basemap.setAttribute("title",title);
             basemap.setAttribute("label",title);
@@ -159,8 +200,6 @@ function myCustomBasemaps() {
     }
 }
 function myToggleBasemap(event){
-    //event.stopImmediatePropagation();
-    //event.stopPropagation();
     const name = event.target.id;
     //document.getElementsByClassName("bmSelected")[0].className = "bmUnselected";
     //document.getElementById(name).className = "bmSelected";
