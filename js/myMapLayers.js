@@ -2,7 +2,25 @@ var openTOCgroups = ["Elk"]; // which group layers should be open in TOC
 var gmuIndex = -1;
 var layerList;
 function myMapLayers(){
-   
+   // -- Layer List and Basemap tabs using esri widgets
+   const mapLayersExpand = document.createElement("calcite-button");
+   mapLayersExpand.id = "layerListExpand2";
+   mapLayersExpand.iconStart = "layers";
+   mapLayersExpand.className="esri-widget--button";
+   mapLayersExpand.title = "Map Layers";
+   mapLayersExpand.label = "Map Layers";
+   mapLayersExpand.alignment="center";
+   mapLayersExpand.appearance="solid";
+   mapLayersExpand.kind ="neutral";
+   mapLayersExpand.scale = "s";
+   mapLayersExpand.style.width = "120px";
+   const mapLayersLabel = document.createElement("span");
+   mapLayersLabel.innerHTML = "Map Layers";
+   mapLayersLabel.style.fontWeight = "bold";
+   mapLayersExpand.appendChild(mapLayersLabel);
+   //mapLayersExpand.content = customLayerList;
+   view.ui.add(mapLayersExpand, "top-right");
+  
         require(["esri/widgets/LayerList"],function (LayerList){
             // TOC parent layers list
             const mapLayersWidget = document.createElement("calcite-popover");
