@@ -16,17 +16,37 @@
     <title>Test ArcGIS API for JavaScript 4.30</title>
 
     <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" async="true"/>
+    <!--link rel="stylesheet" href="assets/css/myMain.css" async="true"/-->
     <script src="https://js.arcgis.com/4.30/"></script>
    
     <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
-    <script type="text/javascript" src="js/myCustomLayerList.js?v=53" async="true"></script>
+    <script type="text/javascript" src="js/myCustomLayerList.js?v=59" async="true"></script>
     <script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script>
     <script type="text/javascript" src="js/myMeasure.js?v=0" async="true"></script>
 
 
 	  <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
 	  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" />
+    <!--link rel="stylesheet" type="text/css" href="assets/css/myCalcite.css" /-->
 
+    <script>
+      // force rounded corners
+      window.onload = function() {
+            // layer list
+            const tim = setInterval(function(){
+              if (!document.querySelector("#layerlist")) return;
+              if (!document.querySelector("#layerlist").shadowRoot) return;
+              if (!document.querySelector("#layerlist").shadowRoot.children) return;
+              if (document.querySelector("#layerlist").shadowRoot.children.length < 1) return;
+              clearInterval(tim);
+              document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").style.borderRadius = "0.75rem";
+              // layer list sub-dialogs for each root layer in the map
+              for(var i=0; i<mapLayers.length;i++){
+                document.querySelector("#"+mapLayers[i].title.replace(/ /g,"_") +"_dialog").shadowRoot.querySelector("calcite-panel").style.borderRadius = "0.75rem";
+              }
+            },100);
+        };
+    </script>
     <style>
       html,
       body,
@@ -52,15 +72,22 @@
         -webkit-box-shadow: none;
         box-shadow: none;
       }
-      calcite-dialog{
+      calcite-dialog, .dialog {
         --calcite-dialog-content-space: 0;
         --calcite-dialog-max-size-x: 350px;
-        --calcite-dialog-max-size-y: 80dh;
+        --calcite-dialog-max-size-y: 80vh;
+        border-bottom-left-radius: 12px!important;
+        border-bottom-right-radius: 12px!important;
+        border-top-left-radius: 12px!important;
+        border-radius: 0.75rem!important;
+      }
+      calcite-panel, .panel{
+        border-radius: 12px!important;
       }
       .esri-expand--auto .esri-expand__container--expanded{
         z-index: 2!important; /* hide map scale behind panel */
       }
-      .esri-widget, .esri-componet, .esri-expand__content-container, .esri-dialog, calcite-dialog, calcite-panel, .panel, .dialog--opening-active, .dialog, .container--open .dialog{
+      .esri-widget, .esri-componet, .esri-expand__content-container, .esri-dialog, calcite-dialog, calcite-panel.panel, calcite-panel, .panel, .dialog--opening-active, .dialog, .container--open .dialog{
         border-radius: 0.75rem!important;
       }
       
@@ -124,8 +151,10 @@
         --calcite-color-transparent-scrim: transparent!important;
         --calcite-dialog-scrim-background-color:transparent!important;
         --calcite-scrim-background-color:transparent!important;
+        --calcite-corner-radius-round: 12px!important;
+        --calcite-corner-radius: 12px;
         --calcite-border-radius: var(--calcite-border-radius-round,12px);
-        --calcite-corner-radius-round: 12px;
+        
       }
 
       /*.esri-layer-list__item-content {
@@ -312,7 +341,7 @@
               // TileLayer sublayers are read only except for legendEnabled, popupEnabled, popupTemplate, and title. Error incompatible with basemap spatial reference
           var layer = new MapImageLayer({
                 title: "Hunter Reference", // must be named Hunter Reference
-                url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer2"
+                url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"
           });
           layer.when((event) => {
             for(var i=0; i<event.sublayers.items.length; i++){
@@ -344,25 +373,27 @@
                 }
               },
               {
-                title: "Township Range boundary",
-                id: 99,
-                listMode: "hide",
-                legendEnabled: true,
-                visible: true
-              },
-              {
-                title: "Section boundary",
-                id: 98,
-                listMode: "hide",
-                legendEnabled: true,
-                visible: true
-              },
-              {
                 title: "Township Range Sections",
                 id: 97,
                 visible: false,
                 listMode: "show",
-                legendEnabled: true
+                legendEnabled: true,
+                sublayers: [
+                  {
+                    title: "Township Range boundary",
+                    id: 99,
+                    listMode: "hide",
+                    legendEnabled: true,
+                    visible: true
+                  },
+                  {
+                    title: "Section boundary",
+                    id: 98,
+                    listMode: "hide",
+                    legendEnabled: true,
+                    visible: true
+                  }
+                ]
               },
               {
                 title: "Continental Divide",
@@ -399,7 +430,9 @@
           layer = new MapImageLayer({
             title: "Game Species",
             url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map/MapServer",
-            visible: false
+            visible: false,
+            Elk: "Elk activity areas are compiled from 10 year averages. These data were last updated on ##/##/####. Read more",
+            Moose: "Moose activity areas are compiled from 10 year averages. These data were last updated on ##/##/####. Read more"
           });
           layer.when((event) => {
             console.log("Game Species loaded");
@@ -614,11 +647,62 @@
               }
             }
           });
+
+        const nonLayers = ["Graphics Layer", "World Hillshade", "World Imagery", "USGSTopo", "USA Topo Maps", "USGSImageryTopo","", "World Topo Map", "World Basemap", "World Basemap v2"];
+
+        // This function fires each time an error occurs during the creation of a layerview
+        view.on("layerview-create-error", function(event) {
+                // An error occurred during the layerview creation
+                var layer = event.layer;
+                console.log(layer.title+" failed to load");
+                // layers that should not be included in the layer list
+                if (nonLayers.includes(layer.title) ) return;
+                
+                // flash status icon
+                 // search for listItem
+                 const list = document.getElementById("customLayerList");
+                 var status;
+                 if (list){
+                  const listItems = list.children;
+                 
+                  for(var i=0;i<listItems.length;i++){
+                    // children: picture, title, status, switch
+                      status = listItems[i].children[2];
+                      if (listItems[i].value ===layer.title){
+                          status.style.visibility = "hidden";
+                          break;
+                      }
+                  }
+                }
+                 setTimeout(function(){
+                    if (list)
+                      status.style.visibility = "visible"; // not loaded icon
+                     // try to reload map layer
+                     map.add(layer);
+                     console.log("layerview-create-error--> reloading layer "+layer.title);
+                 },500);
+            });
+
         
-        view.on("layerview-create-error", layerLoadFailedHandler);
-        function layerLoadFailedHandler(event){
-          console.log("layer failed");
-        }
+        view.on("layerview-create", function(event){
+            // layer loaded, remove loading icon
+            const layer = event.layer;
+            // layers that should not be included in the layer list
+            if (nonLayers.includes(layer.title) ) return;
+            console.log(layer.title+" loaded");
+            // search for listItem
+            const list = document.getElementById("customLayerList");
+            if (list){
+              const listItems = list.children;
+              for(var i=0;i<listItems.length;i++){
+                  if (listItems[i].value ===layer.title){
+                    // children: picture, title, status, switch
+                      listItems[i].removeChild(listItems[i].children[2]);
+                      break;
+                  }
+              }
+            }
+        });
 
         // Handle Filling Identify Content Here
         /*view.on("click", function (event) {
