@@ -17,7 +17,7 @@
     <subtitle>Colorado Parks and Wildlife</subtitle>
     <app>fishingatlas</app>
     <!-- logo in header bar-->
-    <logo>assets/images/cpwlogo_48x48.png</logo>
+    <logo>assets/images/logo.svg</logo>
     <logourl>//cpw.state.co.us</logourl>
 	<httpproxy>/proxy/DotNet/proxy.ashx</httpproxy>
 
@@ -61,8 +61,9 @@
 					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
             <layer label="BLM Roads and Trails" open="false" type="dynamic" visible="false" alpha="1"
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />
-			<layer label="Wildfire Perimeters" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
-			<layer label="Wildfire Incidents" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
+            <layer group="Wildfire" label="Wildfire" open="true" type="dynamic" visible="true" alpha="0.8"/>
+			<layer parentGroup="Wildfire" label="Wildfire Perimeters" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
+			<layer parentGroup="Wildfire" label="Wildfire Incidents" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
             <!--layer label="Wildfire Perimeters" open="false" type="dynamic" visible="false" alpha="0.8"
 					url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0"/-->
        </operationallayers>

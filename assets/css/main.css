@@ -1,0 +1,190 @@
+html,
+body,
+#viewDiv {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.esri-layer-list__item-content {
+  font-size: 1rem !important;
+  padding: 5px 0;
+}
+
+calcite-tab-title {
+  font-weight: 600;
+  /*font-size: var (--calcite-font-size-2)!important;*/
+}
+
+/* remove accessiblity focus outline NOT WORKING!!!! */
+calcite-tab-title:focus calcite-tab-title:active {
+  outline: none;
+  border-color: inherit;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+calcite-dialog,
+.dialog {
+  --calcite-dialog-content-space: 0;
+  --calcite-dialog-max-size-x: 350px;
+  --calcite-dialog-max-size-y: 80vh;
+  border-bottom-left-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+  border-top-left-radius: 12px !important;
+  border-radius: 0.75rem !important;
+}
+
+calcite-panel,
+.panel {
+  border-radius: 12px !important;
+}
+
+.esri-expand--auto .esri-expand__container--expanded {
+  z-index: 2 !important;
+  /* hide map scale behind panel */
+}
+
+.esri-widget,
+.esri-componet,
+.esri-expand__content-container,
+.esri-dialog,
+calcite-dialog,
+calcite-panel.panel,
+calcite-panel,
+.panel,
+.dialog--opening-active,
+.dialog,
+.container--open .dialog {
+  border-radius: 0.75rem !important;
+}
+
+/* map layer loaded status icon blink */
+.waitingForConnection {
+  animation: blinker 3s linear infinite;
+}
+
+@keyframes blinker {
+  0% {
+    opacity: 1.0;
+  }
+
+  50% {
+    opacity: 0.0;
+  }
+
+  100% {
+    opacity: 1.0;
+  }
+}
+
+
+/*.esri-component{
+    border-radius: 12px!important;
+  }*/
+.esri-widget--button {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.esri-zoom .esri-widget--button:first-child {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.esri-zoom .esri-widget--button:last-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.esri-expand {
+  min-width: 40px;
+  min-height: 40px;
+}
+
+/*.esri-expand__content-container{
+    border-radius: 12px;
+  }*/
+.esri-input {
+  font-size: small;
+}
+
+.esri-input[type=text],
+.esri-input[type=password],
+.esri-input[type=number] {
+  min-height: 40px;
+}
+
+.esri-search__sources-button {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.esri-search__submit-button {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* mobile background color was black */
+:root {
+  --calcite-sheet-scrim-background-internal: transparent;
+  --calcite-sheet-scrim-background: transparent;
+  --calcite-scrim-background: transparent !important;
+  --calcite-color-transparent-scrim: transparent !important;
+  --calcite-dialog-scrim-background-color: transparent !important;
+  --calcite-scrim-background-color: transparent !important;
+  --calcite-corner-radius-round: 12px !important;
+  --calcite-corner-radius: 12px;
+  --calcite-border-radius: var(--calcite-border-radius-round, 12px);
+
+}
+
+/*.esri-layer-list__item-content {
+    font-size:  var(--calcite-font-size-0)!important;
+  }*/
+#bmGallery {
+  background-color: #fff;
+  min-height: 200px;
+  text-align: center;
+}
+
+@media only screen and (min-width: 1200px) {
+  #bmGallery {
+    height: 300px;
+    /*calc(100vh - 265px);*/
+    min-width: 280px;
+  }
+}
+
+/*#bmGallery ul{
+list-style: none;text-align: center;display:flex;padding-left:0;flex-flow: wrap;justify-content: center;
+}
+#bmGallery li{
+padding:5px;
+width:110px;
+cursor: pointer;
+}
+#bmGallery img{
+object-fit:cover;
+padding: 5px;
+}
+.bmUnselected img {
+border:none;
+width: 100px;
+height: 70px;
+}
+.bmSelected img {
+border:3px solid gold;
+width: 100px;
+height: 70px;
+}*/
+/* increase header font size 
+  .header-content .heading {
+  font-size: var(--calcite-font-size-2)!important;
+  }*/

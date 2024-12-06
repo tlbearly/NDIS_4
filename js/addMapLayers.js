@@ -1,0 +1,1170 @@
+var xmlDoc; // config.xml document json
+var ext;
+openTOCgroups=[];
+var tries={}; // number of times we have tried to load each map layer
+var loadedFromCfg; // true when the layer has loaded and set the visiblelayers when setting layers from URL
+var labelFromURL = false;
+
+
+function addGraphicsAndLabels() {
+    //----------------------------------------------------------------
+    // Add Points, Lines, Polygons, Rectangles, Labels
+    //----------------------------------------------------------------
+    require(["esri/geometry/SpatialReference"], (SpatialReference) => {
+        try {
+            var sr;
+            if (!queryObj.get("prj") || queryObj.get("prj") == "")
+                sr = new SpatialReference(3857);
+            else
+                sr = new SpatialReference(parseInt(queryObj.get("prj")));
+
+            //----------------------------
+            //        Add points
+            //----------------------------
+            // points = circle|size|color|alpha(transparency)|outline color|outline width|x|y|
+            //   text|font|font size|color|bold as t or f|italic as t or f|underline as t or f|placement|offset, next point...
+            // For example: circle|10|4173788|1|0|1|-11713310|4743885|480;779; 4;333;990|1|12|4173788|t|f|f|above|5
+            if (queryObj.get("point") && queryObj.get("point") != "") {
+                points(queryObj.get("point"), sr);
+            }
+            
+            //----------------------------
+            //        Add lines
+            //----------------------------
+            // &line= style | color | alpha | lineWidth | number of paths | [number of points | x | y | x | y |... repeat for each path] 
+            // |x|y|label|font|font-size|color|bold|italic|underline|placement|offset, repeat for each line
+            // &line=solid|4173788|1|5|1|3|-11900351|4800983|-11886749|4805344|-11883462|4812449|-11891907|4806716|10.5 mi|1|12|4173788|t|f|f|above|5
+            if (queryObj.get("line") && queryObj.get("line") != "") {
+                addLines(queryObj.get("line"), sr);
+            }
+            //----------------------------
+            //        Add polygons
+            //----------------------------
+            // &poly=  fillStyle | fillColor | fillAlpha | lineStyle | lineColor | lineWidth | 
+            // number of rings | number of points | x | y | x | y |... repeat for each ring , repeat for each polygon
+            // fillAlpha is now in fillColor (was used in flex), lineStyle = solid, lineWidth = 2
+            if (queryObj.get("poly") && queryObj.get("poly") != "") {
+                addPolys(queryObj.get("poly"), sr);
+            }
+            //----------------------------
+            //        Add rectangles
+            //----------------------------
+            // &rect=  fillStyle | fillColor | fillAlpha | lineStyle | lineColor | lineWidth | 
+            // number of rings | number of points | x | y | x | y |... repeat for each ring , repeat for each polygon
+            // fillAlpha is now in fillColor (was used in flex), lineStyle = solid, lineWidth = 2
+            if (queryObj.get("rect") && queryObj.get("rect") != "") {
+                addRects(queryObj.get("rect"), sr);
+            }
+            //----------------------------
+            //        Add labels
+            //----------------------------
+            // &text=x|y|text|font|font size|color|bold as t or f|italic as t or f|underline as t or f
+            // font, color, bold, italic, and underline are not used in this version. They default to Helvetica, black, bold
+            if (queryObj.get("text") && queryObj.get("text") != "") {
+                addLabels(queryObj.get("text"), sr);
+            }
+            sr = null;
+        } catch (e) {
+            alert("Error loading graphics from the URL. In javascript/readConfig.js. Error message: " + e.message, "URL Graphics Error", e);
+        }
+    });
+}
+
+		
+function addMapLayers(){
+    //******************
+    //  ADD MAP LAYERS
+    //
+    //  addMapLayers calls creatLayer for each layer in the operationallayers tag in the config.xml file.
+    //  createLayer calls layerLoadFailedHandler
+    //  layerLoadFailedHandler waits then calls createLayer again, reports error after 5 tries and increases time between calls to 30 seconds.
+    //  map.on("layer-add-result") listens for layer to load to map. Updates the toc with new layers. Waits for all to have tried to load,
+    //  reorders legendLayers and map layers
+    //******************
+    // 3-21-22 use layer.on("load") and layer.on("error") to make sure layers have loaded
+
+    require([
+        "esri/layers/MapImageLayer",
+        "esri/layers/FeatureLayer","esri/layers/GroupLayer",], (MapImageLayer, FeatureLayer, GroupLayer) => {
+        // Create Layer 3-21-22
+        // Get layers from url of config.xml
+        function createLayer(layer){
+            console.log("Creating layer: ");
+            var id;
+            if (layer.id)
+                id = layer.id;
+            else if (layer.getAttribute("label"))
+                id = layer.getAttribute("label");
+            console.log(id);
+            
+            // if already loaded return
+            for (var i=0;i<view.allLayerViews.items.length;i++){
+                if (id === view.allLayerViews.items[i].layer.id && view.allLayerViews.items[i].layer.loaded) 
+                    return;
+            }
+
+            var myLayer;
+            tries[id]++;
+            // Set layer properties on startup if specified on url
+            if (queryObj.get("layer") && queryObj.get("layer") != "") {
+                if (layer.getAttribute("url").toLowerCase().indexOf("mapserver") > -1) {
+                    if (layerObj[id]){
+                        myLayer = new MapImageLayer({
+                            "url": layer.getAttribute("url"),
+                            "opacity": layerObj[id].opacity,
+                            "title": id,
+                            "id":id,
+                            "visible": layerObj[id].visible,
+                            ///TODO this does not exist in v4.24**********  "visibleLayers": layerObj[id].visLayers
+                            "sublayers": layerObj[id].visLayers // remove this, it will delete data. Loop through and set these layers to visible other to not visible.
+                        });
+                    // not found on url, not visible
+                    }else {
+                        myLayer = new MapImageLayer({
+                            "url": layer.getAttribute("url"),
+                            "opacity": Number(layer.getAttribute("alpha")),
+                            "title": id,
+                            "id":id,
+                            "visible": false
+                        });
+                    }
+                }
+                // FeatureServer tlb 10/19/20
+                else if (layer.getAttribute("url").toLowerCase().indexOf("featureserver") > -1){
+                    if (layerObj[id]) 
+                        myLayer = new FeatureLayer({
+                            "url": layer.getAttribute("url"),
+                            "opacity": Number(layer.getAttribute("alpha")),
+                            "title": id,
+                            "visible" : layerObj[id].visible
+                            //TODO this does not exist in v4.24********** "visibleLayers" : layerObj[id].visLayers
+                        });
+                    else
+                        myLayer = new FeatureLayer({
+                            "url": layer.getAttribute("url"),
+                            "opacity": Number(layer.getAttribute("alpha")),
+                            "title": id,
+                            "visible": false
+                        });
+                }
+                else {
+                    alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit readConfig.js line 600 to add new type.");
+                    return;
+                }
+            // Set layer properties from config.xml file
+            } else {
+                // MapServer
+                if (layer.getAttribute("url").toLowerCase().indexOf("mapserver") > -1){
+                        myLayer = new MapImageLayer({
+                            url:layer.getAttribute("url"),
+                            opacity: Number(layer.getAttribute("alpha")),
+                            title: id,
+                            id: id,
+                            visible: layer.getAttribute("visible") == "true"
+                            // Example popup template for each sublayer
+                            /*sublayers: [{
+                                id: 0,
+                                popupTemplate: {
+                                    title: "{COUNTY}",
+                                    content: "{POP2007} people lived in this county in 2007"
+                                }
+                                }]*/
+                        });
+                } 
+                // FeatureServer tlb 9/28/20
+                else if (layer.getAttribute("url").toLowerCase().indexOf("featureserver") > -1){	
+                    myLayer = new FeatureLayer({
+                        url: layer.getAttribute("url"),
+                        opacity: Number(layer.getAttribute("alpha")),
+                        title: id,
+                        id: id,
+                        visible: layer.getAttribute("visible") == "true",
+                        legendEnabled: true
+                    });
+                    
+                    // identify popup template
+                    if (layer.getAttribute("popup_fields") && layer.getAttribute("popup_labels")){
+                        const template = addPopupTemplate(layer.getAttribute("label"),layer.getAttribute("popup_fields").split(","),layer.getAttribute("popup_labels").split(","));
+                        if (template != null) myLayer.popupTemplate = template;
+                    }
+                }
+                else {
+                    alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit readConfig.js line 600 to add new type.");
+                    return;
+                }
+            }
+            mapLayers.push(myLayer);
+            map.add(myLayer);
+        }
+
+        function layerLoadFailedHandler(event){
+            console.log("layer failed to load: "+event.layer.id);
+            // Layer failed to load 3-21-22
+            // Wait 2 seconds, retry up to 5 times, then report the error and continue trying every 30 seconds
+            // 3-10-22 NOTE: MVUM is sometimes missing some of the sublayers. Contacted victoria.smith-campbell@usda.gov
+            // at USFS and they restarted one of their map services and it fixed the problem.
+            
+            // Call subgroup layer load failed handler
+            if (event.layer.parent.type && event.layer.parent.type === "group") {
+                subGroupLayerLoadFailed(event);
+                return;
+            }
+
+            // if already loaded return
+            for (var i=0;i<view.allLayerViews.items.length;i++){
+                if (event.layer.id === view.allLayerViews.items[i].layer.id && view.allLayerViews.items[i].loaded) 
+                    return;
+            }
+    console.log(event.layer.id+" failed to load!!!!!!!");
+    console.log("tries="+tries[event.layer.title]);
+            var layer=null;
+            for(i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+                if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label") === event.layer.id){
+                    layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
+                    break;
+                }
+            }
+            // Try every 2 seconds for up to 5 times 
+            if (tries[event.layer.title] < 4){
+                console.log("Retrying to load: "+event.layer.id);
+                setTimeout(function(){createLayer(event.layer);},2000);
+            } 
+            // Greater than 5 tries, give warning
+            else if (tries[event.layer.title] == 4){
+                //if (event.layer.id.indexOf("Motor Vehicle") > -1 || event.layer.id.indexOf("Wildfire") > -1 || event.layer.id.indexOf("BLM") > -1)
+                //    alert("The external map service that provides "+event.layer.id+" is experiencing problems.  This issue is out of CPW control. We will continue to try to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
+                //else
+                //    alert(event.layer.id+" service is busy or not responding. We will continue to try to load it.","Data Error");
+                if (layer){
+                    console.log("Retrying to load: "+event.layer.id);
+                    setTimeout(function(){createLayer(layer);},30000);
+                }
+            }
+            // Greater than 5 tries. Keep trying every 30 seconds
+            else {
+    //DEBUG
+    
+    //if(layer.getAttribute("url").indexOf("oooo")>-1)
+    //layer.setAttribute("url", layer.getAttribute("url").substring(0,layer.getAttribute("url").length-4));
+    //console.log("url="+layer.getAttribute("url"));
+                if (layer){
+                    console.log("Retrying to load: "+event.layer.id);
+                    setTimeout(function(){createLayer(layer);},30000);
+                }
+            }
+        }
+
+        async function layerLoadHandler(event){
+            console.log(event.layer.id +" loaded in layerLoadHandler.");
+            
+            // Set the arcade context for Wildfire Incidents to print at correct size
+            // the input feature's geometry is expected
+            // to be in the spatial reference of the view
+            //*************************TODO tried to fix printing wildfire symbols did not work */
+            /*if (event.layer.id === "Wildfire Incidents"){
+                const labelVariableExpressionInfo = arcadeUtils
+                .getExpressionsFromLayer(event.layer)
+                .filter(expressionInfo => expressionInfo.profileInfo.context === "label-class")[0];
+                const wildfireLabelArcadeScript = labelVariableExpressionInfo.expression;
+
+                const rendererVariableExpressionInfo = arcadeUtils
+                .getExpressionsFromLayer(event.layer)
+                .filter(expressionInfo => expressionInfo.profileInfo.context === "unique-value-renderer")[0];
+                const wildfireRendererArcadeScript = rendererVariableExpressionInfo.expression;
+
+                // Arcade expression used by size visual variable
+                const sizeVariableExpressionInfo = arcadeUtils
+                .getExpressionsFromLayer(event.layer)
+                .filter(expressionInfo => expressionInfo.profileInfo.context === "size-variable")[0];
+
+                const wildfireSizeArcadeScript = sizeVariableExpressionInfo.expression;
+                const wildfireSizeArcadeTitle = sizeVariableExpressionInfo.title;
+        
+                //const color
+                // Define the visualization profile variables
+                // Spec documented here:
+                // https://developers.arcgis.com/arcade/profiles/visualization/
+                const visualizationProfile = arcade.createArcadeProfile("visualization");
+        
+                // Compile the color variable expression and create an executor
+                const wildfireLabelArcadeExecutor =
+                    await arcade.createArcadeExecutor(wildfireLabelArcadeScript, visualizationProfile);
+                const wildfireRendererArcadeExecutor =
+                    await arcade.createArcadeExecutor(wildfireRendererArcadeScript, visualizationProfile);
+                const wildfireSizeArcadeExecutor =
+                    await arcade.createArcadeExecutor(wildfireSizeArcadeScript, visualizationProfile);
+            }*/
+            //*******************end wildfire *****************************/
+
+            // reorder layers (top layers and top groups) if it failed
+            if (tries[event.layer.id] && tries[event.layer.id] > 1){
+                var j;
+                
+                // load the correct layer order from config.xml file
+                // opLayerObj = top level layer of group
+                // opGroupLayerObj = a groupLayer with layerids, ignor sub groups with no sublayers
+                if (opLayerObj.length == 0){
+                    for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+                        // add top level layer or group
+                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("parentGroup")===null){
+                            if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label")){
+                                opLayerObj.push({
+                                    title: xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label"),
+                                    type: "layer",
+                                    parentId: null
+                                });
+                            }
+                            else if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group")){
+                                opLayerObj.push({
+                                    title: xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group"),
+                                    type: "group",
+                                    parentId: null
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // reorder top level layers and groups
+                var found=false;
+                for(i=0;i<opLayerObj.length;i++){
+                    //console.log(i+" "+opLayerObj[i].title);
+                    if (opLayerObj[i].title === event.layer.id){
+                        found = true;
+                        break;
+                    }
+                }
+                // this is a top level layer
+                if (found){
+                    // i=index of layer just added to map in opLayerObj
+                    // if last in array add it to end
+                    if (i+1 == opLayerObj.length)
+                        map.reorder(event.layer,i+1);
+                    else{
+                        // loop through all layers above this layer in case not all layers have been added
+                        var reordered = false;
+                        for (j=i+1;j<opLayerObj.length;j++){
+                            if (reordered)break;
+                            // loop through all layers added to the map to find index to insert it at
+                            // look for each item that is after it
+                            for (var k=0; k<view.layerViews.items.length;k++){
+                                if(opLayerObj[j].title === view.layerViews.items[k].layer.title){
+                                    map.reorder(event.layer,k+1);
+                                    reordered=true;
+                                    //console.log(event.layer.id+" reordered to "+k);
+                                    //debug  for (var m=0; m<view.layerViews.items.length;m++){
+                                    //	console.log("map view: "+m+" "+view.layerViews.items[m].layer.title);
+                                    //}
+                                    break;
+                                }
+                            }
+                        }
+                        if (!reordered)map.reorder(event.layer,view.layerViews.items.length);
+                    }
+                }
+                
+                alert("Was able to sucessfully load: "+event.layer.id);
+                event.layer.refresh;
+                
+            }
+            // create sub-dialog in layer list for root layers (in mapLayers)
+            for (var i=0; i<mapLayers.length; i++){
+                if (mapLayers[i].id == event.layer.id){ // make sure it is a root layer
+                    layerListAddSublayerDialogs(event,null);
+                    break;
+                }
+            }
+        }
+        
+        function getLayerIds(layerIds){
+            // Return array of integers
+            //  layerIds: array of integers, or string "10-15,17", id of each layer
+            var ids = [];
+            if(typeof layerIds === "string"){
+                var items = layerIds.split(",");  
+                for(var i=0;i<items.length;i++){
+                if (items[i].indexOf("-")>-1){
+                    let firstLast = items[i].split("-"); // "3-5" -> [3],[5]
+                    for(var j=parseInt(firstLast[0]);j<parseInt(firstLast[1])+1;j++){
+                    ids.push(parseInt(j)); // push all the numbers 3,4,5
+                    }
+                }
+                else ids.push(parseInt(items[i]));
+                }
+            }
+            else ids = layerIds.split(",");
+            // layers display in reverse order, so reverse our arrays here
+            ids = ids.reverse();
+            return ids;
+        }
+        function addGroupLayer(groupName, vis, opacity, radio, featureservice, portal, layerIds, layerVis, layerNames,popupFields,popupLabels){
+            // Creates a group and adds feature service layers in layerVis. Returns the GroupLayer
+            // groupName: string, name of this group
+            // vis: boolean, is this group visible?
+            // radio: boolean, radio buttons?
+            // featureservice: string, url
+            // layerIds: array of integers, or string "10-15,17", id of each layer
+            // layerVis: array of true, false for visibility of each layer
+            // layerNames: array of strings, names of each layer
+            // popupFields: field names in the feature service to display in identify popup template
+            // popupLabels: labels for above fields
+            var visMode = "independent";
+            if(radio) visMode="exclusive";
+            vis = vis.toLowerCase() === "true";
+            var groupLayer;
+            // Portal
+            if (portal){
+                groupLayer = new GroupLayer({
+                    portalItem: {  // autocasts new PortalItem()
+                        id:portal //"1073fc11057c4ba3bc93c7898b3f18bc" // Bob's Test Elk
+                    },
+                    title: groupName,
+                    id: groupName,
+                    opacity: Number(opacity),
+                    visible: vis
+                });
+            }else{
+                if (opacity){
+                    groupLayer = new GroupLayer({
+                        title: groupName,
+                        id: groupName,
+                        visible: vis,
+                        opacity: parseFloat(opacity),
+                        visibilityMode: visMode // radio buttons?
+                    });
+                } else {
+                    groupLayer = new GroupLayer({
+                        title: groupName,
+                        id: groupName,
+                        visible: vis,
+                        visibilityMode: visMode // radio buttons?
+                    });
+                }
+            }
+            if (!featureservice) return groupLayer;
+
+            // add / to end of feature service
+            if (featureservice.substr(featureservice.length-1) != "/")
+                featureservice += "/";
+            var ids = getLayerIds(layerIds); // convert strings like "3-5" to integer array 3,4,5
+            layerVis = layerVis.reverse();
+            if (layerVis.length != ids.length){
+                alert("Error in "+app+"/config.xml operationallayers. In layer group "+groupName+", list of layerIds and layerVis must have the same number of elements.");
+                return groupLayer;
+            }
+            if (layerNames != null){
+                layerNames = layerNames.reverse();
+                if (layerVis.length != layerNames.length){
+                    alert("Error in "+app+"/config.xml operationallayers. In layer group "+groupName+", list of layerIds, layerVis, and layerNames must have the same number of elements.");
+                    return groupLayer;
+                }
+            }
+
+            // Add each featureservice layer to this group
+            for(var i=0;i<ids.length;i++){
+                if (layerVis[i] == null) alert("Missing layerVis item ("+i+") for "+groupName+" in config.xml. Should be true or false.","Data Error");
+                vis = layerVis[i].toLowerCase() === "true";
+                tries[groupLayer.title+ids[i]]=0;
+                // use layer names from config.xml 
+                if (layerNames != null){
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],layerNames[i],popupFields,popupLabels);
+                } 
+                // Use feature service layer names 
+                else {
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],null,popupFields,popupLabels);
+                }
+            }
+            return groupLayer;
+        }
+        
+        function subGroupLayerLoadFailed(event){
+            // called from layerLoadFailedHandler from view.on("create-layer-error")
+            // tries to reload it every 30 seconds
+            var layer = event.layer;
+            tries[layer.parent.title+layer.id]++;
+            setTimeout(function(){
+
+    var popupFields = [];
+    var popupLabels = [];
+    for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+    if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group") === layer.parent.title){
+    //layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
+    if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields")){
+        popupFields = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields").split(",");
+        popupLabels = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_labels").split(",");
+    }
+    break;
+    }
+    }
+    //debug
+    console.log("trying to load layer again: "+layer.parent.title+" "+layer.id);
+    /* layer.id is not a number!!!!! not working
+    if (layer.id == 1900) {
+    tries[layer.parent.title+"19"]=1;
+
+    //createSubGroupLayer(layer.parent,layer.url,layer.visible,19,layer.title,popupFields,popupLabels);
+    }*/
+                createSubGroupLayer(layer.parent,layer.url,layer.visible,layer.id,layer.title,popupFields,popupLabels);
+                layer.parent.remove(layer);
+            },30000);
+            
+        }
+        function createSubGroupLayer(groupLayer,url,visible,id,title,popupFields,popupLabels){		
+            var fsUrl;
+            if (url[url.length-1]==="/")
+                fsUrl = url + id;
+            else	
+                fsUrl = url +"/"+ id;
+            var subGroupLayer;
+            var pos = url.indexOf("/services/")+10;
+            var str = url.substr(pos);
+            pos = str.indexOf("/");
+            var fsName = str.substr(0,pos); // trim out feature service name ie. CPWSpeciesData
+            if (title !== null && title !== fsName){
+                subGroupLayer = new FeatureLayer({
+                    url: fsUrl,
+                    visible: visible,
+                    title: title,
+                    //id: id, // do not use id, let it create this on it's own
+                    legendEnabled: true
+                });
+                // identify popup template
+                if (popupFields && popupLabels){
+                    const template = addPopupTemplate(title,popupFields,popupLabels);
+                    if (template != null) subGroupLayer.popupTemplate = template;
+                }
+            }
+            else{
+                subGroupLayer = new FeatureLayer({
+                    url: fsUrl,
+                    visible: visible,
+                    //id: id, // do not use id, let it create this on it's own
+                    legendEnabled: true
+                });
+
+                // Wait until layer loads then the title will be assigned. Then remove feature service name from the title (eg. "CPWSpeciesData -")
+                subGroupLayer.on("layerview-create", function(event){
+                    var layer = event.layerView.layer;
+                    // get the feature service name (CPWSpeciesData), and remove it from the layer name. e.g. CPWSpeciesData - Elk Winter Range
+                    // featureservice = .../ArcGIS/rest/services/CPWSpeciesData/FeatureServer/
+                    // remove the feature service name from the title (eg. CPWSpeciesData - )
+                    if (fsName.indexOf(" - ") == -1)
+                        fsName += " - ";
+                    var title = layer.title.substr(fsName.length);
+                    layer.title = title;
+                    // identify popup template
+                    if (popupFields && popupLabels){
+                        const template = addPopupTemplate(title,popupFields,popupLabels);
+                        if (template != null) subGroupLayer.popupTemplate = template;
+                    }
+                    //console.log("sub group layer loaded: "+layer.parent.title+" "+title+" url="+fsUrl);
+                });
+            }
+            if (groupLayer.title && tries[groupLayer.title+id]>0){
+                subGroupLayer.on("layerview-create", function(event){
+                    var layer = event.layerView.layer;
+                    // load the correct layer order from config.xml file for all group layers
+                    // opGroupLayerObj = a groupLayer with layerids, ignor sub groups with no sublayers
+                    if (opGroupLayerObj.length == 0){
+                        for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+                            // add group layer with sublayers
+                            if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds")){
+                                var ids = getLayerIds(xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds"));
+                                for(j=0;j<ids.length;j++){
+                                    //DEBUG if (ids[j] == 1900)ids[j]=19;
+                                    opGroupLayerObj.push({
+                                        title: ids[j],
+                                        type: "layer",
+                                        parentId: xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group"),
+                                        grandparentId: xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("parentGroup")
+                                    });
+                                }
+                            }
+
+                        }
+                    }
+                    // Get an array of the ids in this group, in the correct order
+                    var correctOrder = [];
+                    var index=0;
+                    for (var i=0; i<opGroupLayerObj.length; i++){
+                        if (opGroupLayerObj[i].parentId === layer.parent.title){
+                            correctOrder.push(opGroupLayerObj[i].title.toString());
+                            if (opGroupLayerObj[i].title.toString() === layer.id) index= correctOrder.length-1;
+                        }
+                    }
+                    index++; // Set it to the id that should be after it.
+                    if (index == correctOrder.length) layer.parent.reorder(layer,layer.parent.layers.items.length); // insert at end
+                    else{
+                        var reordered=false;
+                        do{
+                            for (i=0; i<layer.parent.layers.items.length; i++){
+                                if (correctOrder[index] === layer.parent.layers.items[i].id){
+                                    layer.parent.reorder(layer,i);
+                                    reordered=true;
+                                    break;
+                                }
+                            }
+                            index++;
+                        } while (!reordered && index < correctOrder.length);
+                    }
+                    //console.log("reorder group layer "+layer.title);
+                });
+            }
+            groupLayer.add(subGroupLayer);
+        }
+
+        function addPopupTemplate(title,popupFields,popupLabels){
+            // For feature services can add an identify popup template
+            // in config.xml layer tag add: popup_fields="field1,field2,..."
+            //    popup_labels="label1,label2,..."
+            if (popupFields.length > 0){
+                const template ={
+                    // autocasts as new PopupTemplate()
+                    title: title,
+                    content: [{
+                        type: "fields"
+                    }]
+                }
+                
+                var fieldInfos = [];
+                for (var j=0; j<popupFields.length;j++){
+                    if (popupFields[j] && popupLabels[j]){
+                        var info = {
+                            fieldName: popupFields[j],
+                            label: popupLabels[j]
+                        }
+                        fieldInfos.push(info);
+                    } else {
+                        alert("Error in config.xml missing popup_fields or popup_labels for layer "+title);
+                        return null;
+                    }
+                }
+                template.content[0].fieldInfos = fieldInfos;
+                return template;
+            }else {
+                return null;
+            }
+        }
+
+        //-----------
+        // Variables
+        //-----------
+        loadedFromCfg = true; // the layer is loaded from config.xml. If false loaded from url &layers.
+        var i;
+        var opLayerObj = []; // array of top level layers/groups in the config.xml file, so we can reorder correctly if a layer fails to load
+        var opGroupLayerObj = []; // array of group layers with sublayers in the config.xml file, so we can reorder correctly if a layer fails to load
+        
+        // layer create error
+        view.on("layerview-create-error", layerLoadFailedHandler);		
+        view.on("layerview-create", layerLoadHandler);
+
+        // Store layers from URL into layerObj
+        // 		&layer= basemap | id | opacity | visible layers , id | opacity | visible layers , repeat...
+        // 		&layer= streets|layer2|.8|3-5-12,layer3|.65|2-6-10-12
+        // 		get array of layers without the basemap stuff;
+        if (queryObj.get("layer") && queryObj.get("layer") != "") {
+            loadedFromCfg = false; // the layer is loaded from config.xml. If false loaded from url &layers.
+            var layersArr = queryObj.get("layer").substring(queryObj.get("layer").indexOf("|") + 1).split(",");
+            layerObj = {};
+            //if (layersArr.length == 1) layersArr.pop(); // remove empty element if no layers are visible
+            for (i = 0; i < layersArr.length; i++) {
+                // build an array of objects indexed by layer id
+                var layerArr = layersArr[i].split("|");
+                if (layerArr[0] == "") continue;// tlb 1-5-18 if no layers are visible 
+                layerArr[0] = layerArr[0].replace(/~/g, " ");
+                if (layerArr.length == 3)
+                    layerArr.push(true);
+                if (layerArr[2] == -1)
+                    layerObj[layerArr[0]] = {
+                        "opacity": layerArr[1],
+                        "visLayers": [], // tlb 1-5-18 used to be [-1],
+                        "visible": true
+                    };
+                else
+                    layerObj[layerArr[0]] = {
+                        "opacity": layerArr[1],
+                        "visLayers": layerArr[2].split("-"),
+                        "visible": layerArr[3] == "1" ? true : false
+                    };
+                // Convert visLayers from strings to int using bitwise conversion
+                for (j = 0; j < layerObj[layerArr[0]].visLayers.length; j++)
+                    layerObj[layerArr[0]].visLayers[j] = layerObj[layerArr[0]].visLayers[j] | 0;
+            }
+        }
+
+        // Get hide GroupSublayers & radioLayers from config.xml
+        try {
+            if (xmlDoc.getElementsByTagName("hideGroupSublayers")[0] && xmlDoc.getElementsByTagName("hideGroupSublayers")[0].firstChild)
+                hideGroupSublayers = xmlDoc.getElementsByTagName("hideGroupSublayers")[0].firstChild.nodeValue.split(",");
+        } catch (e) {
+            alert("Warning: Missing hideGroupSublayers tag in " + app + "/config.xml file. " + e.message, "Data Error");
+        }
+        try {
+            if (xmlDoc.getElementsByTagName("radiolayers")[0] && xmlDoc.getElementsByTagName("radiolayers")[0].firstChild)
+                radioLayers = xmlDoc.getElementsByTagName("radiolayers")[0].firstChild.nodeValue.split(",");
+        } catch (e) {
+            alert("Warning: Missing radiolayers tag in " + app + "/config.xml file. " + e.message, "Data Error");
+        }
+        
+        // ---------------------------------------------------
+        //  Load each Layer from config.xml operationallayers
+        // ---------------------------------------------------
+        var layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer");
+        
+    // DEBUG: make if fail
+    //layer[0].setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map2/MapServer");
+    //layer[1].setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map2/MapServer");
+    //layer[2].setAttribute("url","https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_03/MapServer");
+        var groupLayers = [];
+        var groupName;
+        var regexp = /([^a-zA-Z0-9 \-,\._\/:])/g;
+        var popupFields = [];
+        var popupLabels = [];
+        for (i = 0; i < layer.length; i++) {	
+            var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null,portal=null;				
+            // group layer with or without sub layers
+            if (layer[i].getAttribute("group") && layer[i].getAttribute("group") != ""){
+                //console.log("loading group "+layer[i].getAttribute("group")+" i="+i);
+                try{
+                    var groupOpacity=1,groupVis="false",groupOpen="false",radio=false;
+                    groupName = layer[i].getAttribute("group").replace(regexp,"");
+                    if (layer[i].getAttribute("parentGroup")){
+                        parentGroupName = layer[i].getAttribute("parentGroup").replace(regexp,"");
+                        if (groupLayers[parentGroupName] == undefined) {
+                            alert("Invalid parentGroup ("+parentGroupName+") in layer group="+layer[i].getAttribute("group")+" in "+app+"/config.xml file.","Data Error");
+                            continue;
+                        }
+                    }
+                    if (layer[i].getAttribute("visible"))
+                        groupVis = layer[i].getAttribute("visible").replace(regexp,"");
+                    if (layer[i].getAttribute("open")){
+                        groupOpen = layer[i].getAttribute("open").replace(regexp,"");
+                        if (groupOpen === "true") openTOCgroups.push(groupName);
+                    }
+                    if (layer[i].getAttribute("alpha"))
+                        groupOpacity = layer[i].getAttribute("alpha").replace(regexp,"");
+                    if (layer[i].getAttribute("radio"))
+                        radio = layer[i].getAttribute("radio").replace(regexp,"") === "true";
+                    
+                    // portal
+                    if (layer[i].getAttribute("portal")){
+                        portal = layer[i].getAttribute("portal").replace(regexp,"");
+                    }
+                    // Group with layers
+                    if (layer[i].getAttribute("url")) {
+                        url = layer[i].getAttribute("url").replace(regexp,""); // feature service
+                        if (layer[i].getAttribute("layerIds"))
+                            layerIds = layer[i].getAttribute("layerIds").replace(regexp,""); // string of ids 2-7,14,20
+                        else {
+                            alert("Missing layerIds tag in layer group, "+groupName+", in "+app+"/config.xml file.", "Data Error");
+                            continue;
+                        }
+                        if (layer[i].getAttribute("layerVis"))
+                            layerVis = layer[i].getAttribute("layerVis").replace(regexp,"").split(","); // array of visibility
+                        else {
+                            alert("Missing layerVis tag in layer group, "+groupName+", in "+app+"/config.xml file.", "Data Error");
+                            continue;
+                        }
+                        if (layer[i].getAttribute("layerName"))
+                            layerNames = layer[i].getAttribute("layerNames").replace(regexp,"");
+                        if (layer[i].getAttribute("popup_fields"))
+                            popupFields = layer[i].getAttribute("popup_fields").split(",");
+                        if (layer[i].getAttribute("popup_labels"))
+                            popupLabels = layer[i].getAttribute("popup_labels").split(",");
+                    }
+                    
+                    // returns a GroupLayer with feature layers added to to it. Use for group layer Elk and feature layers species data for elk.
+                    groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,radio,url,portal,layerIds,layerVis,layerNames,popupFields,popupLabels)};
+                    if (parentGroupName != null && parentGroupName != "")
+                        groupLayers[parentGroupName].layer.add(groupLayers[groupName].layer);
+                    else{
+                        mapLayers.push(groupLayers[groupName].layer);
+                        map.add(groupLayers[groupName].layer);
+                    }
+                } catch(e) {
+                    alert("Warning: misconfigured operational group layer, "+groupName+", in config.xml file. " + e.message, "Data Error");
+                }
+            }
+            // sub layer in parent group
+            else if (layer[i].getAttribute("label") && layer[i].getAttribute("parentGroup")) {
+                var popupFields=[];
+                var popupLabels=[];
+                //console.log("loading layer "+layer[i].getAttribute("label")+" into group "+layer[i].getAttribute("parentGroup")+" i="+i);
+                var label="";
+                if (layer[i].getAttribute("parentGroup") && layer[i].getAttribute("parentGroup") != "")
+                    parentGroupName = layer[i].getAttribute("parentGroup").replace(regexp,"");
+                else {
+                    alert("Missing parentGroup attribute in layer group, "+groupName+", in "+app+"/config.xml file.", "Data Error");
+                    continue;
+                }
+                if (layer[i].getAttribute("label")){
+                    label = layer[i].getAttribute("label").replace(regexp,"");
+                } else {
+                    alert("Missing label attribute in layer, "+i+", in operationallayers tag in "+app+"/config.xml file.", "Data Error");
+                    continue;
+                }
+                if (layer[i].getAttribute("url")){
+                    url = layer[i].getAttribute("url").replace(regexp,""); // feature service
+                } else {
+                    alert("Missing url attribute in layer, "+label+", in group, "+layer[i].getAttribute("parentGroup")+", in "+app+"/config.xml file.", "Data Error");
+                    continue;
+                }
+                if (layer[i].getAttribute("alpha"))
+                    var opacity = layer[i].getAttribute("alpha").replace(regexp,"");
+                if (layer[i].getAttribute("visible"))
+                    layerVis = layer[i].getAttribute("visible").replace(regexp,"").split(","); // array of visibility
+                else {
+                    alert("Missing visible attribute in layer, "+groupName+", in "+app+"/config.xml file.", "Data Error");
+                    continue;
+                }
+                if (layer[i].getAttribute("popup_fields")) popupFields = layer[i].getAttribute("popup_fields").split(",");
+                if (layer[i].getAttribute("popup_labels")) popupLabels = layer[i].getAttribute("popup_labels").split(",");
+                var fsLayer = new FeatureLayer({
+                    visible: layerVis === "true",
+                    url: url,
+                    title: label,
+                    opacity: Number(opacity),
+                    layerId: label,
+                    id: label
+                });
+                // identify popup template
+                if (popupFields && popupLabels){
+                    const template = addPopupTemplate(label,popupFields,popupLabels);
+                    if (template != null) fsLayer.popupTemplate = template;
+                }
+
+                if (groupLayers[parentGroupName])
+                    groupLayers[parentGroupName].layer.add(fsLayer);
+                else alert("Error in "+app+"/config.xml file. parentGroup name of "+parentGroupName+" does not exist. Must have a layer with group="+parentGroupName);
+            }
+            // root layer
+            else if (layer[i].getAttribute("label")) {
+                tries[layer[i].getAttribute("label")] = 0;
+                // DEBUG make it fail
+                //layer[i].setAttribute("url",layer[i].getAttribute("url")+"oooo");
+                //console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);				
+                createLayer(layer[i]);
+            }		
+        }
+        // -- Layer List --
+        myLayerList();
+    });
+}
+
+
+function readURLParmeters(){
+    try {
+        var xycoords_format = getCookie("xycoords");
+        if (xycoords_format == "")
+            document.getElementById('xycoords_combo').value = "dms";
+        else
+            document.getElementById('xycoords_combo').value = xycoords_format;
+        
+        // preserve new lines in way point descriptions (For future changes, if we decide to add them like the Mobile version.)
+        //var location = document.location.search.replace(/\%0D/g,"newline");
+        // TODO **************************** location
+        //queryObj = new URL(window.location.toLocaleString()).searchParams;
+        
+        // Sanitize user input. Protect against XSS attacks.
+        // test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
+        // in the is set. \ escapes characters used by regex like .-'"|\
+        var regexp;
+        // For labels allow ' " for degrees minutes seconds
+        // Points
+        if (queryObj.get("point")){
+            queryObj.get("point") = queryObj.get("point").replace(/~/g, " "); // for email from mobile app
+            regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+            if (regexp.test(queryObj.get("point"))) alert("Illegal characters were removed from way point labels.","Warning");
+            regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
+            queryObj.get("point")=queryObj.get("point").replace(regexp,""); // clean it
+            queryObj.get("point") = queryObj.get("point").replace(/newline/g,"\n"); // preserve new line characters in point description used on mobile
+        }
+
+        // Lines
+        if (queryObj.get("line")){
+            regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+            if (regexp.test(queryObj.get("line"))) alert("Illegal characters were removed from the line labels.","Warning");
+            regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
+            queryObj.get("line")=queryObj.get("line").replace(regexp,""); // clean it
+        }
+
+        // Polygons
+        if (queryObj.get("poly")){
+            regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+            if (regexp.test(queryObj.get("poly"))) alert("Illegal characters were removed from the shape (polygon) labels.","Warning");
+            regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
+            queryObj.get("poly")=queryObj.get("poly").replace(regexp,""); // clean it
+        }
+
+        // Rectangles
+        if (queryObj.get("rect")){
+            regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+            if (regexp.test(queryObj.get("rect"))) alert("Illegal characters were removed from the rectangle labels.","Warning");
+            regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
+            queryObj.get("rect")=queryObj.get("rect").replace(regexp,""); // clean it
+        }
+        
+        // Text
+        if (queryObj.get("text")){
+            regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
+            if (regexp.test(queryObj.get("text"))) alert("Illegal characters were removed from the point labels.","Warning");
+            regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
+            queryObj.get("text")=queryObj.get("text").replace(regexp,""); // clean it
+        }
+
+        // Layer
+        if (queryObj.get("layer")){
+            queryObj.get("layer") = queryObj.get("layer").replace(/~/g, " "); // for email from mobile app
+            regexp=/([^a-zA-Z0-9 \-\|,\._()])/g; // allow \ for the test (\' \") but remove it for the clean
+            if (regexp.test(queryObj.get("layer"))) alert("Illegal characters were found on the URL. Layers may not load properly.","Warning");
+            //regexp=/([^a-zA-Z0-9 \-,\._()])/g; // Used if testing for \\ above
+            queryObj.get("layer")=queryObj.get("layer").replace(regexp,""); // clean it
+        }
+
+        // keyword
+        if (queryObj.get("keyword")){
+            regexp=/([^a-zA-Z0-9 \-\._()])/g; // allow \ for the test (\' \") but remove it for the clean
+            if (regexp.test(queryObj.get("keyword"))) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
+            //regexp=/([^a-zA-Z0-9 \-\._()])/g; // Used if testing for \\ above
+            queryObj.get("keyword")=queryObj.get("keyword").replace(regexp,""); // clean it
+        }
+
+        // value
+        if (queryObj.get("value")){
+            // 8-18-20 added # and / as safe characters in the value
+            //regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\])/g; // allow \ for the test \" but remove it for the clean
+            regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\#/&])/g; // allow \ for the test \" but remove it for the clean
+            if (regexp.test(queryObj.get("value"))) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
+            regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#/&])/g;
+            queryObj.get("value")=queryObj.get("value").replace(regexp,""); // clean it
+            // 8-18-20 single quote is used in the SQL expression, replace it with '' and it will be used as '.
+            var quote = /'/g;
+            queryObj.get("value") = queryObj.get("value").replace(quote,"''");
+        }
+
+        // label
+        if (queryObj.get("label")){
+            regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#&/\\])/g; // allow \ for the test (\' \") but remove it for the clean
+            if (regexp.test(queryObj.get("label"))) alert("Illegal characters were found on the URL. Point labels may not load properly.","Warning");
+            regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#&/])/g;
+            queryObj.get("label")=queryObj.get("label").replace(regexp,""); // clean it
+        }
+
+        // map
+        if (queryObj.map){
+            regexp=/([^a-zA-Z0-9 \-,\._():\/])/g; // allow \ for the test (\' \") but remove it for the clean
+            if (regexp.test(queryObj.map)) alert("Illegal characters were found on the URL. Map may not load properly.","Warning");
+            //regexp=/([^a-zA-Z0-9 \-\=,\._():\/])/g; // Used if testing for \\ above
+            queryObj.map=queryObj.map.replace(regexp,""); // clean it
+        }
+
+        // field
+        if (queryObj.get("field")){
+            regexp=/([^a-zA-Z0-9 \-_])/g; // allow \ for the test (\' \") but remove it for the clean
+            if (regexp.test(queryObj.get("field"))) alert("Illegal characters were found on the URL. Map may not load properly.","Warning");
+            //regexp=/([^a-zA-Z0-9 \-\=,\._():\/])/g; // Used if testing for \\ above
+            queryObj.get("field")=queryObj.get("field").replace(regexp,""); // clean it
+        }
+
+        // projection Only allow integers.
+        if (queryObj.get("prj") && isNaN(queryObj.get("prj"))) {
+            queryObj.get("prj") = 102100;
+            alert("Problem reading map projection from the URL, defaulting to WGS84. addMapLayers.js/readURLParmeters","Warning");
+        }
+
+        // Extent
+        if (queryObj.get("extent")){
+            regexp=/([^0-9 \-,\.])/g; // allow \ for the test (\' \") but remove it for the clean
+            if (regexp.test(queryObj.get("extent"))) alert("Illegal characters were found on the URL. Map extent may not load properly.","Warning");
+            queryObj.get("extent")=queryObj.get("extent").replace(regexp,""); // clean it
+        }
+
+        // Place
+        if (queryObj.get("place")){
+            regexp=/([^a-zA-Z0-9 \-\',\.!_*():#&/\\])/g; // allow \ for the test (\' \") but remove it for the clean, : used in degree, min, sec point
+            if (regexp.test(queryObj.get("place"))) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
+            regexp=/([^a-zA-Z0-9 \-\',\.!_*():#&/])/g;
+            queryObj.get("place")=queryObj.get("place").replace(regexp,""); // clean it
+        }
+    }catch (err) {
+        alert("Problem reading URL parameters. addMapLayers.js/readURLParmeters"+err,"Error")
+    }
+    addMapLayers();
+    addGraphicsAndLabels();
+    
+}
+
+function readConfig(){
+    // read config.xml
+    require(["esri/geometry/Extent"],Extent => {
+        try{
+            var xmlhttp = createXMLhttpRequest();
+            var configFile = app + "/config.xml?v=" + ndisVer;
+            var calledFlag = false; // 3-21-22 call readSettingsWidget in Identify and addGraphicsAndLabels only once
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4 && xmlhttp.status === 200) {
+                    xmlDoc = createXMLdoc(xmlhttp);
+                    // Set Geometry ServicenURL
+                    try{
+                        geometryService = xmlDoc.getElementsByTagName("geometryservice")[0].getAttribute("url");
+                    } catch (e) {
+                        alert('Missing tag: geometryservice in ' + app + '/config.xml.\n\nTag should look like: &lt;geometryservice url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/Utilities/Geometry/GeometryServer"/&gt;\n\nWill use that url for now.', 'Data Error');
+                        geometryService = "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/Utilities/Geometry/GeometryServer";
+                    }
+                    // Set Print Service for PrintTask				  
+                    try {
+                        printServiceUrl = xmlDoc.getElementsByTagName("printservice")[0].firstChild.nodeValue;
+                    } catch (e) {
+                        alert('Missing tag: printservice in ' + app + '/config.xml.\n\nTag should look like: &lt;printservice&gt;https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task&lt;/printservice&gt;\n\nWill use that url for now.', 'Data Error');
+                        printServiceUrl = "https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task";
+                    }
+                    try {
+                        printGeoServiceUrl = xmlDoc.getElementsByTagName("printservicegeo")[0].firstChild.nodeValue;
+                    } catch (e) {
+                        alert('Missing tag: printservicegeo in ' + app + '/config.xml.\n\nTag should look like: &lt;printservicegeo&gt;https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting&lt;/printservice&gt;\n\nWill use that url for now.', 'Data Error');
+                        printGeoServiceUrl = "https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting";
+                    }
+                    var title;
+                    try {
+                        title = xmlDoc.getElementsByTagName("title")[0].firstChild.nodeValue;
+                    } catch (e) {
+                        alert("Warning: Missing title tag in " + app + "/config.xml file. " + e.message, "Data Error");
+                    }
+                    try {
+                        document.getElementById("title").innerHTML = title;
+                        document.title = title;
+                        //document.getElementById("subtitle").innerHTML = xmlDoc.getElementsByTagName("subtitle")[0].firstChild.nodeValue;
+                        document.getElementById("logo").src = xmlDoc.getElementsByTagName("logo")[0].firstChild.nodeValue;
+                        document.getElementById("logourl").href = xmlDoc.getElementsByTagName("logourl")[0].firstChild.nodeValue;
+                    } catch (e) {
+                        alert("Warning: Missing title, subtitle, logo, or logurl tag in " + app + "/config.xml file. " + e.message, "Data Error");
+                    }
+                    if (xmlDoc.getElementsByTagName("noDisclaimer") && xmlDoc.getElementsByTagName("noDisclaimer")[0] && xmlDoc.getElementsByTagName("noDisclaimer")[0].firstChild.nodeValue == "true") {}
+                    else if (getCookie("noDisclaimer") != 1)
+                        loadDisclaimer(title);
+                    // Set up Find a Place												   
+                    try {
+                        myFindService = xmlDoc.getElementsByTagName("findplaceservice")[0].getAttribute("url");
+                    } catch (e) {
+                        alert('Missing tag: findplaceservice in ' + app + '/config.xml.\n\nTag should look like: &lt;findplaceservice url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer"/&gt;\n\nWill use that url for now.', 'Data Error');
+                        myFindService = "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer";
+                    }
+                    /*try {
+                        findPlaceInit();
+                    } catch (e) {
+                        alert("Error in javascript/FindPlace.js " + e.message, "Code Error", e);
+                    }*/
+                    // Set initial/full map extent
+                    try {
+                        ext = xmlDoc.getElementsByTagName("map")[0].getAttribute("initialextent").split(" ");
+                        wkid = parseInt(xmlDoc.getElementsByTagName("map")[0].getAttribute("wkid").trim());
+                        // save Colorado extent. This is used in print to see if they are trying to print outside of Colorado.
+                        // initExtent is not always the full extent. For example if they had an extent on the URL it does not use this one.
+                        fullExtent = new Extent({
+                            "xmin": parseFloat(ext[0]),
+                            "ymin": parseFloat(ext[1]),
+                            "xmax": parseFloat(ext[2]),
+                            "ymax": parseFloat(ext[3]),
+                            "spatialReference": {
+                                "wkid": wkid
+                            }
+                        });
+                    } catch (e) {
+                        alert("Warning: Missing tag attributes initalextent or wkid for the map tag in " + app + "/config.xml file. " + e.message, "Data Error");
+                    }
+                    
+                    readURLParmeters(); // calls addMapLayers
+                    
+                } 
+                // if missing file
+                else if (xmlhttp.status === 404) {
+                    alert("Error: Missing config.xml file in " + app + " directory.", "Data Error");
+                    hideLoading();
+                } else if (xmlhttp.readyState === 4 && xmlhttp.status === 500) {
+                    alert("Make sure your application name is correct on the URL. app=" + app, "Warning");
+                    hideLoading();
+                }
+            };
+            xmlhttp.open("GET", configFile, true);
+            xmlhttp.send(null);
+        } catch (e) {
+            alert("Error in js/addMapLayers.js readConfig. " + e.message, "Code Error", e);
+        }
+    });
+}
+
+
+
+
+
+
+// NOT USED ********
+function getLegendInfo(rootLayer){
+    const layer = rootLayer;
+    // without ?f=pjson it returns html
+    let url = rootLayer.url + '/legend?f=pjson';
+    if (rootLayer.url.toLowerCase().indexOf("featureserver") > -1)
+        url = rootLayer.url+"?f=pjson";      
+    // DEBUG
+    //console.log("Loading legend: "+url);
+    
+    require(["esri/request"], (esriRequest) => {
+        esriRequest(url, {
+            responseType: "json"
+        }).then((response) => {
+            // The requested data
+            let geoJson = response.data;
+            const layerlist = document.getElementById(layer.title.replace(/ /g,"_") +"_dialog").querySelector("calcite-list");
+            const layerlistitems = layerlist.children;
+            for (var i=0; i<layerlistitems.length; i++){
+                let legendObj = geoJson.layers.find(obj => {
+                    return obj.layerName === layerlistitems[i].value;
+                });
+                if(legendObj && legendObj.legend){
+                    for (var j=0; j<legendObj.legend.length; j++){
+                        const img = document.createElement("img");
+                        const src = "data:"+legendObj.legend[j].contentType+";base64,"+legendObj.legend[j].imageData;
+                        img.src = src;
+                        img.id = "legendImage";
+                        img.width = legendObj.legend[j].width;
+                        img.height = legendObj.legend[j].height;
+                        
+                        if (legendObj.legend.length == 1){
+                            img.slot = "actions-start";
+                            img.style.marginLeft = "10px";
+                            layerlistitems[i].appendChild(img);
+                        } else {
+                            img.slot = "content-bottom";
+                            img.style.marginLeft = "30px";
+                            layerlistitems[i].appendChild(img);
+                            const label = document.createElement("span");
+                            label.innerHTML = legendObj.legend[j].label.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                            label.slot = "content-bottom";
+                            label.style.marginLeft = "60px";
+                            label.style.top = "-"+img.width+"px";
+                            label.style.position = "relative";
+                            layerlistitems[i].appendChild(label);
+                        }
+
+                    }
+                }
+                else {
+                    legendObj = geoJson.layers.find(obj => {
+                        return obj.name === layerlistitems[i].value;
+                    });
+                    if(legendObj && legendObj.drawingInfo){
+                        console.log("feature layer legend TODO *******");
+                    }
+                }
+            };
+        }).catch((err) => {
+            if (err.details && err.details.messages)
+              console.error('Error encountered loading legend for ', err.details.url, err.details.messages[0], ' Trying again.');
+            else console.error('Error encountered loading legend for ', err.details.url, ' Trying again.');
+            setTimeout(function(rootLayer){
+                // debug don't keep calling right now!!!!!!!
+                //getLegendInfo(rootLayer);
+            },30000, rootLayer);
+        });
+    });
+}

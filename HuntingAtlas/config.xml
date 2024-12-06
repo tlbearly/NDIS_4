@@ -18,7 +18,7 @@
     <subtitle>Colorado Parks and Wildlife</subtitle>
     <app>huntingatlas</app>
     <!-- logo in header bar-->
-    <logo>assets/images/cpwlogo_48x48.png</logo>
+    <logo>assets/images/logo.svg</logo>
     <logourl>https://cpw.state.co.us</logourl>
 	<httpproxy>/proxy/DotNet/proxy.ashx</httpproxy>
 	<!-- Do not show the disclaimer when the following tag is set to true. This tag is not required -->
@@ -98,7 +98,8 @@
         <operationallayers>
 			<layer label="Hunter Reference" open="true" type="dynamic" visible="true" alpha="0.6"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"/>
-            
+            <layer label="Land and Access" open="true" type="dynamic" visible="true" alpha="1.0"
+                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/Land_and_Access2025/MapServer"/>
             <!-- TEST Group layer -->
             <!--layer group="Test Hunter Reference" open="false" visible="false" alpha="1" radio="false"
                 url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWAdminData/FeatureServer/"
@@ -135,7 +136,7 @@
                     popup_fields="GMUID"
                     popup_labels="GMU"/-->
 
-            
+       
             <!-- Game Species group layer -->
             <layer group="Game Species" open="false" visible="false" alpha="0.7" radio="true"/>
                 <!--Elk layerNames="Migration Patterns,Migration Corridors,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Resident Population Area,Overall Range"-->
@@ -215,11 +216,12 @@
             <layer label="Catography" open="true" alpha="1" visible="true" url="https://apps.fs.usda.gov/fsgisx05/rest/services/wo_nfs_gtac/GTAC_IVMCartography_02/MapServer" /-->
             
             <!-- Wildfire Incidents and Wildfire Perimeters Current from the last 7 days -->
-            <!--layer group="Wildfires" open="false" visible="true" alpha="1" radio="false" portal="d957997ccee7408287a963600a77f61f"/-->
-            <layer label="Wildfire Perimeters" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
-            <layer label="Wildfire Incidents" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
-			<!--layer label="Inciweb Perimeters" open="false" visible="true" alpha="1" radio="false" url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Interagency_Perimeters_YearToDate/FeatureServer/0" /-->
-            <!--layer label="Inciweb Incidents" open="false"  visible="true" alpha="1" radio="false" url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/WFIGS_Incident_Locations_YearToDate/FeatureServer/0" /-->
+            <!--layer group="Wildfire" open="false" visible="true" alpha="1" radio="false" portal="d957997ccee7408287a963600a77f61f"/-->
+            <layer group="Wildfire" open="false" visible="true" alpha="1" radio="false"/>
+            <layer parentGroup="Wildfire" label="Wildfire Perimeters" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
+            <layer parentGroup="Wildfire" label="Wildfire Incidents" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
+			<!--layer parentGroup="Wildfire" label="Inciweb Perimeters" open="false" visible="true" alpha="1" radio="false" url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Interagency_Perimeters_YearToDate/FeatureServer/0" /-->
+            <!--layer parentGroup="Wildfire" label="Inciweb Incidents" open="false"  visible="true" alpha="1" radio="false" url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/WFIGS_Incident_Locations_YearToDate/FeatureServer/0" /-->
 			<!--layer label="Wildfire Incidents" open="true" type="dynamic" visible="true" alpha="0.8" 
                     url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0" />
             <layer label="Wildfire Perimeters" open="true" type="dynamic" visible="true" alpha="0.8"
