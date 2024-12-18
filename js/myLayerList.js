@@ -62,12 +62,14 @@ function myLayerList() {
             listImg.src = "assets/images/"+rootlayer.title+".jpg";//aerial_topo.png";
             listImg.width = "60";
             listImg.style.borderRadius = "15px";
+            listImg.style.padding = "10px 5px";
             listImg.slot = "actions-start";
             listItem.appendChild(listImg);
             // Clickable root layer name
             const listHeader = document.createElement("h3");
             listHeader.style.fontWeight = "normal";
-            listHeader.style.margin = "25px 10px";
+            listHeader.style.padding = "20px 5px";
+            listHeader.style.margin = "0";
             listHeader.innerHTML = rootlayer.title; // title displayed
             listHeader.id = rootlayer.title.replace(/ /g, "_") + "_listItem";
             listHeader.slot = "actions-start";
@@ -99,6 +101,12 @@ function myLayerList() {
             listStatus.style.marginRight = "5px";
             listStatus.className = "waitingForConnection";
             listItem.appendChild(listStatus);
+            // Open sub-dialog on click
+            listStatus.addEventListener("click", () => {
+                if(document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog")){
+                    document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog").open = true;
+                }
+            });
         }catch(err){
             alert("Problem creating status icon for root layer in layer list. Layer title: "+layer.title+" Error: "+err+" Message:"+err.message+" Stack:"+err.stack,"Error");
         }
@@ -283,15 +291,14 @@ function layerListAddSublayerDialogs(event,theLayer){
             document.getElementById("layerlist").open = false;
         });
     }catch(err){
-        alert("Problem creating sub layer dialog in layer list in myLayerList.js/layerListAddSublayerDialogs. For layer title: "+layer.title+" Error: "+err+" Message:"+err.message+" Stack:"+err.stack,"Error");
+        alert("Problem creating sub layer dialog in layer list in myLayerList.js/layerListAddSublayerDialogs. For layer title: "+layer.title+". Error: "+err+" Message: "+err.message+" Stack: "+err.stack,"Error");
     }
 
     // set sub-dialog header
     try {
         sublayerDialog.label = layer.title;
+        sublayerDialog.heading = layer.title;       
         if (layer.visibilityMode === "exclusive") {
-            sublayerDialog.heading = layer.title;
-            //sublayerDialog.heading.style.marginTop="-10px";
             // add image to header
             var img = document.createElement("img");
             img.src = "assets/images/home_hunt.jpg";
@@ -301,12 +308,9 @@ function layerListAddSublayerDialogs(event,theLayer){
             img.style.width = "auto";
             img.style.margin = "0";
             sublayerDialog.appendChild(img);
-        } else {
-            sublayerDialog.heading = layer.title;
-            
         }
     }catch(err){
-        alert("Problem creating sublayer-dialog title in layer list in myLayerList.js/layerListAddSublayerDialogs. For layer title: "+layer.title+" Error: "+err+" Message:"+err.message+" Stack:"+err.stack,"Error");
+        alert("Problem creating sublayer-dialog title in layer list in myLayerList.js/layerListAddSublayerDialogs. For layer title: "+layer.title+". Error: "+err+" Message: "+err.message+" Stack: "+err.stack,"Error");
     }
 
     // Radio button list
@@ -440,8 +444,9 @@ function layerListAddSublayerDialogs(event,theLayer){
         // Add print button
         var printBtn = document.createElement("calcite-icon");
         printBtn.icon = "print";
-        printBtn.style.padding = "15px";
+        printBtn.style.padding = "15px 10px";
         printBtn.slot = "actions-end";
+        printBtn.scale = "s";
         printBtn.addEventListener("click", function (event) {
             window.open("layer-desc/layer-description.html","_blank");// + gameSpecies + ".html", "_blank");
         });
@@ -549,8 +554,9 @@ function layerListAddSublayerDialogs(event,theLayer){
             // Add print button
             var printBtn = document.createElement("calcite-icon");
             printBtn.icon = "print";
-            printBtn.style.padding = "15px";
+            printBtn.style.padding = "15px 10px";
             printBtn.slot = "actions-end";
+            printBtn.scale = "s";
             printBtn.addEventListener("click", function (event) {
                 window.open("layer-desc/layer-description.pdf","_blank");// + layer.title + ".html", "_blank");
             });

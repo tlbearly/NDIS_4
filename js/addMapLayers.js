@@ -812,13 +812,14 @@ function addMapLayers(){
                 if (layer[i].getAttribute("alpha"))
                     var opacity = layer[i].getAttribute("alpha").replace(regexp,"");
                 if (layer[i].getAttribute("visible"))
-                    layerVis = layer[i].getAttribute("visible").replace(regexp,"").split(","); // array of visibility
+                    layerVis = layer[i].getAttribute("visible").replace(regexp,"");//.split(","); // array of visibility
                 else {
                     alert("Missing visible attribute in layer, "+groupName+", in "+app+"/config.xml file.", "Data Error");
                     continue;
                 }
                 if (layer[i].getAttribute("popup_fields")) popupFields = layer[i].getAttribute("popup_fields").split(",");
                 if (layer[i].getAttribute("popup_labels")) popupLabels = layer[i].getAttribute("popup_labels").split(",");
+                if (url.toLowerCase().indexOf("mapservice")) alert("Group layer cannot be a map service at this time. Need to reprogram addMapLayer.js");
                 var fsLayer = new FeatureLayer({
                     visible: layerVis === "true",
                     url: url,
@@ -827,6 +828,7 @@ function addMapLayers(){
                     layerId: label,
                     id: label
                 });
+            
                 // identify popup template
                 if (popupFields && popupLabels){
                     const template = addPopupTemplate(label,popupFields,popupLabels);
