@@ -50,11 +50,13 @@
             tag: layer
             attributes:
                 label: service display name
-                open: true or false, is this group open?
-                type: featureservice, mapservice
+                // open is not used. Root layer sublayers are opened in a new popup.    open: true or false, is this group open?
+                // type is not used. type: dynamic, featureservice, mapservice
                 visible: true or false
                 alpha: opacity 0.8
                 url: MapServer or FeatureServer URL
+                listMode: show|hide should show in layer list? Defaults to show
+                legendEnabled: true|false should show in legend? Defaults to true
                 popup_fields: fields to identify comma delimited (feature service only)
                 popup_labels: labels for the above fields comma delimited (feature service only)
         -->
@@ -76,7 +78,9 @@
                 parentGroup: group name
                 visible: true or false
                 alpha: opacity 0.8 (optional)
-                url=a FeatureService 
+                url: a FeatureService
+                listMode: show|hide should show in layer list? Defaults to show
+                legendEnabled: true|false should show in legend? Defaults to true
                 popup_fields: fields to identify comma delimited (feature service only)
                 popup_labels: labels for the above fields comma delimited (feature service only)
         -->
@@ -92,14 +96,16 @@
                 layerIds=FeatureService ids in display order, and can use 3-6,9,11 format. 
                 layerVis=visibility of each layer in display order.
                 layerNames=optional display name. If missing, it will use names from FeatureService. Format="layer1 name,layer2 name,..." in display order.
+                listMode: show|hide should show in layer list? Defaults to show
+                legendEnabled: true|false should show in legend? Defaults to true
                 popup_fields: fields to identify comma delimited (feature service only)
                 popup_labels: labels for the above fields comma delimited (feature service only)
         -->
         <operationallayers>
 			<!--layer label="Hunter Reference" open="true" type="dynamic" visible="true" alpha="0.6"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"/-->
-            <layer label="Land and Access" open="true" type="dynamic" visible="true" alpha="1.0"
-                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/Land_and_Access2025/MapServer"/>
+            <layer label="Land and Access" type="dynamic" visible="true" alpha="1.0" legendEnabled="false"
+                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccess2025/MapServer"/>
             <!-- TEST Group layer -->
             <!--layer group="Test Hunter Reference" open="false" visible="false" alpha="1" radio="false"
                 url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWAdminData/FeatureServer/"
@@ -218,8 +224,8 @@
             <!-- Wildfire Incidents and Wildfire Perimeters Current from the last 7 days -->
             <!--layer group="Wildfire" open="false" visible="true" alpha="1" radio="false" portal="d957997ccee7408287a963600a77f61f"/-->
             <layer group="Wildfire" open="false" visible="true" alpha="1" radio="false"/>
-            <layer parentGroup="Wildfire" label="Wildfire Perimeters" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
-            <layer parentGroup="Wildfire" label="Wildfire Incidents" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
+            <layer parentGroup="Wildfire" label="Wildfire Perimeters" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
+            <layer parentGroup="Wildfire" label="Wildfire Incidents" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
 			<!--layer parentGroup="Wildfire" label="Inciweb Perimeters" open="false" visible="true" alpha="1" radio="false" url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Interagency_Perimeters_YearToDate/FeatureServer/0" /-->
             <!--layer parentGroup="Wildfire" label="Inciweb Incidents" open="false"  visible="true" alpha="1" radio="false" url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/ArcGIS/rest/services/WFIGS_Incident_Locations_YearToDate/FeatureServer/0" /-->
 			<!--layer label="Wildfire Incidents" open="true" type="dynamic" visible="true" alpha="0.8" 

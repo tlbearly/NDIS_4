@@ -601,6 +601,19 @@ function layerListAddSublayerDialogs(event,theLayer){
             block.setAttribute("collapsible", true);
             block.setAttribute("open",true);
 
+            // Add Switch to actions-end of list Item
+            subLayeronOffBtn = document.createElement("calcite-switch");
+            subLayeronOffBtn.slot = "actions-end";
+            subLayeronOffBtn.layer = layer;
+            subLayeronOffBtn.style.paddingRight = "4px";
+            subLayeronOffBtn.setAttribute("scale", "l"); // large
+            if (layer.visible) subLayeronOffBtn.checked = true;
+            else subLayeronOffBtn.checked = false;
+            // Set value when clicked
+            subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
+                event.target.layer.visible = event.target.checked;
+            });
+
             var subLayerList = document.createElement("calcite-list");
             //subLayerList.style.overflowY = "auto";
             //subLayerList.style.height = "auto";
@@ -616,10 +629,28 @@ function layerListAddSublayerDialogs(event,theLayer){
                     //console.log("-->"+element.title);
                     if (element.listMode === "show") {
                         // 1st level group layer
-                        subLayerListItem = document.createElement("calcite-list-item");
+                        // if it has sublayers make it an expandable block
+                        if (element.layers || element.sublayers){
+                            subLayerListItem = document.createElement("calcite-block");
+                            subLayerListItem.setAttribute("collapsible", true);
+                            // element has no open property!!!!!!!
+                            if (element.open)
+                                subLayerListItem.setAttribute("open",true);
+                            else
+                                subLayerListItem.setAttribute("open",false);
+                        }
+                        else    
+                            subLayerListItem = document.createElement("calcite-list-item");
                         subLayerListHeader = document.createElement("h3");
                         //subLayerListHeader.style.padding = "0 15px";
-                        subLayerListHeader.style.fontWeight = "normal";
+                        //subLayerListHeader.style.fontWeight = "normal";
+                        // gray out if not at scale
+                        if (element.minScale != 0 || element.maxScale != 0)
+                            subLayerListHeader.style.fontWeight = "100";
+                        // event listener for scale change
+                        // TODO ********************************************
+
+
                         subLayerListHeader.innerHTML = element.title; // title displayed
                         subLayerListHeader.slot = "content";
                         subLayerListItem.value = element.title;
@@ -649,22 +680,30 @@ function layerListAddSublayerDialogs(event,theLayer){
                             subSublayerArr.items.forEach(item => {
                                 //console.log("--> -->"+item.title);
                                 if (item.listMode === "show") {
-                                    subLayerListItem = document.createElement("calcite-list-item");
+                                    var subLayerListItem2 = document.createElement("calcite-list-item");
                                     subLayerListHeader = document.createElement("h3");
                                     //subLayerListHeader.style.padding = "0 15px";
-                                    subLayerListHeader.style.fontWeight = "normal";
+                                    //subLayerListHeader.style.fontWeight = "normal";
+                                    if (item.minScale != 0 || item.maxScale != 0)
+                                        subLayerListHeader.style.fontWeight = "100";
+                                    // TODO ************* add event listener for map scale change
+
+
+
+
                                     subLayerListHeader.innerHTML = item.title; // title displayed
                                     subLayerListHeader.style.marginLeft = "40px";
                                     subLayerListHeader.slot = "content";
-                                    subLayerListItem.value = item.title;
-                                    subLayerListItem.heading = item.title;
-                                    subLayerListItem.appendChild(subLayerListHeader);
+                                    subLayerListItem2.value = item.title;
+                                    subLayerListItem2.heading = item.title;
+                                    subLayerListItem2.appendChild(subLayerListHeader);
 
                                     // Add Switch to actions-end of list Item
                                     subLayeronOffBtn = document.createElement("calcite-switch");
                                     subLayeronOffBtn.slot = "actions-end";
                                     subLayeronOffBtn.layer = item;
                                     subLayeronOffBtn.style.paddingRight = "4px";
+                                    subLayeronOffBtn.style.paddingTop = "5px";
                                     subLayeronOffBtn.setAttribute("scale", "l"); // large
                                     if (item.visible) subLayeronOffBtn.checked = true;
                                     else subLayeronOffBtn.checked = false;
@@ -672,8 +711,9 @@ function layerListAddSublayerDialogs(event,theLayer){
                                     subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                                         event.target.layer.visible = event.target.checked;
                                     });
-                                    subLayerListItem.appendChild(subLayeronOffBtn);
-                                    subLayerList.appendChild(subLayerListItem);
+                                    subLayerListItem2.appendChild(subLayeronOffBtn);
+                                    subLayerListItem.appendChild(subLayerListItem2); // Append to the calcite-block
+                                    //subLayerList.appendChild(subLayerListItem2);
                                 }
                             });
                         }

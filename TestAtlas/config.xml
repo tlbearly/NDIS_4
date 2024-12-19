@@ -98,12 +98,15 @@
         <operationallayers>
 			<!--layer label="Hunter Reference" open="true" type="dynamic" visible="false" alpha="0.6"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"/-->
-            <layer label="Land and Access" open="true" type="dynamic" visible="true" alpha="1.0"
-                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccess2025/MapServer"/>
 			<layer label="Base Data" open="true" type="dynamic" visible="true" alpha="1.0"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer"/>
-			<layer label="Game Species" open="true" type="dynamic" visible="true" alpha="1.0"
+			<layer label="Transportation" open="true" type="dynamic" visible="false" alpha="1.0"
+                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer"/>
+			<layer label="Land and Access" open="true" type="dynamic" visible="true" alpha="1.0"
+                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccess2025/MapServer"/>
+			<layer label="Game Species" open="true" type="dynamic" visible="false" alpha="1.0"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/GameSpecies2025/MapServer"/>
+
 
 
         </operationallayers>

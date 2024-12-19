@@ -89,12 +89,31 @@ function addMapLayers(){
         // Create Layer 3-21-22
         // Get layers from url of config.xml
         function createLayer(layer){
+            // layer could be the operational layer read from config.xml as an xml document (need to use getAttribute)
+            // or event.layer (need to use layer.element)
             console.log("Creating layer: ");
-            var id;
-            if (layer.id)
+            var id,url,alpha,visible,listMode,legendEnabled;
+            if (layer.id){
                 id = layer.id;
-            else if (layer.getAttribute("label"))
+                url = layer.url;
+                alpha = layer.opacity;
+                visible = layer.visible;
+                listMode = layer.listMode;
+                legendEnabled = layer.legendEnabled;
+            }else if (layer.getAttribute){
                 id = layer.getAttribute("label");
+                url = layer.getAttribute("url");
+                alpha = layer.getAttribute("alpha");
+                visible = layer.getAttribute("visible");
+                listMode = layer.getAttribute("listMode");
+                if (listMode === null) listMode = "show";
+                legendEnabled = layer.getAttribute("legendEnabled");
+                if (legendEnabled === null) legendEnabled = true;
+            }
+            else {
+                alert("Failed to load layer. layer.id and layer.getAttribute do not exist.", "Error");
+                return;
+            }
             console.log(id);
             
             // if already loaded return
@@ -105,45 +124,58 @@ function addMapLayers(){
 
             var myLayer;
             tries[id]++;
+
             // Set layer properties on startup if specified on url
+            // From link to current map. For example: 
+            //      https://ndismaps.nrel.colostate.edu/index.html?app=HuntingAtlas&prj=102100
+            //      &extent=-11915180,4735706,-11800601,4794104&layer=streets|Hunter%20Reference|0.8|0-1-13-18-19-79-88-89-101-102-103,
+            //      Game%20Species|0.7|9-11-12-13-15-16
             if (queryObj.get("layer") && queryObj.get("layer") != "") {
-                if (layer.getAttribute("url").toLowerCase().indexOf("mapserver") > -1) {
+                if (url.toLowerCase().indexOf("mapserver") > -1) {
                     if (layerObj[id]){
                         myLayer = new MapImageLayer({
-                            "url": layer.getAttribute("url"),
+                            "url": url,
                             "opacity": layerObj[id].opacity,
                             "title": id,
                             "id":id,
                             "visible": layerObj[id].visible,
+                            "listMode": listMode,
+                            "legendEnabled": legendEnabled,
                             ///TODO this does not exist in v4.24**********  "visibleLayers": layerObj[id].visLayers
                             "sublayers": layerObj[id].visLayers // remove this, it will delete data. Loop through and set these layers to visible other to not visible.
                         });
                     // not found on url, not visible
                     }else {
                         myLayer = new MapImageLayer({
-                            "url": layer.getAttribute("url"),
-                            "opacity": Number(layer.getAttribute("alpha")),
+                            "url": url,
+                            "opacity": Number(alpha),
                             "title": id,
                             "id":id,
-                            "visible": false
+                            "visible": false,
+                            "listMode": listMode,
+                            "legendEnabled": legendEnabled
                         });
                     }
                 }
                 // FeatureServer tlb 10/19/20
-                else if (layer.getAttribute("url").toLowerCase().indexOf("featureserver") > -1){
+                else if (url.toLowerCase().indexOf("featureserver") > -1){
                     if (layerObj[id]) 
                         myLayer = new FeatureLayer({
-                            "url": layer.getAttribute("url"),
-                            "opacity": Number(layer.getAttribute("alpha")),
+                            "url": url,
+                            "opacity": Number(alpha),
                             "title": id,
+                            "listMode": listMode,
+                            "legendEnabled": legendEnabled,
                             "visible" : layerObj[id].visible
                             //TODO this does not exist in v4.24********** "visibleLayers" : layerObj[id].visLayers
                         });
                     else
                         myLayer = new FeatureLayer({
-                            "url": layer.getAttribute("url"),
-                            "opacity": Number(layer.getAttribute("alpha")),
+                            "url": url,
+                            "opacity": Number(alpha),
                             "title": id,
+                            "listMode": listMode,
+                            "legendEnabled": legendEnabled,
                             "visible": false
                         });
                 }
@@ -154,13 +186,15 @@ function addMapLayers(){
             // Set layer properties from config.xml file
             } else {
                 // MapServer
-                if (layer.getAttribute("url").toLowerCase().indexOf("mapserver") > -1){
+                if (url.toLowerCase().indexOf("mapserver") > -1){
                         myLayer = new MapImageLayer({
-                            url:layer.getAttribute("url"),
-                            opacity: Number(layer.getAttribute("alpha")),
+                            url: url,
+                            opacity: Number(alpha),
                             title: id,
                             id: id,
-                            visible: layer.getAttribute("visible") == "true"
+                            listMode: listMode,
+                            legendEnabled: legendEnabled,
+                            visible: visible == "true"
                             // Example popup template for each sublayer
                             /*sublayers: [{
                                 id: 0,
@@ -172,28 +206,46 @@ function addMapLayers(){
                         });
                 } 
                 // FeatureServer tlb 9/28/20
-                else if (layer.getAttribute("url").toLowerCase().indexOf("featureserver") > -1){	
+                else if (url.toLowerCase().indexOf("featureserver") > -1){
                     myLayer = new FeatureLayer({
-                        url: layer.getAttribute("url"),
-                        opacity: Number(layer.getAttribute("alpha")),
+                        url: url,
+                        opacity: Number(alpha),
                         title: id,
                         id: id,
-                        visible: layer.getAttribute("visible") == "true",
-                        legendEnabled: true
+                        listMode: listMode,
+                        legendEnabled: legendEnabled,
+                        visible: visible == "true"
                     });
                     
-                    // identify popup template
-                    if (layer.getAttribute("popup_fields") && layer.getAttribute("popup_labels")){
-                        const template = addPopupTemplate(layer.getAttribute("label"),layer.getAttribute("popup_fields").split(","),layer.getAttribute("popup_labels").split(","));
+                    // add identify popup template
+                    var xmlLayer=null;
+                    for(i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label") === myLayer.id){
+                            xmlLayer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
+                            break;
+                        }
+                    }
+                    if (xmlLayer.getAttribute("popup_fields") && xmlLayer.getAttribute("popup_labels")){
+                        const template = addPopupTemplate(xmlLayer.getAttribute("label"),xmlLayer.getAttribute("popup_fields").split(","),xmlLayer.getAttribute("popup_labels").split(","));
                         if (template != null) myLayer.popupTemplate = template;
                     }
+
                 }
                 else {
-                    alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit readConfig.js line 600 to add new type.");
+                    alert("Layer: "+id+" Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit addMapLayers.js line 175 to add new type.");
                     return;
                 }
             }
-            mapLayers.push(myLayer);
+            // Add MapService or FeatureLayer to mapLayers if it was not added already. mapLayers is definded in index.html
+            var found = false;
+            for (var i=0; i<mapLayers.length; i++){
+                if (mapLayers[i].id === myLayer.id) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                mapLayers.push(myLayer);
             map.add(myLayer);
         }
 
@@ -209,37 +261,47 @@ function addMapLayers(){
                 subGroupLayerLoadFailed(event);
                 return;
             }
+            //if baselayer return
+            var found = false;
+            for (var i=0; i<mapLayers.length; i++){
+                if (mapLayers[i].id === event.layer.id){
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) return; // not in mapLayers (all operational layers). This is a basemap. It will reload on it's own.
 
             // if already loaded return
-            for (var i=0;i<view.allLayerViews.items.length;i++){
+            for (i=0;i<view.allLayerViews.items.length;i++){
                 if (event.layer.id === view.allLayerViews.items[i].layer.id && view.allLayerViews.items[i].loaded) 
                     return;
             }
-    console.log(event.layer.id+" failed to load!!!!!!!");
+    console.log(event.layer.id+" failed to load!!!!!!! ");
+    if (event.layer.loadError && event.layer.loadError.message) console.log("Error: "+event.layer.loadError.message+" Status: "+event.layer.loadStatus);
     console.log("tries="+tries[event.layer.title]);
-            var layer=null;
+            /*var layer=null;
             for(i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
                 if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label") === event.layer.id){
                     layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
                     break;
                 }
-            }
+            }*/
             // Try every 2 seconds for up to 5 times 
             if (tries[event.layer.title] < 4){
-                console.log("Retrying to load: "+event.layer.id);
+                console.log("Retrying to load (every 2 seconds): "+event.layer.id);
                 setTimeout(function(){createLayer(event.layer);},2000);
             } 
             // Greater than 5 tries, give warning
-            else if (tries[event.layer.title] == 4){
+            /*else if (tries[event.layer.title] == 4){
                 //if (event.layer.id.indexOf("Motor Vehicle") > -1 || event.layer.id.indexOf("Wildfire") > -1 || event.layer.id.indexOf("BLM") > -1)
                 //    alert("The external map service that provides "+event.layer.id+" is experiencing problems.  This issue is out of CPW control. We will continue to try to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
                 //else
                 //    alert(event.layer.id+" service is busy or not responding. We will continue to try to load it.","Data Error");
-                if (layer){
+                //if (layer){
                     console.log("Retrying to load: "+event.layer.id);
-                    setTimeout(function(){createLayer(layer);},30000);
-                }
-            }
+                    setTimeout(function(){createLayer(event.layer);},30000);
+                //}
+            }*/
             // Greater than 5 tries. Keep trying every 30 seconds
             else {
     //DEBUG
@@ -247,10 +309,10 @@ function addMapLayers(){
     //if(layer.getAttribute("url").indexOf("oooo")>-1)
     //layer.setAttribute("url", layer.getAttribute("url").substring(0,layer.getAttribute("url").length-4));
     //console.log("url="+layer.getAttribute("url"));
-                if (layer){
-                    console.log("Retrying to load: "+event.layer.id);
-                    setTimeout(function(){createLayer(layer);},30000);
-                }
+                //if (layer){
+                    console.log("Retrying to load (every 30 seconds): "+event.layer.id);
+                    setTimeout(function(){createLayer(event.layer);},30000);
+                //}
             }
         }
 
@@ -397,7 +459,7 @@ function addMapLayers(){
             ids = ids.reverse();
             return ids;
         }
-        function addGroupLayer(groupName, vis, opacity, radio, featureservice, portal, layerIds, layerVis, layerNames,popupFields,popupLabels){
+        function addGroupLayer(groupName, vis, opacity, radio, featureservice, portal, layerIds, layerVis, layerNames, listMode, legendEnabled, popupFields,popupLabels){
             // Creates a group and adds feature service layers in layerVis. Returns the GroupLayer
             // groupName: string, name of this group
             // vis: boolean, is this group visible?
@@ -467,11 +529,11 @@ function addMapLayers(){
                 tries[groupLayer.title+ids[i]]=0;
                 // use layer names from config.xml 
                 if (layerNames != null){
-                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],layerNames[i],popupFields,popupLabels);
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],layerNames[i],listMode,legendEnabled,popupFields,popupLabels);
                 } 
                 // Use feature service layer names 
                 else {
-                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],null,popupFields,popupLabels);
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],null,listMode,legendEnabled,popupFields,popupLabels);
                 }
             }
             return groupLayer;
@@ -483,33 +545,42 @@ function addMapLayers(){
             var layer = event.layer;
             tries[layer.parent.title+layer.id]++;
             setTimeout(function(){
+                // get popup template from config.xml
+                var popupFields = [];
+                var popupLabels = [];
+                var listMode = "show";
+                var legendEnabled = true;
+                for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+                    if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group") === layer.parent.title){
+                        //layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
+                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields")){
+                            popupFields = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields").split(",");
+                            popupLabels = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_labels").split(",");
+                        }
+                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("listMode")){
+                            listMode = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("listMode");
+                        }
+                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("legendEnabled")){
+                            legendEnabled = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("legendEnabled");
+                        }
+                        break;
+                    }
+                }
 
-    var popupFields = [];
-    var popupLabels = [];
-    for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
-    if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group") === layer.parent.title){
-    //layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
-    if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields")){
-        popupFields = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields").split(",");
-        popupLabels = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_labels").split(",");
-    }
-    break;
-    }
-    }
-    //debug
-    console.log("trying to load layer again: "+layer.parent.title+" "+layer.id);
-    /* layer.id is not a number!!!!! not working
-    if (layer.id == 1900) {
-    tries[layer.parent.title+"19"]=1;
-
-    //createSubGroupLayer(layer.parent,layer.url,layer.visible,19,layer.title,popupFields,popupLabels);
-    }*/
-                createSubGroupLayer(layer.parent,layer.url,layer.visible,layer.id,layer.title,popupFields,popupLabels);
+                //debug
+                console.log("trying to load layer again: "+layer.parent.title+" "+layer.id);
+                /* layer.id is not a number!!!!! not working
+                if (layer.id == 1900) {
+                tries[layer.parent.title+"19"]=1;
+                //createSubGroupLayer(layer.parent,layer.url,layer.visible,19,layer.title,listMode,legendEnabled,popupFields,popupLabels);
+                }*/
+                createSubGroupLayer(layer.parent,layer.url,layer.visible,layer.id,layer.title,listMode,legendEnabled,popupFields,popupLabels);
                 layer.parent.remove(layer);
             },30000);
             
         }
-        function createSubGroupLayer(groupLayer,url,visible,id,title,popupFields,popupLabels){		
+
+        function createSubGroupLayer(groupLayer,url,visible,id,title,listMode,legendEnabled,popupFields,popupLabels){		
             var fsUrl;
             if (url[url.length-1]==="/")
                 fsUrl = url + id;
@@ -525,6 +596,8 @@ function addMapLayers(){
                     url: fsUrl,
                     visible: visible,
                     title: title,
+                    listMode: listMode,
+                    legendEnabled: legendEnabled,
                     //id: id, // do not use id, let it create this on it's own
                     legendEnabled: true
                 });
@@ -539,7 +612,8 @@ function addMapLayers(){
                     url: fsUrl,
                     visible: visible,
                     //id: id, // do not use id, let it create this on it's own
-                    legendEnabled: true
+                    listMode: listMode,
+                    legendEnabled: legendEnabled
                 });
 
                 // Wait until layer loads then the title will be assigned. Then remove feature service name from the title (eg. "CPWSpeciesData -")
@@ -653,7 +727,8 @@ function addMapLayers(){
         var i;
         var opLayerObj = []; // array of top level layers/groups in the config.xml file, so we can reorder correctly if a layer fails to load
         var opGroupLayerObj = []; // array of group layers with sublayers in the config.xml file, so we can reorder correctly if a layer fails to load
-        
+        var layerObj;
+
         // layer create error
         view.on("layerview-create-error", layerLoadFailedHandler);		
         view.on("layerview-create", layerLoadHandler);
@@ -711,15 +786,19 @@ function addMapLayers(){
         // ---------------------------------------------------
         var layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer");
         
-    // DEBUG: make if fail
-    //layer[0].setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map2/MapServer");
-    //layer[1].setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map2/MapServer");
-    //layer[2].setAttribute("url","https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_03/MapServer");
+        // DEBUG: make if fail
+        //layer[0].setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map2/MapServer");
+        //layer[1].setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_BigGame_Map2/MapServer");
+        //layer[2].setAttribute("url","https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_03/MapServer");
+
+
         var groupLayers = [];
         var groupName;
         var regexp = /([^a-zA-Z0-9 \-,\._\/:])/g;
         var popupFields = [];
         var popupLabels = [];
+        var listMode = "show";
+        var legendEnabled = true;
         for (i = 0; i < layer.length; i++) {	
             var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null,portal=null;				
             // group layer with or without sub layers
@@ -771,10 +850,18 @@ function addMapLayers(){
                             popupFields = layer[i].getAttribute("popup_fields").split(",");
                         if (layer[i].getAttribute("popup_labels"))
                             popupLabels = layer[i].getAttribute("popup_labels").split(",");
+                        if (layer[i].getAttribute("listMode")){
+                            listMode = layer[i].getAttribute("listMode");
+                            if (listMode !== "show" || listMode !== "hide") alert("Error in config.xml file. listMode must be show or hide for layer label: "+layer[i].label,"Data Error");
+                        }
+                        if (layer[i].getAttribute("legendEnabled")){
+                            legendEnabled = layer[i].getAttribute("legendEnabled");
+                            if (legendEnabled !== "true" || legendEnabled !== "false") alert("Error in config.xml file. legendEnabled must be true or false for layer label: "+layer[i].label,"Data Error");
+                        }
                     }
                     
                     // returns a GroupLayer with feature layers added to to it. Use for group layer Elk and feature layers species data for elk.
-                    groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,radio,url,portal,layerIds,layerVis,layerNames,popupFields,popupLabels)};
+                    groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,radio,url,portal,layerIds,layerVis,layerNames,listMode,legendEnabled,popupFields,popupLabels)};
                     if (parentGroupName != null && parentGroupName != "")
                         groupLayers[parentGroupName].layer.add(groupLayers[groupName].layer);
                     else{
@@ -819,7 +906,7 @@ function addMapLayers(){
                 }
                 if (layer[i].getAttribute("popup_fields")) popupFields = layer[i].getAttribute("popup_fields").split(",");
                 if (layer[i].getAttribute("popup_labels")) popupLabels = layer[i].getAttribute("popup_labels").split(",");
-                if (url.toLowerCase().indexOf("mapservice")) alert("Group layer cannot be a map service at this time. Need to reprogram addMapLayer.js");
+                if (url.toLowerCase().indexOf("mapservice") > -1) alert("Group layer cannot be a map service at this time. Need to reprogram addMapLayer.js");
                 var fsLayer = new FeatureLayer({
                     visible: layerVis === "true",
                     url: url,
