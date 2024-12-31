@@ -24,9 +24,9 @@
   <script type="text/javascript" src="js/xmlUtils.js" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js" async="true"></script>
   <script type="text/javascript" src="js/utilFuncs.js" async="true"></script>
-  <script type="text/javascript" src="js/addMapLayers.js?v=13" async="true"></script>
+  <script type="text/javascript" src="js/addMapLayers.js?v=14" async="true"></script>
   <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=73" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=76" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=0" async="true"></script>
 
@@ -38,7 +38,7 @@
   <script>
     // force rounded corners
     window.onload = function () {
-      // layer list
+      // Add rounded corners to layer list
       const tim = setInterval(function () {
         if (!document.querySelector("#layerlist")) return;
         if (!document.querySelector("#layerlist").shadowRoot) return;
@@ -46,13 +46,18 @@
         if (document.querySelector("#layerlist").shadowRoot.children.length < 1) return;
         clearInterval(tim);
         document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").style.borderRadius = "0.75rem";
+        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").parent.parent.parent.style.marginRight = "-10px";
+        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").parentNode.parentNode.parentNode.style.marginTop = "-10px";
         setTimeout(function(){
           // layer list sub-dialogs for each root layer in the map
           for (var i = 0; i < mapLayers.length; i++) {
             if (document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog") &&
               document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot &&
-              document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel"))
+              document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel")){
               document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").style.borderRadius = "0.75rem";
+              document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").style.marginRight = "-10px";
+              document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").style.marginTop = "-10px";
+              }
           }
         },1000);
         
@@ -505,27 +510,32 @@
           cpw_link.style.paddingRight="10px";
           cpw_link.setAttribute("alt","load CPW website");
           cpw_link.id = "logourl";
+          
           const titlediv=document.createElement("div");
           titlediv.style.padding="5px";
           titlediv.style.borderRadius="12px";
-          titlediv.style.backgroundColor="#efefef";
-          titlediv.style.margin="0 0 -45px -5px";
-          titlediv.style.width="260px";
-          titlediv.style.height="115px";
+          titlediv.style.backgroundColor="#D4DBBE";
+          titlediv.style.margin="0 0 -45px 0px";
+          if (screen.width > 768)
+            titlediv.style.minWidth="320px";
+          else
+            titlediv.style.minWidth="244px";
+          titlediv.style.height="70px";//"115px";
           titlediv.style.border="2px solid white";
           const title=document.createElement("span");
-          title.style.fontSize="1.2em";
+          title.style.fontSize="1.4em";
           title.style.lineHeight="1.3em";
           title.style.position="relative";
-          title.style.top="25px";
-          title.innerHTML="Colorado Hunting Atlas";
           title.id = "title";
           
           const logo = document.createElement("img");
           logo.id = "logo";
           logo.src = "./assets/images/logo.svg";
           logo.setAttribute("alt", "CPW logo");
-          logo.setAttribute("width","70");
+          if (screen.width <= 768)
+            logo.setAttribute("width","30");
+          else
+            logo.setAttribute("width","70");
           logo.style.float="left";
           logo.setAttribute("align","middle");
           cpw_link.appendChild(logo);
@@ -1163,6 +1173,22 @@
               });
             else
               view.extent = newExtent;
+          });
+          
+          // Center in title div
+          searchWidget.when(()=>{
+            
+            if (screen.width > 768) {
+              searchWidget.container.style.left = "85px";
+              searchWidget.container.style.position = "relative";
+              searchWidget.container.style.top = "-2px";
+            }
+            else {
+              searchWidget.container.style.left = "30px";
+              searchWidget.container.style.marginRight = "auto";
+              searchWidget.container.style.marginLeft = "auto";
+
+            }
           });
           // Adds the search widget below other elements in
           // the top left corner of the view

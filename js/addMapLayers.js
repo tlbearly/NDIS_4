@@ -1120,7 +1120,10 @@ function readConfig(){
                         alert("Warning: Missing title tag in " + app + "/config.xml file. " + e.message, "Data Error");
                     }
                     try {
+                        if (screen.width <= 768)
+                            title = title.replace("Colorado","CO");
                         document.getElementById("title").innerHTML = title;
+                        
                         document.title = title;
                         //document.getElementById("subtitle").innerHTML = xmlDoc.getElementsByTagName("subtitle")[0].firstChild.nodeValue;
                         document.getElementById("logo").src = xmlDoc.getElementsByTagName("logo")[0].firstChild.nodeValue;

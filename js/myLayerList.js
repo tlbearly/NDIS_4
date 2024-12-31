@@ -9,9 +9,10 @@ function myLayerList() {
         mapLayersWidget.placement = "top-end";
         mapLayersWidget.overlayPositioning = "absolute";
         mapLayersWidget.offsetDistance = "15px";
-        mapLayersWidget.style.borderRadius = "12px!important";
+        //mapLayersWidget.style.borderRadius = "12px!important";
+        //mapLayersWidget.style.marginRight = "-10px!important";
+        //mapLayersWidget.style.marginTop = "-10px!important";
         mapLayersWidget.style.maxWidth = "350px!important";
-        //mapLayersWidget.className = "esri-layer-list esri-widget esri-widget--panel";
 
         // Tabs
         tabs.style.padding = "10px";
@@ -173,14 +174,15 @@ function myLayerList() {
     layerListExpand.alignment = "center";
     layerListExpand.appearance = "solid";
     layerListExpand.kind = "neutral";
-    layerListExpand.scale = "s";
-    layerListExpand.style.marginRight = "15px";
-    if (screen.width > 780){
+    layerListExpand.scale = "m";
+    layerListExpand.style.marginRight = "0px";
+    layerListExpand.style.marginTop = "-10px";
+    if (screen.width > 768){
         const layerListLabel = document.createElement("span");
         layerListLabel.innerHTML = "Map Layers";
-        layerListLabel.style.fontWeight = "bold";
+        layerListLabel.style.fontSize = "16px";
         layerListExpand.appendChild(layerListLabel);
-        layerListExpand.style.width = "120px";
+        layerListExpand.style.width = "140px";
     }    
     layerListExpand.addEventListener("click", function (event) {
         document.getElementById("layerlist").open = true;
@@ -456,7 +458,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             });
             block.appendChild(printBtn);
             
-            // try 1 html
+            // Description
             var notice = document.createElement("calcite-notice");
             notice.open = true;
             notice.style.overflowY = "auto";
@@ -474,7 +476,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             notice.appendChild(iframe1);
             block.appendChild(notice);
 
-            // try 2 pdf
+            // Description pdf too small!!!
             /*var iframe = document.createElement("iframe");
             iframe.style.height = "300px"; 
             iframe.style.width = "100%";
@@ -529,6 +531,18 @@ function layerListAddSublayerDialogs(event,theLayer){
                         speciesSubArr.items.forEach(item => {
                             subLayerListItem = document.createElement("calcite-list-item");
                             subLayerListHeader = document.createElement("h3");
+                            subLayerListItem.style.fontSize="16px";
+                            // Event handler for scale change
+                            reactiveUtils.watch(
+                                () => [view.stationary, view.scale], ([stationary, scale]) => {
+                                    if (stationary) {
+                                        console.log('View Scale changed to: '+scale);
+                                    
+                                        if((scale <= item.minScale || item.minScale == 0) && 
+                                        (scale >= item.maxScale || item.maxScale==0))subLayerListHeader.style.fontWeight="bold";
+                                        else subLayerListHeader.style.fontWeight="100";
+                                    }
+                            });
                             //subLayerListHeader.style.padding = "0 15px";
                             subLayerListHeader.style.fontWeight = "normal";
                             subLayerListHeader.innerHTML = item.title.replace("CPWSpeciesData -",""); // title displayed
@@ -667,14 +681,12 @@ function layerListAddSublayerDialogs(event,theLayer){
                             }
                             else    
                                 subLayerListItem = document.createElement("calcite-list-item");
+                            subLayerListItem.style.fontSize="16px";
                             let subLayerListHeader = document.createElement("h3");
-                            //subLayerListHeader.style.padding = "0 15px";
-                            //subLayerListHeader.style.fontWeight = "normal";
                             // gray out if not at scale
                             if (element.minScale != 0 || element.maxScale != 0){
                                 subLayerListHeader.style.fontWeight = "100";
                                 // event listener for scale change
-                                // TODO ********************************************
                                 reactiveUtils.watch(
                                     () => [view.stationary, view.scale], ([stationary, scale]) => {
                                         if (stationary) {
@@ -718,15 +730,19 @@ function layerListAddSublayerDialogs(event,theLayer){
                                     if (item.listMode === "show") {
                                         var subLayerListItem2 = document.createElement("calcite-list-item");
                                         subLayerListHeader = document.createElement("h3");
-                                        //subLayerListHeader.style.padding = "0 15px";
-                                        //subLayerListHeader.style.fontWeight = "normal";
-                                        if (item.minScale != 0 || item.maxScale != 0)
-                                            subLayerListHeader.style.fontWeight = "100";
-                                        // TODO ************* add event listener for map scale change
-
-
-
-
+                                        subLayerListItem2.style.fontSize="16px";
+                                        // Event handler for scale change
+                                        reactiveUtils.watch(
+                                            () => [view.stationary, view.scale], ([stationary, scale]) => {
+                                                if (stationary) {
+                                                    console.log('View Scale changed to: '+scale);
+                                                
+                                                    if((scale <= item.minScale || item.minScale == 0) && 
+                                                    (scale >= item.maxScale || item.maxScale==0))subLayerListHeader.style.fontWeight="bold";
+                                                    else subLayerListHeader.style.fontWeight="100";
+                                                }
+                                        });
+                                        
                                         subLayerListHeader.innerHTML = item.title; // title displayed
                                         subLayerListHeader.style.marginLeft = "40px";
                                         subLayerListHeader.slot = "content";
