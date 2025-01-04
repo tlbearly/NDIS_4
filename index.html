@@ -17,7 +17,7 @@
   <title>Test ArcGIS API for JavaScript 4.30</title>
 
   <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=1" async="true" />
   <!--link rel="stylesheet" href="assets/css/myMain.css" async="true"/-->
   <script src="https://js.arcgis.com/4.30/"></script>
 
@@ -26,7 +26,7 @@
   <script type="text/javascript" src="js/utilFuncs.js" async="true"></script>
   <script type="text/javascript" src="js/addMapLayers.js?v=14" async="true"></script>
   <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=76" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=83" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=0" async="true"></script>
 
@@ -46,8 +46,8 @@
         if (document.querySelector("#layerlist").shadowRoot.children.length < 1) return;
         clearInterval(tim);
         document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").style.borderRadius = "0.75rem";
-        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").parent.parent.parent.style.marginRight = "-10px";
-        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").parentNode.parentNode.parentNode.style.marginTop = "-10px";
+        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").parentNode.parentNode.style.marginRight = "10px";
+        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").parentNode.parentNode.style.marginTop = "10px";
         setTimeout(function(){
           // layer list sub-dialogs for each root layer in the map
           for (var i = 0; i < mapLayers.length; i++) {
@@ -55,8 +55,8 @@
               document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot &&
               document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel")){
               document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").style.borderRadius = "0.75rem";
-              document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").style.marginRight = "-10px";
-              document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").style.marginTop = "-10px";
+              document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").parentNode.parentNode.style.marginRight = "10px";
+              document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").parentNode.parentNode.style.marginTop = "10px";
               }
           }
         },1000);

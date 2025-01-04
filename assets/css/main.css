@@ -5,6 +5,7 @@ body,
   margin: 0;
   height: 100%;
   width: 100%;
+  font-size: 16px;
 }
 
 .esri-layer-list__item-content {
@@ -184,7 +185,3 @@ border:3px solid gold;
 width: 100px;
 height: 70px;
 }*/
-/* increase header font size 
-  .header-content .heading {
-  font-size: var(--calcite-font-size-2)!important;
-  }*/

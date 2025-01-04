@@ -2,6 +2,7 @@ function myLayerList() {
     // Dialog with 3 tabs: Layer List, Basemaps, and Legend
     const tabs = document.createElement("calcite-tabs");
     const mapLayersWidget = document.createElement("calcite-dialog");
+    var listFontSize = "1.17rem";
     try { 
         mapLayersWidget.id = "layerlist";
         mapLayersWidget.heading = "Map Layers";
@@ -69,6 +70,7 @@ function myLayerList() {
             // Clickable root layer name
             const listHeader = document.createElement("h3");
             listHeader.style.fontWeight = "normal";
+            listHeader.style.fontSize = listFontSize;
             listHeader.style.padding = "20px 5px";
             listHeader.style.margin = "0";
             listHeader.innerHTML = rootlayer.title; // title displayed
@@ -244,6 +246,8 @@ function addToLayerListIfAllLoaded(layer){
 // Add Sublayer Dialogs once the layer has loaded
 function layerListAddSublayerDialogs(event,theLayer){
     require(["esri/core/reactiveUtils"],function(reactiveUtils){
+        var listFontSize = "1.17rem";
+        var hLevel = 1;
         var layer;
         if (event)
             layer = event.layerView.layer; // rootLayers
@@ -396,7 +400,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             //accItem0.heading="Game Species";
             //accItem0.value = "Game Species";
             //accItem0.textLabel = "Game Species";
-            //accItem0.style.fontSize = "1.17em";
+            //accItem0.style.fontSize = listFontSize;
             //combo.open=false;
             //combo.style.margin = "0 60px 20px 20px";
             combo.slot="header-actions-end";
@@ -446,6 +450,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             // Description
             var block = document.createElement("calcite-block");
             block.heading = "Layer Descriptions:";
+            block.headingLevel = hLevel;
             block.setAttribute("collapsible", true);
             // Add print button
             var printBtn = document.createElement("calcite-icon");
@@ -491,6 +496,7 @@ function layerListAddSublayerDialogs(event,theLayer){
 
             // Radio List Visiblity
             block = document.createElement("calcite-block");
+            block.headingLevel = hLevel;
             block.heading = "Visibility:";
             block.setAttribute("collapsible", false);
             block.setAttribute("open",true);
@@ -531,20 +537,26 @@ function layerListAddSublayerDialogs(event,theLayer){
                         speciesSubArr.items.forEach(item => {
                             subLayerListItem = document.createElement("calcite-list-item");
                             subLayerListHeader = document.createElement("h3");
-                            subLayerListItem.style.fontSize="16px";
+                            subLayerListItem.style.fontSize=listFontSize;
                             // Event handler for scale change
                             reactiveUtils.watch(
                                 () => [view.stationary, view.scale], ([stationary, scale]) => {
                                     if (stationary) {
-                                        console.log('View Scale changed to: '+scale);
-                                    
                                         if((scale <= item.minScale || item.minScale == 0) && 
-                                        (scale >= item.maxScale || item.maxScale==0))subLayerListHeader.style.fontWeight="bold";
-                                        else subLayerListHeader.style.fontWeight="100";
+                                        (scale >= item.maxScale || item.maxScale==0)){
+                                            subLayerListHeader.style.color="#4a4a4a";
+                                            subLayerListHeader.style.fontWeight="500";
+                                            console.log(item.title+" visible");
+                                        }else {
+                                            console.log(item.title+" hidden");
+                                            subLayerListHeader.style.color="lightgray";
+                                            subLayerListHeader.style.fontWeight="100";
+                                        }
                                     }
                             });
-                            //subLayerListHeader.style.padding = "0 15px";
-                            subLayerListHeader.style.fontWeight = "normal";
+                            //subLayerListHeader.style.fontWeight = "normal";
+                            subLayerListHeader.style.fontSize = listFontSize;
+                            subLayerListHeader.style.margin = "0";
                             subLayerListHeader.innerHTML = item.title.replace("CPWSpeciesData -",""); // title displayed
                             subLayerListHeader.slot = "content";
                             subLayerListItem.value = item.title.replace("CPWSpeciesData -","");
@@ -578,6 +590,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 // Description
                 var block = document.createElement("calcite-block");
                 block.heading = "Layer Descriptions:";
+                block.headingLevel = hLevel;
                 block.setAttribute("collapsible", true);
                 //block.iconEnd = "print";
 
@@ -635,6 +648,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 // Visible List
                 block = document.createElement("calcite-block");
                 block.heading = "Visibility:";
+                block.headingLevel = hLevel;
                 block.setAttribute("collapsible", false);
                 block.setAttribute("open",true);
 
@@ -672,39 +686,66 @@ function layerListAddSublayerDialogs(event,theLayer){
                             // if it has sublayers make it an expandable block
                             if (element.layers || element.sublayers){
                                 subLayerListItem = document.createElement("calcite-block");
+                                subLayerListItem.headingLevel = hLevel;
+
+                                // if all of it's children are out of scale gray out
                                 subLayerListItem.setAttribute("collapsible", true);
                                 // element has no open property!!!!!!!
-                                if (element.open)
-                                    subLayerListItem.setAttribute("open",true);
-                                else
+                                //if (element.open)
+                                //    subLayerListItem.setAttribute("open",true);
+                                //else
                                     subLayerListItem.setAttribute("open",false);
+                                
                             }
-                            else    
+                            else {  
                                 subLayerListItem = document.createElement("calcite-list-item");
-                            subLayerListItem.style.fontSize="16px";
+                                subLayerListItem.style.fontSize=listFontSize;
+                            }
+                            
+                            subLayerListItem.style.margin="0";
                             let subLayerListHeader = document.createElement("h3");
                             // gray out if not at scale
                             if (element.minScale != 0 || element.maxScale != 0){
-                                subLayerListHeader.style.fontWeight = "100";
+                                //subLayerListHeader.style.color = "lightgray";
+                                if((view.scale <= element.minScale || element.minScale == 0) && 
+                                    (view.scale >= element.maxScale || element.maxScale==0)){
+                                    console.log(element.title+" visible");
+                                    subLayerListHeader.style.color="#4a4a4a";//var(--calcite-color-text-2);";
+                                    subLayerListHeader.style.fontWeight="500";
+                                }else {
+                                    console.log(element.title+" hidden");
+                                    subLayerListHeader.style.color="lightgray";
+                                    subLayerListHeader.style.fontWeight="100";
+                                }
                                 // event listener for scale change
                                 reactiveUtils.watch(
                                     () => [view.stationary, view.scale], ([stationary, scale]) => {
                                         if (stationary) {
-                                            console.log('View Scale changed to: '+scale);
-                                        
                                             if((scale <= element.minScale || element.minScale == 0) && 
-                                            (scale >= element.maxScale || element.maxScale==0))subLayerListHeader.style.fontWeight="bold";
-                                            else subLayerListHeader.style.fontWeight="100";
+                                                (scale >= element.maxScale || element.maxScale==0)){
+                                                console.log(element.title+" visible");
+                                                subLayerListHeader.style.color="#4a4a4a";//var(--calcite-color-text-2);";
+                                                subLayerListHeader.style.fontWeight="500";
+                                            }else {
+                                                console.log(element.title+" hidden");
+                                                subLayerListHeader.style.color="lightgray";
+                                                subLayerListHeader.style.fontWeight="100";
+                                            }
                                         }
                                     });
                                 
                             }
+                            subLayerListHeader.style.fontSize = listFontSize;
+                            //subLayerListHeader.style.fontWeight = "normal";
+                            subLayerListHeader.style.margin = "0";
                             subLayerListHeader.innerHTML = element.title; // title displayed
                             subLayerListHeader.slot = "content";
                             subLayerListItem.value = element.title;
                             subLayerListItem.heading = element.title;
+                            
 
                             subLayerListItem.appendChild(subLayerListHeader);
+                            //subLayerListItem.children[0].style.fontSize = listFontSize;
                             subLayerList.appendChild(subLayerListItem);
                             // Add Switch to actions-end of list Item
                             subLayeronOffBtn = document.createElement("calcite-switch");
@@ -730,21 +771,37 @@ function layerListAddSublayerDialogs(event,theLayer){
                                     if (item.listMode === "show") {
                                         var subLayerListItem2 = document.createElement("calcite-list-item");
                                         subLayerListHeader = document.createElement("h3");
-                                        subLayerListItem2.style.fontSize="16px";
+                                        subLayerListHeader.style.fontSize=listFontSize;
+                                        if((view.scale <= item.minScale || item.minScale == 0) && 
+                                        (view.scale >= item.maxScale || item.maxScale==0)){
+                                            subLayerListHeader.style.color="#4a4a4a";
+                                            subLayerListHeader.style.fontWeight="500";
+                                            console.log(item.title+' visible');
+                                        }else {
+                                            subLayerListHeader.style.color="lightgray";
+                                            subLayerListHeader.style.fontWeight="100";
+                                            console.log(item.title+' hidden');
+                                        }
                                         // Event handler for scale change
                                         reactiveUtils.watch(
                                             () => [view.stationary, view.scale], ([stationary, scale]) => {
                                                 if (stationary) {
-                                                    console.log('View Scale changed to: '+scale);
-                                                
                                                     if((scale <= item.minScale || item.minScale == 0) && 
-                                                    (scale >= item.maxScale || item.maxScale==0))subLayerListHeader.style.fontWeight="bold";
-                                                    else subLayerListHeader.style.fontWeight="100";
+                                                    (scale >= item.maxScale || item.maxScale==0)){
+                                                        subLayerListHeader.style.color="#4a4a4a";
+                                                        subLayerListHeader.style.fontWeight="500";
+                                                        console.log(item.title+' visible');
+                                                    }else {
+                                                        subLayerListHeader.style.color="lightgray";
+                                                        subLayerListHeader.style.fontWeight="100";
+                                                        console.log(item.title+' hidden');
+                                                    }
                                                 }
                                         });
                                         
                                         subLayerListHeader.innerHTML = item.title; // title displayed
-                                        subLayerListHeader.style.marginLeft = "40px";
+                                        //subLayerListHeader.style.fontWeight = "normal";
+                                        subLayerListHeader.style.margin = "0 0 0 40px";
                                         subLayerListHeader.slot = "content";
                                         subLayerListItem2.value = item.title;
                                         subLayerListItem2.heading = item.title;
