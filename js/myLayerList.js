@@ -61,7 +61,7 @@ function myLayerList() {
             // LISTITEM of each Root Layer (click shows popup dialog)
             // Image
             const listImg = document.createElement("img");
-            listImg.src = "assets/images/"+rootlayer.title+".jpg";//aerial_topo.png";
+            listImg.src = "assets/images/"+rootlayer.title+".jpg";
             listImg.width = "60";
             listImg.style.borderRadius = "15px";
             listImg.style.padding = "10px 5px";
@@ -175,8 +175,8 @@ function myLayerList() {
     layerListExpand.id = "layerListExpand";
     layerListExpand.iconStart = "layers";
     layerListExpand.className = "esri-widget--button";
-    layerListExpand.title = "Map Layers";
-    layerListExpand.label = "Map Layers";
+    layerListExpand.title = "Layers, Basemaps, Legend";
+    layerListExpand.label = "Layers, Basemaps, Legend";
     layerListExpand.alignment = "center";
     layerListExpand.appearance = "solid";
     layerListExpand.kind = "neutral";
@@ -247,11 +247,117 @@ function addToLayerListIfAllLoaded(layer){
     }
 }
 
+function setGMU(item){
+        if (app.toLowerCase() != "huntingatlas") return;
+        // set gmu species && display GMU layer
+        if (item.title === "Bighorn" && item.visible == true) {
+          gmu = "Bighorn GMU";
+
+          // switch searchWidget GMU layer to Bighorn GMUs
+          // find the index of the Find a Place GMUs
+          if (gmuIndex == -1) {
+            gmuIndex = findGMUIndex();
+          }
+          if (gmuIndex != -1) {
+            var bighornFL = new FeatureLayer({
+              url: settings.sheepUrl
+            });
+            searchWidget.sources.items[gmuIndex].layer = bighornFL;
+            searchWidget.sources.items[gmuIndex].searchFields = [settings.sheepField];
+            searchWidget.sources.items[gmuIndex].displayField = settings.sheepField;
+            searchWidget.sources.items[gmuIndex].outFields = [settings.sheepField];
+            searchWidget.sources.items[gmuIndex].name = "Bighorn Sheep GMUs";
+            searchWidget.sources.items[gmuIndex].placeholder = "Search Bighorn GMUs";
+          }
+        }
+        else if (item.title === "Mountain Goat" && item.visible == true) {
+          gmu = "Goat GMU";
+          // find the index of the Find a Place GMUs
+          if (gmuIndex == -1) {
+            gmuIndex = findGMUIndex();
+          }
+          if (gmuIndex != -1) {
+            var goatFL = new FeatureLayer({
+              url: settings.goatUrl
+            });
+            searchWidget.sources.items[gmuIndex].layer = goatFL;
+            searchWidget.sources.items[gmuIndex].searchFields = [settings.goatField];
+            searchWidget.sources.items[gmuIndex].displayField = settings.goatField;
+            searchWidget.sources.items[gmuIndex].outFields = [settings.goatField];
+            searchWidget.sources.items[gmuIndex].name = "Mountain Goat GMUs";
+            searchWidget.sources.items[gmuIndex].placeholder = "Search Goat GMUs";
+          }
+        }
+        else {
+          gmu = "Big Game GMU";
+          // find the index of the Find a Place GMUs
+          if (gmuIndex == -1) {
+            gmuIndex = findGMUIndex();
+          }
+          if (gmuIndex != -1) {
+            var elkFL = new FeatureLayer({
+              url: settings.elkUrl
+            });
+            searchWidget.sources.items[gmuIndex].layer = elkFL;
+            searchWidget.sources.items[gmuIndex].searchFields = [settings.elkField];
+            searchWidget.sources.items[gmuIndex].displayField = settings.elkField;
+            searchWidget.sources.items[gmuIndex].outFields = [settings.elkField];
+            searchWidget.sources.items[gmuIndex].name = "Big Game GMUs";
+            searchWidget.sources.items[gmuIndex].placeholder = "Search GMUs";
+          }
+        }
+        // Show correct GMU layer, hide others
+        layerList2.operationalItems.every((opLayer) => { //every break on return false
+          if (opLayer.title === "Hunter Reference") {
+            opLayer.children.every((layerView) => {
+              if (layerView.title === "GMU boundary (Hunting Units)") {
+                layerView.children.forEach((gmuScale) => {
+                  // Big Game GMU, Bighorn GMU, and Goat GMU
+                  gmuScale.children.forEach((gmuAnimal) => {
+                    switch (gmu) {
+                      case "Big Game GMU":
+                        if (gmuAnimal.title === "Big Game GMU") {
+                          gmuAnimal.visible = true;
+                        }
+                        else {
+                          gmuAnimal.visible = false; // don't show on map
+                        }
+                        break;
+                      case "Bighorn GMU":
+                        if (gmuAnimal.title === "Bighorn GMU") {
+                          gmuAnimal.visible = true;
+                        }
+                        else {
+                          gmuAnimal.visible = false; // don't show on map
+                        }
+                        break;
+                      case "Goat GMU":
+                        if (gmuAnimal.title === "Goat GMU") {
+                          gmuAnimal.visible = true;
+                        }
+                        else {
+                          gmuAnimal.visible = false; // don't show on map
+                        }
+                        break;
+                    }
+                  });
+                });
+                return false; // "GMU boundary (Hunting Units)" found, quit loop
+              }
+              return true; // "GMU boundary (Hunting Units)" not found yet
+            });
+            return false; // Hunter Reference found, quit loop
+          }
+          return true; // Hunter Reference not found yet
+        });
+
+}
+
 // Add Sublayer Dialogs once the layer has loaded
 function layerListAddSublayerDialogs(event,theLayer){
     require(["esri/core/reactiveUtils"],function(reactiveUtils){
         var listFontSize = "1rem";
-        var hLevel = 1;
+        var hLevel = 3;
         var layer;
         var subLayeronOffBtn;
         if (event)
@@ -358,75 +464,17 @@ function layerListAddSublayerDialogs(event,theLayer){
                 if (a.title > b.title) return 1;
                 return 0;
             });
-            
-            /*radioArr.forEach(species => {
-                try {
-                    const comboItem = document.createElement("calcite-combobox-item");
-                    comboItem.heading = species.title;
-                    comboItem.value = species.title;
-                    comboItem.name = species.title;
-                    comboItem.layer = species;
-                    if (species.visible) comboItem.selected = true;
-                    combo.appendChild(comboItem);
-                }catch(err){
-                    alert("Problem creating drop down in "+layer.title+" layer list. For species: "+species.title+" In myLayerList.js/layerListAddSublayerDialogs Error: "+err+" Message:"+err.message+" Stack:"+err.stack,"Error");
-                }
-            });
-        
-            var calledAlready = false;
-            combo.addEventListener("calciteComboboxItemChange", function (event) {
-                try{
-                    // set game species layers to hidden
-                    // Fix bug on item change this is called twice, once with correct species then with old species name
-                    if (calledAlready) {
-                        calledAlready = false;
-                        return;
-                    }
-                    else calledAlready = true;
-                    for (var i = 0; i < event.target.parentNode.childNodes.length; i++)
-                        event.target.parentNode.childNodes[i].layer.visible = false;
-                    event.target.layer.visible = true;
-                    event.target.parentElement.parentElement.heading = event.target.value;
-
-                    document.getElementById(selectedItem).style.visibility = "collapse";
-                    document.getElementById(event.target.value).style.visibility = "visible";
-                    selectedItem = event.target.value;
-                    // update description file
-                    event.target.parentElement.parentElement.querySelector("iframe").src = "layer-desc/layer-description.pdf";//+selectedItem+".html";
-                }catch(err){
-                    alert("Problem in Game Species dropdown item change event calciteComboboxItemChange in layer list. In myLayerList.js/layerListAddSublayerDialogs Error: "+err+" Message:"+err.message+" Stack:"+err.stack,"Error");
-                }
-            });*/
             sublayerDialog.appendChild(combo);
-
-            
-            // start test radio buttons **********
-            //const accItem0=document.createElement("calcite-combobox-item");
-            //accItem0.heading="Game Species";
-            //accItem0.value = "Game Species";
-            //accItem0.textLabel = "Game Species";
-            //accItem0.style.fontSize = listFontSize;
-            //combo.open=false;
-            //combo.style.margin = "0 60px 20px 20px";
             combo.slot="header-actions-end";
-            //combo.appendChild(accItem0);
             
             const radioGroup = document.createElement("calcite-radio-button-group");
             radioGroup.name="radioBtns";
             radioGroup.layout = "vertical";
             radioGroup.style.padding = "10px";
-            //accItem0.appendChild(radioGroup);
             combo.appendChild(radioGroup);
-            /*radioGroup.addEventListener("calciteRadioButtonGroupChange", (event) => {
-                event.target.parentNode.parentNode.placeholder = event.target.selectedItem.label;
-                // set game species layers to hidden
-                for(var i=0; i<event.target.parentNode.childNodes[0].childNodes.length; i++)
-                    event.target.parentNode.childNodes[0].childNodes[i].layer.visible = false;
-                event.target.selectedItem.parentNode.layer.visible = true;
-                event.target.parentNode.expanded = false;
-            });*/
             sublayerDialog.appendChild(combo);
         
+            // drop down list of radio buttons
             radioArr.forEach(species => {
                 const radio = document.createElement("calcite-label");
                 radio.layout="inline";
@@ -449,8 +497,6 @@ function layerListAddSublayerDialogs(event,theLayer){
                 });
                 radioGroup.appendChild(radio); 
             });
-
-            // end test radio buttons*********************
 
             // Description
             var block = document.createElement("calcite-block");
@@ -510,7 +556,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             subLayeronOffBtn = document.createElement("calcite-switch");
             subLayeronOffBtn.slot = "actions-end";
             subLayeronOffBtn.layer = layer;
-            subLayeronOffBtn.style.padding = "10px 10px 0 10px";
+            subLayeronOffBtn.style.padding = "10px 14px 0 10px";
             subLayeronOffBtn.setAttribute("scale", "l"); // large
             if (layer.visible) subLayeronOffBtn.checked = true;
             else subLayeronOffBtn.checked = false;
@@ -547,19 +593,22 @@ function layerListAddSublayerDialogs(event,theLayer){
                             subLayerListItem = document.createElement("calcite-list-item");
                             subLayerListHeader = document.createElement("h3");
                             subLayerListItem.style.fontSize=listFontSize;
+                            // set opacity visible at scale?
+                            if((view.scale <= item.minScale || item.minScale == 0) && 
+                            (view.scale >= item.maxScale || item.maxScale==0)){
+                                subLayerListHeader.style.opacity="1";
+                            }else {
+                                subLayerListHeader.style.opacity="0.3";
+                            }
                             // Event handler for scale change
                             reactiveUtils.watch(
                                 () => [view.stationary, view.scale], ([stationary, scale]) => {
                                     if (stationary) {
                                         if((scale <= item.minScale || item.minScale == 0) && 
                                         (scale >= item.maxScale || item.maxScale==0)){
-                                            subLayerListHeader.style.color="#4a4a4a";
-                                            subLayerListHeader.style.fontWeight="500";
-                                            //console.log(item.title+" visible");
+                                            subLayerListHeader.style.opacity="1";
                                         }else {
-                                            //console.log(item.title+" hidden");
-                                            subLayerListHeader.style.color="lightgray";
-                                            subLayerListHeader.style.fontWeight="100";
+                                            subLayerListHeader.style.opacity="0.3";
                                         }
                                     }
                             });
@@ -571,6 +620,14 @@ function layerListAddSublayerDialogs(event,theLayer){
                             subLayerListItem.value = item.title.replace("CPWSpeciesData -","");
                             subLayerListItem.heading = item.title.replace("CPWSpeciesData -","");
                             subLayerListItem.appendChild(subLayerListHeader);
+
+                            // Add legend to icon slot
+                            var subLayerIcon = document.createElement("img");
+
+// TODO
+
+
+
 
                             // Add Switch to actions-end of list Item
                             subLayeronOffBtn = document.createElement("calcite-switch");
@@ -665,7 +722,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 subLayeronOffBtn = document.createElement("calcite-switch");
                 subLayeronOffBtn.slot = "actions-end";
                 subLayeronOffBtn.layer = layer;
-                subLayeronOffBtn.style.padding = "10px 10px 0 4px";
+                subLayeronOffBtn.style.padding = "10px 14px 0 4px";
                 subLayeronOffBtn.setAttribute("scale", "l"); // large
                 if (layer.visible) subLayeronOffBtn.checked = true;
                 else subLayeronOffBtn.checked = false;
@@ -685,9 +742,6 @@ function layerListAddSublayerDialogs(event,theLayer){
                 block.appendChild(subLayeronOffBtn);
 
                 var subLayerList = document.createElement("calcite-list");
-                //subLayerList.style.overflowY = "auto";
-                //subLayerList.style.height = "auto";
-                //subLayerList.style.maxHeight = "300px";
                 var subLayerListItem;
                 // Visibility list in sublayer popup
                 // MapImageLayers have sublayers. FeatureLayers have layers
@@ -700,11 +754,14 @@ function layerListAddSublayerDialogs(event,theLayer){
                         if (element.listMode === "show") {
                             // 1st level group layer
                             // if it has sublayers make it an expandable block
-                            if (element.layers || element.sublayers){
+                            if (hideGroupSublayers.indexOf(element.title) == -1 && (element.layers || element.sublayers)){
                                 let subLayerGroup = document.createElement("calcite-block");
                                 subLayerGroup.heading = element.title;
                                 subLayerGroup.value = element.title;
                                 subLayerGroup.headingLevel = hLevel;
+                                subLayerGroup.style.fontWeight = "normal";
+                                subLayerGroup.setAttribute("collapsible", true);
+                                subLayerGroup.setAttribute("open",false);
 
                                 // if all of it's children are out of scale gray out
                                 // event listener for scale change
@@ -719,7 +776,6 @@ function layerListAddSublayerDialogs(event,theLayer){
                                             if((scale <= item.minScale || item.minScale == 0) && 
                                                 (scale >= item.maxScale || item.maxScale==0)){
                                                     visibleItems = true;
-                                                //console.log(item.title+" visible");
                                             }
                                         });
                                         if (visibleItems) subLayerGroup.style.opacity="1";
@@ -727,10 +783,20 @@ function layerListAddSublayerDialogs(event,theLayer){
 
                                     }
                                 });
-                                subLayerGroup.style.opacity="1";
-                                subLayerGroup.setAttribute("collapsible", true);
+                                // Set the first time, if all of it's children are out of scale gray out
+                                var items;
+                                if (element.layers) items=element.layers.items;
+                                else if (element.sublayers) items=element.sublayers.items;
+                                var visibleItems = false; // Are any items in this block visible?
+                                items.forEach(item => {
+                                    if((view.scale <= item.minScale || item.minScale == 0) && 
+                                        (view.scale >= item.maxScale || item.maxScale==0)){
+                                            visibleItems = true;
+                                    }
+                                });
+                                if (visibleItems) subLayerGroup.style.opacity="1";
+                                else subLayerGroup.style.opacity="0.3";
 
-                                subLayerGroup.setAttribute("open",false);
                                 subLayerList.appendChild(subLayerGroup);
                                 // Add Switch to actions-end of list Item
                                 let subLayeronOffBtn = document.createElement("calcite-switch");
@@ -758,15 +824,9 @@ function layerListAddSublayerDialogs(event,theLayer){
                                             subLayerListHeader2.style.fontSize=listFontSize;
                                             if((view.scale <= item.minScale || item.minScale == 0) && 
                                             (view.scale >= item.maxScale || item.maxScale==0)){
-                                                //subLayerListHeader2.style.color="#4a4a4a";
-                                                //subLayerListHeader2.style.fontWeight="500";
                                                 subLayerListHeader2.style.opacity="1";
-                                                console.log(item.title+' visible');
                                             }else {
-                                                //subLayerListHeader2.style.color="lightgray";
-                                                //subLayerListHeader2.style.fontWeight="100";
                                                 subLayerListHeader2.style.opacity="0.3";
-                                                console.log(item.title+' hidden');
                                             }
                                             // Event handler for scale change
                                             reactiveUtils.watch(
@@ -775,10 +835,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                                                         if((scale <= item.minScale || item.minScale == 0) && 
                                                         (scale >= item.maxScale || item.maxScale==0)){
                                                             subLayerListHeader2.style.opacity="1";
-                                                            //console.log(item.title+' visible');
                                                         }else {
                                                             subLayerListHeader2.style.opacity="0.3";
-                                                            //console.log(item.title+' hidden');
                                                         }
                                                     }
                                             });
@@ -871,10 +929,45 @@ function layerListAddSublayerDialogs(event,theLayer){
                 }
                 block.appendChild(subLayerList);
                 sublayerDialog.appendChild(block);
+
+                // add legend symbol before name
+                /*if (!layer.url){
+                    var items;
+                    if (layer.layers) items = layer.layers.items;
+                    else if (layer.sublayers) items = layer.sublayers.items;
+                    items.forEach(item => {
+                        getLegendInfo(item);
+                    });
+                }else
+                    getLegendInfo(layer);*/
             }catch(err){
                 alert("Problem adding layer, "+layer.title+" to layer list  in myLayerList.js/layerListAddSublayerDialogs."+err);
             }
         }
         view.ui.add(sublayerDialog,"top-right");
+        // set font size for drop down blocks
+        /*(async () => {     // it is always null!!!!!!!
+            await customElements.whenDefined("calcite-block");
+            await document.querySelector("calcite-block").componentOnReady();
+            if (document.querySelector("calcite-block").shadowRoot.querySelector("h3"))
+                document.querySelector("calcite-block").shadowRoot.querySelector("h3").style.fontSize = listFontSize;
+        })();*/
+       
+        const tim = setInterval(function () {
+            var blocks = document.querySelectorAll("calcite-block");
+            if (!blocks[0]) return;
+            if (!blocks[0].shadowRoot) return;
+            if (!blocks[0].shadowRoot.children) return;
+            if (blocks[0].shadowRoot.children.length < 1) return;
+            clearInterval(tim);
+            blocks.forEach(block => {
+                if (block.shadowRoot.querySelector("h3")){
+                    block.shadowRoot.querySelector("h3").style.fontSize = listFontSize;
+                    if (block.shadowRoot.querySelector("h3").innerText !== "Visibility:" &&
+                        block.shadowRoot.querySelector("h3").innerText !== "Layer Descriptions:")
+                        block.shadowRoot.querySelector("h3").style.fontWeight = "normal";
+                }
+            });
+        },500);
     });
 }

@@ -16,23 +16,29 @@
 
   <title>Test ArcGIS API for JavaScript 4.30</title>
 
+  <script src="https://js.arcgis.com/4.30/"></script>
+  <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
+ 
+  
   <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" async="true" />
   <link rel="stylesheet" href="./assets/css/main.css?v=1" async="true" />
-  <!--link rel="stylesheet" href="assets/css/myMain.css" async="true"/-->
-  <script src="https://js.arcgis.com/4.30/"></script>
+  
+  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=13" async="true" />
+  
+  <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
 
-  <script type="text/javascript" src="js/xmlUtils.js" async="true"></script>
+  <script type="text/javascript" src="js/xmlUtils.js?v=1" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js" async="true"></script>
-  <script type="text/javascript" src="js/utilFuncs.js" async="true"></script>
-  <script type="text/javascript" src="js/addMapLayers.js?v=14" async="true"></script>
+  <script type="text/javascript" src="js/utilFuncs.js?v=5" async="true"></script>
+  <script type="text/javascript" src="js/addMapLayers.js?v=16" async="true"></script>
   <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=85" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=88" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=2" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=0" async="true"></script>
 
 
-  <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
-  <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" />
+  
   <!--link rel="stylesheet" type="text/css" href="assets/css/myCalcite.css" /-->
 
   <script>
@@ -70,7 +76,8 @@
     var map, view, mapLayers = [];
     var  queryObj;
     const ndisVer = Date.now();
-    const settings = {
+    // this is read from SettingsWidget.xml file in identify.js readSettingsWidget()
+    var settings = {
       elkField: "GMUID",
       elkUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2",
       sheepField: "BSGMU",
@@ -78,6 +85,7 @@
       goatField: "MGGMU",
       goatUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/16"
     };
+    var XMLHttpRequestObjects = []; // holds database call object
     var gmu = "Big Game GMU";
     var searchWidget;
     var hideGroupSublayers = ["Emergency", "Field Office", "Chamber of Commerce or Welcome Center", "2License Agent", "Campgrounds and SWA Facilities", "GMU boundary (Hunting Units)"];
@@ -497,10 +505,10 @@
         const nonLayers = ["Graphics Layer", "World Hillshade", "World Imagery", "USGSTopo", "USA Topo Maps", "USGSImageryTopo", "", "World Topo Map", "World Basemap", "World Basemap v2"];
 
         // Handle Filling Identify Content Here
-        /*view.on("click", function (event) {
-          var pt = event.MapPoint();
-          //alert("identify");
-        });*/
+        view.on("click", function (event) {
+          //var pt = event.MapPoint();
+          doIdentify(event);
+        });
 
         view.when(() => {
           // test using esri layerlist
@@ -514,8 +522,8 @@
           const titlediv=document.createElement("div");
           titlediv.style.padding="5px";
           titlediv.style.borderRadius="12px";
-          titlediv.style.backgroundColor="#D4DBBE";
           titlediv.style.margin="0 0 -45px 0px";
+          titlediv.id = "titleDiv";
           if (screen.width > 768)
             titlediv.style.minWidth="320px";
           else
@@ -550,6 +558,7 @@
             closeButton: false
           };*/
           addFindPlace();
+          readSettingsWidget(); // identify
           addMeasure(graphicsLayer);
 
 
@@ -1228,8 +1237,9 @@
   </script>
 </head>
 
-<body>
-    <div id="viewDiv"></div>
+<body class="green-theme">
+  <calcite-loader id="loadingImg" label="Loading..." style="display:none;position:absolute;top:calc(50% - 90px);left:50%;z-index:4;"></calcite-loader>
+  <div id="viewDiv"></div>
     <div id="hiddenDiv" style="position: absolute; left:calc(100vw + 100px)"></div>
     <!-- XY Coordinate Format Dialog ***** MOVE TO IDENTIFY??? ******-->
     <div id="xycoordsDialog" title="Change Display Format" style="display:none;width:210px;">

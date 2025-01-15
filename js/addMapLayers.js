@@ -912,7 +912,7 @@ function addMapLayers(){
                     url: url,
                     title: label,
                     opacity: Number(opacity),
-                    layerId: label,
+                    //layerId: label, // do not use layerId, it sets this from url
                     id: label
                 });
             
@@ -1192,11 +1192,18 @@ function readConfig(){
 
 // NOT USED ********
 function getLegendInfo(rootLayer){
+    var url;
     const layer = rootLayer;
-    // without ?f=pjson it returns html
-    let url = rootLayer.url + '/legend?f=pjson';
-    if (rootLayer.url.toLowerCase().indexOf("featureserver") > -1)
-        url = rootLayer.url+"?f=pjson";      
+    try{
+        // without ?f=pjson it returns html
+        url = rootLayer.url + '/legend?f=pjson';
+        if (rootLayer.url.toLowerCase().indexOf("featureserver") > -1)
+            url = rootLayer.url+"/"+rootLayer.layerId+"?f=pjson";      
+    
+    } catch(e){
+        alert(e.getMessage);
+        return;
+    }
     // DEBUG
     //console.log("Loading legend: "+url);
     
@@ -1210,7 +1217,10 @@ function getLegendInfo(rootLayer){
             const layerlistitems = layerlist.children;
             for (var i=0; i<layerlistitems.length; i++){
                 let legendObj = geoJson.layers.find(obj => {
-                    return obj.layerName === layerlistitems[i].value;
+                    if (layerlistitems[i].value)
+                        return obj.layerName === layerlistitems[i].value;
+                    else if (layerlistitems[i].textContent)
+                        return obj.layerName === layerlistitems[i].textContent;
                 });
                 if(legendObj && legendObj.legend){
                     for (var j=0; j<legendObj.legend.length; j++){
