@@ -87,39 +87,73 @@ function getCookie(cname) {
 	}
 	// end show loading image functions
 
+    function copyText(id){
+        // Get the text field
+        var copyText = document.getElementById(id);
+      
+        copyText.style.backgroundColor = "var(--brand)";
+        // Select the text field
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); // For mobile devices
+      
+         // Copy the text inside the text field
+        navigator.clipboard.writeText(copyText.value);
+      
+        // Alert the copied text
+        //document.getElementById("copyNote").innerHTML = "copied";
+        setTimeout(function(){
+          copyText.style.backgroundColor = "light-dark(rgba(239, 239, 239, 0.3), rgba(59, 59, 59, 0.3))";
+            //document.getElementById("copyNote").innerHTML = "";
+        }, 2000);
+
+    }
+    
+    //*****************
+    // Projection
+    // ***************/
   async function projectPoint(pt, div){
     require(["esri/geometry/support/webMercatorUtils", "esri/geometry/SpatialReference", "esri/rest/support/ProjectParameters", "esri/rest/geometryService"],
     function(webMercatorUtils, SpatialReference, ProjectParameters, GeometryService) {
         // Project point pt to user selected projection from Settings
         var geoPt;
 
-        var myPrj = document.getElementById("xycoords_combo").value; // user defined projection. Used to be "settings_xycoords_combo"
-        if (myPrj === "dd") {
+        var myPrj = settings.XYProjection; // user defined projection. Used to be "settings_xycoords_combo"
+        if (myPrj === "mercator") {
+          if (div && div.value != undefined){
+            //div.value = pt.y.toFixed(5) + " N, " + pt.x.toFixed(5) + " W";
+            div.value = pt.y.toFixed(5) + ", " + pt.x.toFixed(5);
+            div.setAttribute("size",div.value.length);
+          }
+          else if (div)
+              div.innerHTML = pt.y.toFixed(5) + ", " + pt.x.toFixed(5);
+          else alert("Warning", "Undefined DOM node id="+div);
+        }
+        else if (myPrj === "dd") {
             geoPt = webMercatorUtils.webMercatorToGeographic(pt);
             if (div && div.value != undefined){
-                div.value = geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";
+                div.value = geoPt.y.toFixed(5) + ", " + geoPt.x.toFixed(5);
                 div.setAttribute("size",div.value.length);
             }
             else if (div)
-                div.innerHTML = geoPt.y.toFixed(5) + " N, " + geoPt.x.toFixed(5) + " W";
+                div.innerHTML = geoPt.y.toFixed(5) + ", " + geoPt.x.toFixed(5);
             else alert("Warning", "Undefined DOM node id="+div);			
         } else if (myPrj === "dms") {
             geoPt = mappoint_to_dms(pt, true);
             if (div && div.value != undefined){
-                div.value = geoPt[0] + " N, " + geoPt[1] + " W";
+                div.value = geoPt[0] + ", " + geoPt[1];
                 div.setAttribute("size",div.value.length);
             }
             else if (div)
-                div.innerHTML =  geoPt[0] + " N, " + geoPt[1] + " W";
+                div.innerHTML =  geoPt[0] + ", " + geoPt[1];
             else alert("Warning", "Undefined DOM node id="+div);
         } else if (myPrj === "dm") {
             geoPt = mappoint_to_dm(pt, true);
             if (div && div.value != undefined){
-                div.value = geoPt[0] + " N, " + geoPt[1] + " W";
+                div.value = geoPt[0] + ", " + geoPt[1];
                 div.setAttribute("size",div.value.length);
             }
             else if (div)
-                div.innerHTML = geoPt[0] + " N, " + geoPt[1] + " W";
+                div.innerHTML = geoPt[0] + ", " + geoPt[1];
             else alert("Warning", "Undefined DOM node id="+div);
         } else { // utm
             var outSR = new SpatialReference(Number(myPrj));
@@ -129,20 +163,20 @@ function getCookie(cname) {
                 geometries: [pt]
             });
             GeometryService.project(geometryService,params).then( (feature) => {
-                var units;
+                /*var units;
                 if (outSR.wkid == 32612) units = "WGS84 UTM Zone 12N";
                 else if (outSR.wkid == 32613) units = "WGS84 UTM Zone 13N";
                 else if (outSR.wkid == 26912) units = "NAD83 UTM Zone 12N";
                 else if (outSR.wkid == 26913) units = "NAD83 UTM Zone 13N";
                 else if (outSR.wkid == 26712) units = "NAD27 UTM Zone 12N";
                 else if (outSR.wkid == 26713) units = "NAD27 UTM Zone 13N";
-                else units = "unknown units: "+outSR.wkid+" in utilFuncs.js projectPoint()";
+                else units = "unknown units: "+outSR.wkid+" in utilFuncs.js projectPoint()";*/
                 if (div && div.value != undefined){
-                    div.value = feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0) + " " + units;
+                    div.value = feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0);
                     div.setAttribute("size",div.value.length);
                 }
                 else if (div)
-                    div.innerHTML = feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0) + " " + units;
+                    div.innerHTML = feature[0].x.toFixed(0) + ", " + feature[0].y.toFixed(0);
                 else alert("Warning", "Undefined DOM node id="+div);
             }).catch ( (err) => {
                 if (err.details)
@@ -340,4 +374,387 @@ function dms_or_dm_to_dd(str) {
         }
     });
 }*/
+
+//*************
+//  Drawing   
+//*************/
+function addTempLabel(point, label, fontSize, shouldFade) {
+    // Add text at a point. Fade out after 10 seconds.
+    // point: Point, label: text, fontSize: int
+    // if point is a polygon use the centroid
+    // noFade: should it fade away? default is true
+    require(["esri/symbols/TextSymbol", "esri/Graphic"], function (TextSymbol, Graphic) {
+      //var shouldFade = true;
+      //if (arguments.length >= 2) fontSize = 11;
+      //else fontSize = arguments[2];
+      //if (arguments.length == 4) shouldFade = false;
+
+      label = label.replace(/''/g, "'");
+      let textSymbol = new TextSymbol({
+        text: label,
+        color: "black",//[255, 255, 255],
+        haloColor: [255, 255, 153, 1.0],//[1, 68, 33],
+        haloSize: "2px",
+        yoffset: -23,//-1 * (fontSize) - 3,
+        font: {
+          family: "Arial Unicode MS",
+          size: fontSize
+        }
+      });
+      if (point.geometry && point.geometry.type === "polygon")
+        point = point.geometry.centroid;
+      let pointText = new Graphic({
+        geometry: point,
+        symbol: textSymbol
+      });
+      view.graphics.add(pointText);
+      let fade = 1.0; // starting transparency
+      let width = pointText.symbol.haloSize / 4;
+      // should fade out?
+      if (shouldFade) {
+        setTimeout(function () {
+          let tim = setInterval(function () {
+            fade = fade - 0.25;
+            pointText.symbol.color.a = fade;
+            pointText.symbol.haloSize = pointText.symbol.haloSize - width;
+            pointText.symbol.haloColor.a = fade;
+            if (fade == 0) {
+              clearTimeout(tim);
+              view.graphics.remove(pointText);
+            }
+          }, 2000);
+        }, 5000);
+      }
+    });
+  }
+  function addTempPoint(pt, shouldFade) {
+    // pt: Point
+    // add point and remove it in 10 seconds
+    // if noFade is passed in do not fade
+    // added 4/25/24
+    //var shouldFade = true;	
+    //if (arguments.length == 2) shouldFade = false;
+    require(["esri/symbols/PictureMarkerSymbol", "esri/Graphic"], function (PictureMarkerSymbol, Graphic) {
+      const symbol = {
+        type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
+        url: "/assets/images/i_flag.png",
+        size: 24,
+        width: 24,
+        height: 24,
+        xoffset: 0,
+        yoffset: -12
+      };
+      let point = new Graphic({
+        geometry: pt,
+        symbol: symbol
+      });
+      view.graphics.add(point);
+      if (shouldFade) {
+        setTimeout(function () {
+          view.graphics.remove(point);
+        }, 13000);
+      }
+    });
+  }
+  function addHighlightPoint(pt){
+    require (["esri/Graphic","esri/geometry/Circle"],(Graphic,Circle) => {
+        let r = 1;
+        if (view.scale < 24000) r = .25;
+        else if (view.scale < 24000) r = .5;
+
+        const circle = new Circle({
+            center: pt.geometry,
+            geodesic: false,
+            numberOfPoints: 100,
+            radius: r,
+            radiusUnit: "kilometers"
+          });
+        let point = new Graphic({
+            geometry: circle,
+            symbol: {
+                type: "simple-fill",
+                style: "none",
+                outline: {
+                  width: 3,
+                  color: "cyan"
+                }
+            }
+        });
+        view.graphics.add(point);
+    });
+  }
+  const polySymbol = {
+    type: "simple-line",  // autocasts as SimpleLineSymbol()
+    color: [0, 255, 255], //[226, 119, 40],
+    width: 3
+  }
+  function addTempPolygon(feature, shouldFade) {
+    // add polygon outline and remove it in 10 seconds
+    // if noFade is passed in do not fade
+    //var shouldFade = true;	
+    //if (arguments.length == 2) shouldFade = false;
+    require(["esri/geometry/Polygon", "esri/Graphic"],
+      function (Polygon, Graphic) {
+
+        const polygon = new Polygon({
+          rings: feature.geometry.rings,
+          spatialReference: feature.geometry.spatialReference
+        });
+        const poly = new Graphic({
+          geometry: polygon,
+          symbol: polySymbol
+        });
+        view.graphics.add(poly);
+        if (shouldFade) {
+          setTimeout(function () {
+            view.graphics.remove(poly);
+          }, 13000);
+        }
+      });
+  }
+  function addTempLine(feature,noFade){
+    // add polygon outline and remove it in 10 seconds
+    // if noFade is passed in do not fade
+    // called by Identify highlight
+    require(["esri/geometry/Polyline", "esri/Graphic"],
+        function (Polyline, Graphic) {
+        /*const polySymbol = {
+            type: "simple-line",  // autocasts as SimpleLineSymbol()
+            color: [0,255,255], //[226, 119, 40],
+            width: 3
+        }*/
+        const line = new Polyline({
+            paths: feature.geometry.paths,
+            spatialReference: feature.geometry.spatialReference
+        });
+        const lineGraphic = new Graphic({
+            geometry: line,
+            symbol: polySymbol
+        });
+        view.graphics.add(lineGraphic);
+        if (arguments.length == 1){
+            setTimeout(function(){
+                view.graphics.remove(lineGraphic);
+            },13000);
+        }
+    });
+  }
   
+  function addLabel(point, label, graphicsLayer, fontsize) {
+      // Adds a label to the map at the given point, fontsize = "11pt"
+      // graphicsName is the name for this graphics layer. For example: searchgraphics or drawgraphics
+      // graphicsCounter is the searchGraphicsCounter or drawGraphicsCounter so it can erase the last added layer
+      // graphicsArr is an array of graphics names
+      require(["esri/Graphic", "esri/symbols/Font", "esri/symbols/TextSymbol",
+            "dojo/_base/Color"], function (
+            Graphic, Font, TextSymbol, Color) {
+        label = label.replace("/n"," "); // replace carriage returns with space for flex bookmarks
+        
+        const labelClass = {
+            // autocasts as new LabelClass()
+            symbol: {
+              type: "text", // autocasts as new TextSymbol()
+              color: "black",
+              haloColor: [255,255,153,1.0],
+                haloSize: "2px",
+              yoffset: -23,
+              font: {
+                //autocast as new Font()
+                family: "Arial Bold",
+                size: fontsize
+              }
+            },
+            labelPlacement: "always-horizontal", //below-center for points
+            text: label,
+            labelExpressionInfo: {
+                expression: "$feature.NAME" //"$feature.Team + TextFormatting.NewLine + $feature.Division"
+            }
+        };
+        // TODO needs to be featureservice to add labels!!!!
+        graphicsLayer.labelingInfo=[labelClass];
+
+        /*var yellow = new Color([255,255,153,1.0]);
+        var font = new Font(
+            fontsize,
+            Font.STYLE_NORMAL, 
+            Font.VARIANT_NORMAL,
+            Font.WEIGHT_BOLDER,
+            "Helvetica"
+        );
+        
+        var text = new TextSymbol(label,font,new Color("black"));
+        text.setOffset(0,-23);
+        var highlight1 = new TextSymbol(label,font,yellow);
+        highlight1.setOffset(1,-25);
+        var highlight2 = new TextSymbol(label,font,yellow);
+        highlight2.setOffset(0,-24);
+        var highlight3 = new TextSymbol(label,font,yellow);
+        highlight3.setOffset(0,-22);
+        var highlight4 = new TextSymbol(label,font,yellow);
+        highlight4.setOffset(-1,-21);
+        var highlight5 = new TextSymbol(label,font,yellow);
+        highlight5.setOffset(2,-23);
+        var highlight6 = new TextSymbol(label,font,yellow);
+        highlight6.setOffset(-2,-23);
+        
+        graphicsLayer.add(new Graphic(point.geometry, highlight1));
+        graphicsLayer.add(new Graphic(point.geometry, highlight2));
+        graphicsLayer.add(new Graphic(point.geometry, highlight3));
+        graphicsLayer.add(new Graphic(point.geometry, highlight4));
+        graphicsLayer.add(new Graphic(point.geometry, highlight5));
+        graphicsLayer.add(new Graphic(point.geometry, highlight6));
+        graphicsLayer.add(new Graphic(point.geometry, text));*/
+        //map.add(graphicsLayer);
+        //graphicsLayer.refresh();
+    });
+}
+
+//************************
+//     Array Functions
+//************************
+	var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+	var mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Nov","Dec"];
+	function sortArrayOfObj(item) {
+	// Sort an array of objects by field, ascending
+	// Example: 
+	// arr = [{city: 'Fort Collins', county: 'Larimer'},
+	//        {city: 'Boulder', county: 'Boulder'}]
+	// To sort by city use: arr.sort(sortArrOfOj('city'));
+		return function (a,b) {
+			// if GMU### sort numerically 1-9-23 add toString, failed when was a number
+			if (a[item] && a[item].toString().substr(0,4) == "GMU ")
+				return parseInt(a[item].substring(4)) - parseInt(b[item].substring(4));
+			else if (!isNaN(a[item]))
+				return a[item] - b[item];
+			// Sort by full month name
+			else if (months.indexOf(a[item])>-1 && months.indexOf(b[item]>-1))
+				return (months.indexOf(a[item]) < months.indexOf(b[item])) ? -1 : (months.indexOf(a[item]) > months.indexOf(b[item])) ? 1: 0;
+			// Sort by abbreviated month name
+			else if (mo.indexOf(a[item])>-1 && mo.indexOf(b[item]>-1))
+				return (mo.indexOf(a[item]) < mo.indexOf(b[item])) ? -1 : (mo.indexOf(a[item]) > mo.indexOf(b[item])) ? 1: 0;
+			else
+				return (a[item] < b[item]) ? -1 : (a[item] > b[item]) ? 1: 0;
+		};
+	}
+	function descendingSortArrayOfObj(item) {
+		// Sort an array of objects by field, descending
+		// Example: 
+		// arr = [{city: 'Fort Collins', county: 'Larimer'},
+		//        {city: 'Boulder', county: 'Boulder'}]
+		// To sort by city use: arr.sort(sortArrOfOj('city'));
+		return function (a,b) {
+			// if GMU### sort numerically 1-9-23 add toString, failed when was a number
+			if (isNaN(a[item]) && a[item].toString().substr(0,4) == "GMU ")
+				return parseInt(b[item].substring(4)) - parseInt(a[item].substring(4));
+			else if (!isNaN(a[item]))
+				return b[item] - a[item];
+			// Sort by full month name
+			else if (months.indexOf(a[item])>-1 && months.indexOf(b[item]>-1))
+				return (months.indexOf(a[item]) > months.indexOf(b[item])) ? -1 : (months.indexOf(a[item]) < months.indexOf(b[item])) ? 1: 0;
+			// Sort by abbreviated month name
+			else if (mo.indexOf(a[item])>-1 && mo.indexOf(b[item]>-1))
+				return (mo.indexOf(a[item]) > mo.indexOf(b[item])) ? -1 : (mo.indexOf(a[item]) < mo.indexOf(b[item])) ? 1: 0;
+			else
+				return (a[item] > b[item]) ? -1 : (a[item] < b[item]) ? 1: 0;
+		};
+	}
+	function sortMultipleArryOfObj() {
+	// Ascending sort of an array of objects by multiple fields
+	// Example:
+	// // arr = [{city: 'Fort Collins', county: 'Larimer'},
+	//        {city: 'Boulder', county: 'Boulder'}]
+	// arr.sort(sortMultipleArryOfObj("county","city",...));
+		/*
+		 * save the arguments object as it will be overwritten
+		 * note that arguments object is an array-like object
+		 * consisting of the names of the properties to sort by
+		 */
+		var props = arguments;
+		if (arguments[0].constructor === Array) props = arguments[0];
+		return function (obj1, obj2) {
+			var i = 0, result = 0, numberOfProperties = props.length;
+			/* try getting a different result from 0 (equal)
+			 * as long as we have extra properties to compare
+			 */
+			while(result === 0 && i < numberOfProperties) {
+				result = sortArrayOfObj(props[i])(obj1, obj2);
+				i++;
+			}
+			return result;
+		};
+	}
+	function descendingSortMultipleArryOfObj() {
+		// Descending sort of an array of objects by multiple fields
+		// Example:
+		// // arr = [{city: 'Fort Collins', county: 'Larimer'},
+		//        {city: 'Boulder', county: 'Boulder'}]
+		// arr.sort(descendingSortMultipleArryOfObj("county","city",...));
+		/*
+		 * save the arguments object as it will be overwritten
+		 * note that arguments object is an array-like object
+		 * consisting of the names of the properties to sort by
+		 */
+		var props = arguments;
+		if (arguments[0].constructor === Array) props = arguments[0];
+		return function (obj1, obj2) {
+			var i = 0, result = 0, numberOfProperties = props.length;
+			/* try getting a different result from 0 (equal)
+			 * as long as we have extra properties to compare
+			 */
+			while(result === 0 && i < numberOfProperties) {
+				result = descendingSortArrayOfObj(props[i])(obj1, obj2);
+				i++;
+			}
+			return result;
+		};
+	}
+	Array.prototype.moveUp = function(value, by) {
+		// Rearrange items in an array. Move up so many positions (by).
+		// For example:
+		//   var street = items[1];
+		//   items.moveUp(street,1); // move up by 1
+		var index = this.indexOf(value),     
+			newPos = index - (by || 1);
+		
+		if(index === -1) 
+			throw new Error("Element not found in array");
+		
+		if(newPos < 0) 
+			newPos = 0;
+			
+		this.splice(index,1);
+		this.splice(newPos,0,value);
+	};	
+	Array.prototype.moveTo = function(value, newPos) {
+		// Rearrange items in an array. Move to new position.
+		// For example:
+		//   var street = items[1];
+		//   items.moveTo(street,0); // move to position 0
+		var index = this.indexOf(value);    
+		
+		if(index === -1) 
+			throw new Error("Element not found in array");
+		
+		if(newPos < 0) 
+			newPos = 0;
+			
+		this.splice(index,1);
+		this.splice(newPos,0,value);
+	};
+
+	// detect mobile
+	function detectmob() { 
+	//  || navigator.userAgent.match(/iPad/i)
+	 if( navigator.userAgent.match(/Android/i) ||
+	 	 navigator.userAgent.match(/webOS/i) ||
+		navigator.userAgent.match(/iPhone/i) ||
+		navigator.userAgent.match(/iPod/i) ||
+		navigator.userAgent.match(/BlackBerry/i) ||
+		navigator.userAgent.match(/Windows Phone/i)
+	 ){
+		return true;
+	  }
+	 else {
+		return false;
+	  }
+	}

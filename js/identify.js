@@ -64,8 +64,7 @@ function readSettingsWidget() {
                     if (myPrj !== "")
                         settings = { "XYProjection": myPrj };
                     else
-                        settings = { "XYProjection": xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue };
-                    //document.getElementById("settings_xycoords_combo").value = settings.XYProjection; // Settings Widget			
+                        settings = { "XYProjection": xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue };		
 
                     // Map Link Not Used
                     /*use_map_link = xmlDoc.getElementsByTagName("use_map_link")[0] && xmlDoc.getElementsByTagName("use_map_link")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
@@ -114,17 +113,25 @@ function readSettingsWidget() {
                         settings.useGMUs = false;
                     }
                     driving_directions = xmlDoc.getElementsByTagName("driving_directions")[0] && xmlDoc.getElementsByTagName("driving_directions")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
-                    /*if (driving_directions) {
+                    if (driving_directions) {
                         // Add a link into the InfoWindow Actions panel
                         // Get Directions
                         view.popup.actions = [
                             {
                                 id: "directions",
                                 className: "esri-icon-directions2",
-                                title: "Get Directions"
+                                title: "Get Directions",
+
+                            },
+                            // input area point, buffered point, freehand polygon
+                            {
+                                id: "input-area",
+                                className: "esri-icon-map-pin",
+                                title: "Input Area"
                             }
                         ];
-                    }*/
+                    }
+
                     if (xmlDoc.getElementsByTagName("elevation")[0] && xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue)
                         show_elevation = xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue == "true" ? 1 : 0;
                     if (show_elevation && xmlDoc.getElementsByTagName("elevation_url")[0]) {
@@ -296,6 +303,7 @@ function readSettingsWidget() {
                             }
                         }
                     }
+
                     // Call draw init here since it needs the XYprojection value which was read from user cookie or settingsWidget.xml
  // TODO drawing widget
  //                 drawInit();
@@ -413,9 +421,8 @@ function displayContent() {
         return;
     }
 
-    // "dojo/promise/all",  removed 1-14-25
     require(["esri/rest/identify", "esri/rest/query", "esri/rest/support/Query"], 
-    function(Identify, all, query, Query) {
+    function(Identify, query, Query) {
         try{
             identifyParams.geometry = clickPoint; 
             identifyParams.mapExtent = view.extent;
@@ -529,7 +536,14 @@ function displayContent() {
                     if (identifyParams.layerIds.length == 0) skip = true;
                     if (!skip){
                         deferreds.push(new Promise((identifySuccess, handleQueryError) => {
-                            Identify.identify(url,identifyParams).then(identifySuccess).catch(handleQueryError);
+                            Identify.identify(url,identifyParams)
+                            .then((response) => {
+                                if (response.results)
+                                    identifySuccess(response.results);
+                                else
+                                    identifySuccess(response);
+                            })
+                            .catch(handleQueryError);
                         }));
                         //deferreds.push(Identify.identify(url,identifyParams).then(identifySuccess).catch(handleQueryError)); // new 6-13-24
                     }     
@@ -541,26 +555,36 @@ function displayContent() {
                     identifyParams.tolerance = 1;
                     identifyParams.layerIds = [settings.sheepUrl.slice(settings.sheepUrl.lastIndexOf("/") + 1)];
                     deferreds.push(new Promise((identifySuccess, handleQueryError) => {
-                        Identify.identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError);
+                        Identify.identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams)
+                        .then((response) => {
+                            if (response.results)
+                                identifySuccess(response.results);
+                            else
+                                identifySuccess(response);
+                        })
+                        .catch(handleQueryError);
                     }));
                     //deferreds.push(Identify.identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
                 } else if (gmu == "Goat GMU") {
                     identifyParams.tolerance = 1;
                     identifyParams.layerIds = [settings.goatUrl.slice(settings.goatUrl.lastIndexOf("/") + 1)];
                     deferreds.push(new Promise((identifySuccess, handleQueryError) => {
-                        Identify.identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError);
+                        Identify.identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams)
+                        .then((response) => {
+                            if (response.results)
+                                identifySuccess(response.results);
+                            else
+                                identifySuccess(response);
+                        })
+                        .catch(handleQueryError);
                     }));
                     //deferreds.push(Identify.identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
                 }
             }
 
-            // TODO Promise.all([])
             if (deferreds && deferreds.length > 0) {
                 Promise.all(deferreds).then((response) => {
-                    // not calling identifySuccess!!!!!!!!!!!! force it here????????? TODO
-                    if (response.results)
-                        return handleQueryResults(response.results);
-                    else return handleQueryResults(response); // for wildfire
+                   handleQueryResults(response);
                   });
                 //var dlist = all(deferreds);
                 //dlist.then(handleQueryResults);
@@ -578,12 +602,15 @@ function displayContent() {
     });
 }
 
+/* moved to promise
 function identifySuccess(response) {
+    console.log("identifySuccess");
     if (response.results)
         return response.results;
     else return response; // for wildfire
-}
+}*/
 
+// not used???????????????????
 function handleQueryError(e) {
     if (e.message.indexOf("Too many requests") > -1) {
         tooManyRequests = true;
@@ -923,7 +950,7 @@ function highlightFeature(id) {
     if (!features[id] || !features[id].geometry || features[id].geometry === undefined) return;
     if (features[id].geometry.type === undefined || !features[id].geometry.type) return;
     if (features[id].geometry.type === "point" ) {
-        addHighlightPoint(features[id],true);
+        addHighlightPoint(features[id]);
     }else if (features[id].geometry.type === "polygon") {
         addTempPolygon(features[id],true);
     } else if (features[id].geometry.type === "polyline") {
@@ -1057,6 +1084,11 @@ function accumulateContent(theContent){
     }
 }
 
+function setPrj(){
+    setIdentifyFooter(clickPoint);
+    settings.XYProjection=document.getElementById("idxycoords").value;
+    setCookie("prj",document.getElementById("idxycoords").value);
+}
 function customStuff(theContent){
     // add a drop down list and footer to the popup content
     const outerDiv = document.createElement("div");
@@ -1066,33 +1098,68 @@ function customStuff(theContent){
     outerDiv.style.height = "100%";
  
     // menu drop down   ******* TODO ****** change to tabs
-    var content = "<div style='padding:12px;'><strong>Show:</strong> <select id='id_group' name='id_group' style='margin:5px;color:black;' onChange='changeIdentifyGroup(this)'>";
+    /*var content = "<div style='padding:12px;'><strong>Show:</strong> <select id='id_group' name='id_group' style='margin:5px;color:black;' onChange='changeIdentifyGroup(this)'>";
     for (var i = 0; i < identifyGroups.length; i++) {
         content += "<option";
         if (identifyGroup == identifyGroups[i]) content += " selected";
         content+= ">" + identifyGroups[i] + "</option>";
     }
-    content += "</select></div>";
+    content += "</select></div>";*/
+    
+    var content = '<calcite-tabs><calcite-tab-nav slot="title-group">';
+    for (var i = 0; i < identifyGroups.length; i++) {
+        content += '<calcite-tab-title';
+        if (identifyGroup == identifyGroups[i]) content += " selected";
+        content+= ">" + identifyGroups[i] + '</calcite-tab-title>'
+    }
+    content += "</calcite-tab-nav>";
 
     // content
-    content += "<div style='overflow:auto;border-bottom: 1px solid #dfdfdf;padding:12px;'>"+theContent+"</div>";
+    for (var i = 0; i < identifyGroups.length; i++) {
+        content += "<calcite-tab";
+        if (identifyGroup == identifyGroups[i]){
+            content += " select='true'>";
+            content += "<div style='overflow:auto;border-bottom: 1px solid #dfdfdf;padding:12px;'>"+theContent+"</div>";
+        } else {
+            content += "><div style='overflow:auto;border-bottom: 1px solid #dfdfdf;padding:12px;'></div>";
+        }
+
+        // XY point
+        content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <strong>Location:</strong> <input type='text' value='Loading XY...' id='idXY' disabled='true' style='padding:3px;border-radius:5px;'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;color:var(--press)'><calcite-icon aria-hidden='true' icon='copy' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon></a> <span id='copyNote'></span>";
+        content += '<div id="xycoordsDialog" title="Change Display Format" style="margin-left:25px;margin-top:10px;">';
+        content += '    <label for="idxycoords">Format: </label><select id="idxycoords" size="1" onChange="setPrj()" style="padding:3px;border-radius:5px;">';
+        // XY point format
+        //const xyValue=["mercator","dd","dms","dm","32612","32613","26912","26913","26712","26713"];
+        //const xyDisplay=["WGS84 Web Mercator","Decimal Degrees","Degrees, Minutes, Seconds","Degrees, Minutes","WGS84 UTM Zone 12N","WGS84 UTM Zone 13N","NAD83 UTM Zone 12N","NAD83 UTM Zone 13N","NAD27 UTM Zone 12N","NAD27 UTM Zone 13N"];
+        const xyValue=["dd","32613"];
+        const xyDisplay=["Decimal Degrees","NAD83 UTM Zone 13N"];
+
+        for (var i=0; i<xyValue.length;i++){
+            content += '        <option value="'+xyValue[i]+'"';
+            if (settings.XYProjection === xyValue[i])content += ' selected="selected"';
+            content += '>'+xyDisplay[i]+'</option>';
+        }
+        content += '    </select>';
+        content += '</div></div>';
+        content += "<div id='idXYlocation'></div>";
+        
+        // Elevation
+        content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='altitude' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <span id='idElevation'>Loading elevation...</span></div>"
+        // Zoom To
+        //content += "<div slot='footer' style='padding:12px;display:flex'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> Zoom To</a> ";
+        // Get Directions
+        //if (driving_directions){
+        //    content += "<a href='javascript:getDirections()' style='float:left;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='vertical-align:middle;margin-right: 5px;'></span> Get Directions</a></div>";
+        //}
+        content += "</calcite-tab>";
+    }
+
 
     // footer
     //content += "<div style='padding:0;margin:0;border:none;'>";
     //content += "<div style='height:fit-content;padding:5px 12px 5px;'>";
     
-    // XY point
-    content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <strong>Location:</strong> <input type='text' value='Loading XY...' id='idXY' disabled='true'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;font-color:var(--calcite-color-brand)'><calcite-icon aria-hidden='true' icon='copy' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon></a></div>";
-    content += "<div id='idXYlocation'></div>"
-    // Elevation
-    content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='altitude' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <span id='idElevation'>Loading elevation...</span></div>"
-    // Zoom To
-    content += "<div slot='footer' style='padding:12px;display:flex'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> Zoom To</a> ";
-    // Get Directions
-    if (driving_directions){
-        content += "<a href='javascript:getDirections()' style='float:left;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='vertical-align:middle;margin-right: 5px;'></span> Get Directions</a></div>";
-    }
-    content += "</div>";
+    
     outerDiv.innerHTML = content;
     return outerDiv;
 }
@@ -1115,7 +1182,7 @@ function displayInfoWindow(theContent) {
         },500);
     }
     else setIdentifyHeader();*/
-    
+    view.popup.viewModel.location = clickPoint;
     setIdentifyFooter(clickPoint); // add xy point and elevation to footer
     hideLoading();
 }
@@ -1311,5 +1378,9 @@ function zoomToPt() {
         target: view.popup.viewModel.location,
         scale: level
     });
+}
+
+function getInputArea(){
+    alert("Set Input Area point | buffered point | freehand");
 }
 //// End Identify Widget ////

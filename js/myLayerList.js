@@ -198,7 +198,7 @@ function myLayerList() {
 
 function addToLayerListIfAllLoaded(layer){
     // check that all group sublayers have loaded then add to layer list
-    console.log("checking if all sublayers have loaded: "+layer.title);
+    //console.log("checking if all sublayers have loaded: "+layer.title);
     var items=null;
     if (layer.layers) items = layer.layers.items;
     else if (layer.sublayers) items = layer.sublayers.items;
@@ -369,7 +369,7 @@ function layerListAddSublayerDialogs(event,theLayer){
         if (!addToLayerListIfAllLoaded(layer)) return;
 
         // Wait for the layer to load, then create sub-layer dialogs
-        console.log("creating layer dialog for: "+layer.title);
+        //console.log("creating layer dialog for: "+layer.title);
 
         // Remove loading status icon
         // search for listItem
@@ -880,10 +880,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 if (element.minScale != 0 || element.maxScale != 0){
                                     if((view.scale <= element.minScale || element.minScale == 0) && 
                                         (view.scale >= element.maxScale || element.maxScale==0)){
-                                        console.log(element.title+" visible");
                                         subLayerListHeader.style.opacity="1";
                                     }else {
-                                        console.log(element.title+" hidden");
                                         subLayerListHeader.style.opacity="0.3";
                                     }
                                     // event listener for scale change
@@ -892,10 +890,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                                             if (stationary) {
                                                 if((scale <= element.minScale || element.minScale == 0) && 
                                                     (scale >= element.maxScale || element.maxScale==0)){
-                                                    //console.log(element.title+" visible");
                                                     subLayerListHeader.style.opacity="1";
                                                 }else {
-                                                    //console.log(element.title+" hidden");
                                                     subLayerListHeader.style.opacity="0.3";
                                                 }
                                             }

@@ -91,7 +91,7 @@ function addMapLayers(){
         function createLayer(layer){
             // layer could be the operational layer read from config.xml as an xml document (need to use getAttribute)
             // or event.layer (need to use layer.element)
-            console.log("Creating layer: ");
+            //console.log("Creating layer: ");
             var id,url,alpha,visible,listMode,legendEnabled;
             if (layer.id){
                 id = layer.id;
@@ -114,7 +114,7 @@ function addMapLayers(){
                 alert("Failed to load layer. layer.id and layer.getAttribute do not exist.", "Error");
                 return;
             }
-            console.log(id);
+            //console.log(id);
             
             // if already loaded return
             for (var i=0;i<view.allLayerViews.items.length;i++){
@@ -317,7 +317,7 @@ function addMapLayers(){
         }
 
         async function layerLoadHandler(event){
-            console.log(event.layer.id +" loaded in layerLoadHandler.");
+            //console.log(event.layer.id +" loaded in layerLoadHandler.");
             
             // Set the arcade context for Wildfire Incidents to print at correct size
             // the input feature's geometry is expected
@@ -425,7 +425,7 @@ function addMapLayers(){
                     }
                 }
                 
-                alert("Was able to sucessfully load: "+event.layer.id);
+                //alert("Was able to sucessfully load: "+event.layer.id);
                 event.layer.refresh;
                 
             }

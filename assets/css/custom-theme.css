@@ -1,7 +1,7 @@
 .green-theme {
-  --brand: #d4dbbe;
+  --brand: #d4dbbe; /*#79835b;*/
   --hover: #aaaf99;
-  --press: #a6af89;
+  --press:  #808864;
   --underline: #aaaf9966;
   --lightBackground: #eff3e1;
   --background: #d4dbbe;
@@ -45,5 +45,20 @@ calcite-switch {
   --calcite-color-brand-underline: var(--underline);
 }
 input{
-    border-color: light-dark(var(--press), var(--hover)) !important;
+    /*border-color: light-dark(var(--brand), var(--hover)) !important;*/
+    border-top-color: var(--brand);
+    border-left-color: var(--press);
+    border-right-color: var(--hover);
+    border-bottom-color: var(--hover);
+    border-radius: 5px !important;
+    padding: 3px;
+}
+select{
+     /*border-color: light-dark(var(--brand), var(--hover)) !important;*/
+     border-top-color: var(--brand);
+     border-left-color: var(--press);
+     border-right-color: var(--hover);
+     border-bottom-color: var(--hover);
+    border-radius: 5px !important;
+    padding: 3px;
 }
