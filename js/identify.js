@@ -664,7 +664,7 @@ function handleQueryResults(results) {
                     result.features.forEach(function(feature){
                         var layerName = "Wildfire Incidents";
                         if (feature.attributes.IncidentName) {
-                            str += "<h3 style='margin-bottom: 5px;margin-top: 5px;'>"+feature.attributes.IncidentName+"</h3><strong>"+layerName+"</strong><div style='padding-left: 10px;'>";
+                            str += "<h3 style='margin-bottom: 5px;margin-top: 5px;'>"+feature.attributes.IncidentName+"</h3><span class='idTitle'>"+layerName+"</span><div style='padding-left: 10px;'>";
                             // set the title, use the first wildfire
                             theTitle[identifyGroup] = feature.attributes.IncidentName;
                             view.popup.title = theTitle[identifyGroup];
@@ -682,9 +682,9 @@ function handleQueryResults(results) {
                                 //https link (can't do substring on a number!)
                                 if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
                                     (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) == "http"))
-                                    tmpStr = "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a><br/>";
+                                    tmpStr = "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a><br/>";
                                 else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("percent") > -1){
-                                    tmpStr =identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "%<br/>";
+                                    tmpStr = "<span class='idSubTitle'>"+ identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "%</span><br/>";
                                 }
                                 else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("updated") > -1){
                                     // subtract 6 hours from Greenwich time
@@ -700,32 +700,32 @@ function handleQueryResults(results) {
                                     if (minutes == 1) minStr = "minute";
                                     if (days >= 1) {
                                         if (hours >= 1)
-                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +days+" "+dayStr+" "+hours+" "+hourStr+" ago<br/>";
+                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +days+" "+dayStr+" "+hours+" "+hourStr+" ago</span><br/>";
                                         else
-                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +days+" "+dayStr+" ago<br/>";
+                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +days+" "+dayStr+" ago</span><br/>";
                                     } else if (hours >= 1){
                                         if (minutes >= 1)
-                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +hours+" "+hourStr+" "+minutes+" "+minStr+" ago<br/>";
+                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +hours+" "+hourStr+" "+minutes+" "+minStr+" ago</span><br/>";
                                         else
-                                            tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " +hours+" "+hourStr+" ago<br/>";
+                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +hours+" "+hourStr+" ago</span><br/>";
                                     } else
-                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": "+minutes+" "+minStr+" ago<br/>";
+                                        tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>"+minutes+" "+minStr+" ago</span><br/>";
                                 }
                                 else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("date") > -1){
                                     d = new Date(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
-                                    tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + (d.getMonth()+1) + "/"+ d.getDate() +"/"+ d.getFullYear() +"<br/>";
+                                    tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + (d.getMonth()+1) + "/"+ d.getDate() +"/"+ d.getFullYear() +"</span><br/>";
                                 }
                                 else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("acre") > -1 ||
                                     identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("size") > -1 ||
                                     identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("final") > -1 ||
                                     identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("burned") > -1 ){
                                     if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] >= 1)
-                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + numberWithCommas(Math.round(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]])) + " Acres<br/>";
+                                        tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + numberWithCommas(Math.round(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]])) + " Acres</span><br/>";
                                     else
-                                        tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + numberWithCommas(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(2)) + " Acres<br/>";
+                                        tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + numberWithCommas(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(2)) + " Acres</span><br/>";
                                 }
                                 else {
-                                    tmpStr = identifyLayers[identifyGroup][layerName].displaynames[i] + ": " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "<br/>";
+                                    tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</span><br/>";
                                 }
                             }
                         
@@ -746,7 +746,7 @@ function handleQueryResults(results) {
                     view.popup.title = "No Wildfires";
                     groupContent[identifyGroup] = "No wildfires at this point."; // cache 
                 }else {
-                    str += "Inciweb: <a href='https://inciweb.wildfire.gov/state/colorado' target='_blank'>https://inciweb.wildfire.gov/state/colorado</a><br/>";
+                    str += "<span class='idSubTitle'>Inciweb: </span><a href='https://inciweb.wildfire.gov/state/colorado' class='idSubValue' target='_blank'>https://inciweb.wildfire.gov/state/colorado</a><br/>";
                     groupContent[identifyGroup] = str; // cache content
                     displayInfoWindow(str);
                 }
@@ -791,7 +791,7 @@ function handleQueryResults(results) {
                                         return function() {
                                             if (XMLHttpRequestObjects[arrIndex].readyState == 4) {
                                                 if (XMLHttpRequestObjects[arrIndex].status == 200) {
-                                                    tmpStr = r.layerName + "</strong><div style='padding-left: 10px;'>";
+                                                    tmpStr = "<span class='idTitle'>"+r.layerName + "</span><div style='padding-left: 10px;'>";
 
                                                     var xmlDoc = createXMLdoc(XMLHttpRequestObjects[arrIndex]);
                                                     // set the header
@@ -806,12 +806,12 @@ function handleQueryResults(results) {
                                                                 r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== "")) {
                                                                 if ((typeof r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] === "string") &&
                                                                     (r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].substring(0, 4) == "http"))
-                                                                tmpStr += "<a href='" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] + "' target='_blank'>" + identifyLayers[identifyGroup][r.layerName].displaynames[i] + "</a>";
+                                                                tmpStr += "<a href='" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][r.layerName].displaynames[i] + "</a>";
                                                             else {
                                                                 if ((r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].substring(0, 7) == "<a href") && (r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].indexOf("target") == -1))
-                                                                    tmpStr += identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": " + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].replace(">", " target='_blank'>");
+                                                                    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ":</span><span class='idSubValue'> " + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].replace(">", " target='_blank'>")+"</span>";
                                                                 else
-                                                                    tmpStr += identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": " + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]];
+                                                                    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ":</span><span class='idSubValue'> " + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]]+"</span>";
                                                             }
                                                             tmpStr += "<br/>";
                                                         }
@@ -823,12 +823,12 @@ function handleQueryResults(results) {
                                                                     if (xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][r.layerName].one2one_fields[j]).length > 0) {
                                                                         var one2one_field = xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][r.layerName].one2one_fields[j])[0];
                                                                         if ((one2one_field.getElementsByTagName("linkname").length > 0) && (one2one_field.getElementsByTagName("linkurl").length > 0)) {
-                                                                            tmpStr += identifyLayers[identifyGroup][r.layerName].one2one_display[j] + ": ";
-                                                                            tmpStr += "<a href='" + one2one_field.getElementsByTagName("linkurl")[0].firstChild.nodeValue + "'>" + one2one_field.getElementsByTagName("linkname")[0].firstChild.nodeValue + "</a>";
+                                                                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].one2one_display[j] + ": </span>";
+                                                                            tmpStr += "<a href='" + one2one_field.getElementsByTagName("linkurl")[0].firstChild.nodeValue + "' class='idSubValue'>" + one2one_field.getElementsByTagName("linkname")[0].firstChild.nodeValue + "</a>";
                                                                             tmpStr += "<br/>";
                                                                         } else if (one2one_field.childNodes.length > 0) {
-                                                                            tmpStr += identifyLayers[identifyGroup][r.layerName].one2one_display[j] + ": ";
-                                                                            tmpStr += one2one_field.childNodes[0].nodeValue;
+                                                                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].one2one_display[j] + ": </span>";
+                                                                            tmpStr += "<span class='idSubValue'>"+one2one_field.childNodes[0].nodeValue+"</span>";
                                                                             tmpStr += "<br/>";
                                                                         }
                                                                     }
@@ -838,15 +838,15 @@ function handleQueryResults(results) {
                                                             if (typeof identifyLayers[identifyGroup][r.layerName].one2many_fields != "undefined") {
                                                                 for (j = 0; j < identifyLayers[identifyGroup][r.layerName].one2many_fields.length; j++) {
                                                                     var one2many = xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][r.layerName].one2many_fields[j]);
-                                                                    tmpStr += identifyLayers[identifyGroup][r.layerName].displaynames[0] + ":<ul style='margin-top: 0px; margin-bottom: 0px;'>";
+                                                                    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[0] + ":</span><ul style='margin-top: 0px; margin-bottom: 0px;'>";
                                                                     for (var h = 0; h < one2many.length; h++) {
                                                                         //if (typeof one2many[h].children[0] != "undefined" && one2many[h].children[0].nodeName == "linkname" && one2many[h].children[1].nodeName == "linkurl") {
                                                                         if ((one2many[h].getElementsByTagName("linkname").length > 0) && (one2many[h].getElementsByTagName("linkurl").length > 0)) {
-                                                                            tmpStr += "<li><a href='" + one2many[h].getElementsByTagName("linkurl")[0].firstChild.nodeValue + "' target='_blank'>" + one2many[h].getElementsByTagName("linkname")[0].firstChild.nodeValue + "</a></li>";
+                                                                            tmpStr += "<li><a href='" + one2many[h].getElementsByTagName("linkurl")[0].firstChild.nodeValue + "' class='idSubValue' target='_blank'>" + one2many[h].getElementsByTagName("linkname")[0].firstChild.nodeValue + "</a></li>";
                                                                         }
                                                                         // No html links, linkname and linkurl tags not used in returned XML
                                                                         else {
-                                                                            tmpStr += "<li>" + one2many[h].childNodes[0].nodeValue + "</li>";
+                                                                            tmpStr += "<li class='idSubValue'>" + one2many[h].childNodes[0].nodeValue + "</li>";
                                                                         }
                                                                     }
                                                                     tmpStr += "</ul style='margin-bottom: 0px; margin-top: 0px;'>";
@@ -859,8 +859,7 @@ function handleQueryResults(results) {
                                                     // don't add it twice, but add it to the features geometry array
                                                     if (str.indexOf(tmpStr) == -1) {
                                                         // highlight polygon/point on mouse over, hide highlight on mouse out
-                                                        str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
-                                                        //str += "<div><strong>" + tmpStr;
+                                                        str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'>"+tmpStr;
                                                         groupContent[identifyGroup] = str; // cache content
                                                     }
                                                     features.push(r.feature);
@@ -900,7 +899,7 @@ function handleQueryResults(results) {
                             }
                             // Layer without database call
                             else {
-                                tmpStr = r.layerName + "</strong><div style='padding-left: 10px;'>";
+                                tmpStr = "<span class='idTitle'>"+ r.layerName + "</span><div style='padding-left: 10px;'>";
                                 var first = true;
                                 // set header with first field value
                                 if (r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
@@ -917,17 +916,16 @@ function handleQueryResults(results) {
                                         // can't do substring on a number!
                                         if ((typeof r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] === "string") &&
                                             (r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].substring(0, 4) == "http"))
-                                            tmpStr += "<a href='" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] + "' target='_blank'>" + identifyLayers[identifyGroup][r.layerName].displaynames[i] + "</a>";
+                                            tmpStr += "<a href='" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][r.layerName].displaynames[i] + "</a>";
                                         else
-                                            tmpStr += identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": " + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]];
+                                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": </span><span class='idSubValue'>" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]]+"</span>";
                                     }
                                 }
                                 tmpStr += "</div></div><br/>";
                                 // don't add it twice, but add it to the features geometry array
                                 if (str.indexOf(tmpStr) == -1) {
                                     // highlight polygon/point on mouse over, hide highlight on mouse out
-                                    str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
-                                    //str += "<div><strong>" + tmpStr;
+                                    str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'>"+tmpStr;
                                     groupContent[identifyGroup] = str; // cache content
                                 }
                                 features.push(r.feature);
@@ -1022,14 +1020,14 @@ function setIdentifyFooter(clickPt) {
                                     var elev = document.getElementById("idElevation");
                                     // If user clicks outsite colorado there is no data. Was throwing an error. tlb 6-28-18
                                     if (response.data.results.length == 0 || isNaN(response.data.results[0].attributes["Pixel Value"])) {
-                                        elev.innerHTML = "<strong>Elevation:</strong> data not available";
+                                        elev.innerHTML = "<span class='idTitle'>Elevation:</span> data not available";
                                         return;
                                     }
-                                    elev.innerHTML = "<strong>Elevation:</strong> " + Math.round(response.data.results[0].attributes["Pixel Value"]) + " ft, " + Math.round(response.data.results[0].attributes["Pixel Value"] * 0.3048) + " m";
+                                    elev.innerHTML = "<span class='idTitle'>Elevation:</span> " + Math.round(response.data.results[0].attributes["Pixel Value"]) + " ft, " + Math.round(response.data.results[0].attributes["Pixel Value"] * 0.3048) + " m";
                                 },
                                 function(error) {
                                     var elev = getElementById("idElevation");
-                                    elev.innerHTML = "<strong>Elevation:</strong> data not available";
+                                    elev.innerHTML = "<span class='idTitle'>Elevation:</span> data not available";
                                     hideLoading();
                                 }
 
@@ -1044,7 +1042,8 @@ function setIdentifyFooter(clickPt) {
 }
 
 function changeIdentifyGroup(sel) {
-    identifyGroup = sel.options[sel.selectedIndex].value;
+    identifyGroup = sel.innerText;
+    //identifyGroup = sel.options[sel.selectedIndex].value;
     view.popup.content = "<p align='center'>Loading...</p>";
     view.popupEnabled = false;
     features = [];
@@ -1107,52 +1106,54 @@ function customStuff(theContent){
     content += "</select></div>";*/
     
     var content = '<calcite-tabs><calcite-tab-nav slot="title-group">';
-    for (var i = 0; i < identifyGroups.length; i++) {
-        content += '<calcite-tab-title';
+    var i,j;
+    for (i = 0; i < identifyGroups.length; i++) {
+        content += '<calcite-tab-title onclick="changeIdentifyGroup(this)"';
         if (identifyGroup == identifyGroups[i]) content += " selected";
         content+= ">" + identifyGroups[i] + '</calcite-tab-title>'
     }
     content += "</calcite-tab-nav>";
 
     // content
-    for (var i = 0; i < identifyGroups.length; i++) {
+    for (i = 0; i < identifyGroups.length; i++) {
         content += "<calcite-tab";
         if (identifyGroup == identifyGroups[i]){
             content += " select='true'>";
             content += "<div style='overflow:auto;border-bottom: 1px solid #dfdfdf;padding:12px;'>"+theContent+"</div>";
+            // XY point
+            content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <span class='idTitle'>Location:</span> <input type='text' value='Loading XY...' id='idXY' disabled='true' style='padding:3px;border-radius:5px;'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;color:var(--press)'><calcite-icon aria-hidden='true' icon='copy' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon></a> <span id='copyNote'></span>";
+            content += '<div id="xycoordsDialog" title="Change Display Format" style="margin-left:25px;margin-top:10px;">';
+            content += '    <label for="idxycoords">Format: </label><select id="idxycoords" size="1" onChange="setPrj()" style="padding:3px;border-radius:5px;">';
+            // XY point format
+            //const xyValue=["mercator","dd","dms","dm","32612","32613","26912","26913","26712","26713"];
+            //const xyDisplay=["WGS84 Web Mercator","Decimal Degrees","Degrees, Minutes, Seconds","Degrees, Minutes","WGS84 UTM Zone 12N","WGS84 UTM Zone 13N","NAD83 UTM Zone 12N","NAD83 UTM Zone 13N","NAD27 UTM Zone 12N","NAD27 UTM Zone 13N"];
+            const xyValue=["dd","32613"];
+            const xyDisplay=["Decimal Degrees","NAD83 UTM Zone 13N"];
+
+            for (j=0; j<xyValue.length;j++){
+                content += '        <option value="'+xyValue[j]+'"';
+                if (settings.XYProjection === xyValue[j])content += ' selected="selected"';
+                content += '>'+xyDisplay[j]+'</option>';
+            }
+            content += '    </select>';
+            content += '</div></div>';
+            content += "<div id='idXYlocation'></div>";
+            
+            // Elevation
+            content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='altitude' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <span id='idElevation'>Loading elevation...</span></div>"
+            // Zoom To
+            //content += "<div slot='footer' style='padding:12px;display:flex'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> Zoom To</a> ";
+            // Get Directions
+            //if (driving_directions){
+            //    content += "<a href='javascript:getDirections()' style='float:left;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='vertical-align:middle;margin-right: 5px;'></span> Get Directions</a></div>";
+            //}
         } else {
             content += "><div style='overflow:auto;border-bottom: 1px solid #dfdfdf;padding:12px;'></div>";
         }
 
-        // XY point
-        content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <strong>Location:</strong> <input type='text' value='Loading XY...' id='idXY' disabled='true' style='padding:3px;border-radius:5px;'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;color:var(--press)'><calcite-icon aria-hidden='true' icon='copy' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon></a> <span id='copyNote'></span>";
-        content += '<div id="xycoordsDialog" title="Change Display Format" style="margin-left:25px;margin-top:10px;">';
-        content += '    <label for="idxycoords">Format: </label><select id="idxycoords" size="1" onChange="setPrj()" style="padding:3px;border-radius:5px;">';
-        // XY point format
-        //const xyValue=["mercator","dd","dms","dm","32612","32613","26912","26913","26712","26713"];
-        //const xyDisplay=["WGS84 Web Mercator","Decimal Degrees","Degrees, Minutes, Seconds","Degrees, Minutes","WGS84 UTM Zone 12N","WGS84 UTM Zone 13N","NAD83 UTM Zone 12N","NAD83 UTM Zone 13N","NAD27 UTM Zone 12N","NAD27 UTM Zone 13N"];
-        const xyValue=["dd","32613"];
-        const xyDisplay=["Decimal Degrees","NAD83 UTM Zone 13N"];
-
-        for (var i=0; i<xyValue.length;i++){
-            content += '        <option value="'+xyValue[i]+'"';
-            if (settings.XYProjection === xyValue[i])content += ' selected="selected"';
-            content += '>'+xyDisplay[i]+'</option>';
-        }
-        content += '    </select>';
-        content += '</div></div>';
-        content += "<div id='idXYlocation'></div>";
-        
-        // Elevation
-        content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='altitude' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <span id='idElevation'>Loading elevation...</span></div>"
-        // Zoom To
-        //content += "<div slot='footer' style='padding:12px;display:flex'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> Zoom To</a> ";
-        // Get Directions
-        //if (driving_directions){
-        //    content += "<a href='javascript:getDirections()' style='float:left;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='vertical-align:middle;margin-right: 5px;'></span> Get Directions</a></div>";
-        //}
         content += "</calcite-tab>";
     }
+    content += "</calcite-tabs>";
 
 
     // footer
