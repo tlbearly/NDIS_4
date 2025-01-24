@@ -11,7 +11,7 @@ body,
 /* Identify Styles */
 .idTitle {
   text-transform: uppercase;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 22px;
 }
 .idSubTitle{
@@ -52,6 +52,12 @@ calcite-dialog,
   border-bottom-right-radius: 12px !important;
   border-top-left-radius: 12px !important;
   border-radius: 0.75rem !important;
+}
+@media screen  and (max-width: 768px) {
+  calcite-dialog,
+  .dialog {
+    --calcite-dialog-max-size-y: 40vh;
+  }
 }
 
 calcite-panel,
@@ -97,6 +103,10 @@ calcite-panel,
   }
 }
 
+/* remove extra scroll bar on identify */
+:host.content-wrapper{
+  overflow: hidden!important;
+}
 
 /*.esri-component{
     border-radius: 12px!important;

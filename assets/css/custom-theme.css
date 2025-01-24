@@ -1,10 +1,14 @@
 .green-theme {
   --brand: #d4dbbe; /*#79835b;*/
   --hover: #aaaf99;
-  --press:  #808864;
+  --press:  #778743;
   --underline: #aaaf9966;
   --lightBackground: #eff3e1;
   --background: #d4dbbe;
+  --calcite-color-brand: var(--brand)!important;
+  --calcite-color-brand-press: var(--press);
+  --calcite-color-brand-hover: var(--hover);
+  --calcite-color-brand-underline: var(--underline);
 }
 .orange-theme{
     --brand: #e0dec8;
@@ -13,6 +17,17 @@
     --underline: #f8b94466;
     --lightBackground: #f3f3e1;
     --background: #e0dec8;
+}
+
+/* link colors */
+a:-webkit-any-link {
+    color: var(--press)!important;
+}
+a:-webkit-any-link:hover {
+    color: var(--hover)!important;
+}
+:host{
+    stroke: var(--brand);
 }
 #titleDiv{
     background-color: var(--background);
@@ -23,6 +38,9 @@
 }
 calcite-tab-title {
     --calcite-color-brand: var(--press);
+}
+calcite-tab-title:active {
+    color: var(--press);
 }
 calcite-tile {
     --calcite-color-brand: var(--press);
@@ -45,20 +63,30 @@ calcite-switch {
   --calcite-color-brand-underline: var(--underline);
 }
 input{
-    /*border-color: light-dark(var(--brand), var(--hover)) !important;*/
-    border-top-color: var(--brand);
-    border-left-color: var(--press);
-    border-right-color: var(--hover);
-    border-bottom-color: var(--hover);
+    border-color: light-dark(var(--hover), var(--brand)) !important;
     border-radius: 5px !important;
     padding: 3px;
+}
+input:active, select:hover {
+    outline-color: var(--hover)
 }
 select{
-     /*border-color: light-dark(var(--brand), var(--hover)) !important;*/
-     border-top-color: var(--brand);
-     border-left-color: var(--press);
-     border-right-color: var(--hover);
-     border-bottom-color: var(--hover);
+    border-color: light-dark(var(--hover), var(--brand)) !important;
     border-radius: 5px !important;
+    border-width: 2px;
     padding: 3px;
 }
+button,
+    textarea,
+    input,
+    select,
+    a{
+     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+     -webkit-tap-highlight-color: transparent;
+     -webkit-user-select: none;
+     -khtml-user-select: none;
+     -moz-user-select: none;
+     -ms-user-select: none;
+      user-select: none;
+    
+    }

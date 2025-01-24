@@ -104,7 +104,7 @@ function getCookie(cname) {
         setTimeout(function(){
           copyText.style.backgroundColor = "light-dark(rgba(239, 239, 239, 0.3), rgba(59, 59, 59, 0.3))";
             //document.getElementById("copyNote").innerHTML = "";
-        }, 2000);
+        }, 1000);
 
     }
     

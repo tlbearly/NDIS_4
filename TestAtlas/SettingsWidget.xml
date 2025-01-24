@@ -178,6 +178,7 @@
 	   		</layer>
 			<!-- Campground  -->
 			<layer label="Campground">
+				<!--buffer>10</buffer--><!-- list campgrounds within 10 miles of click point -->
 	    		<id>48</id>
 				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/</url>
 				<geometry>point</geometry>
@@ -186,6 +187,7 @@
 	   		</layer>
 			<!-- License Agent  -->
 			<layer label="License Agent">
+				<!--buffer>10</buffer-->
 				<id>4</id>
 				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/</url>
 				<geometry>point</geometry>
@@ -219,7 +221,7 @@
 				<displaynames>Incident Name,Updated,Discovery Date,Fire Out Date,Daily Acres,Percent Contained,Final Acres</displaynames>
 			</layer>
 			<layer label="Wildfire Perimeters">
-				<id>0</id>
+				<id>1</id>
 				<url>https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1</url>
 				<geometry>polygon</geometry>
 				<fields>IncidentName,GISAcres</fields>

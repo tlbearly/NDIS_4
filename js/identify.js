@@ -1,7 +1,7 @@
 //***********
 // Identify
 //***********
-var identifyParams = null;
+//var identifyParams = null;
 var identify = null;
 var tasks;
 var clickPoint;
@@ -23,12 +23,13 @@ var tooManyRequests = false;
 var firstClick = false; // 4-1-22
 var secondClick = false; // 4-1-22
 var lastIdentifyTime=0; // 4-1-22
-require(["esri/rest/support/IdentifyParameters", "esri/rest/identify", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleFillSymbol", "esri/symbols/PictureMarkerSymbol"
-], function(IdentifyParameters, Identify, SimpleLineSymbol, SimpleFillSymbol, PictureMarkerSymbol) {
+//"esri/rest/support/IdentifyParameters",
+require(["esri/rest/identify"
+], function(Identify) {
     //setup generic identify parameters
-    identifyParams = new IdentifyParameters();
-    identifyParams.returnGeometry = true;
-    identifyParams.layerOption = "all"; // top, visible, all, popup
+    //identifyParams = new IdentifyParameters();
+    //identifyParams.returnGeometry = true;
+    //identifyParams.layerOption = "all"; // top, visible, all, popup
    
     identify = Identify;
 
@@ -48,7 +49,7 @@ require(["esri/rest/support/IdentifyParameters", "esri/rest/identify", "esri/sym
 function readSettingsWidget() {
     // Read the SettingsWidget.xml file
     var xmlhttp = createXMLhttpRequest();
-    var settingsFile = app + "/SettingsWidget.xml?v=" + ndisVer;
+    var settingsFile = app + "/SettingsWidget.xml?v=" + Date.now(); //+ ndisVer;
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             try {
@@ -181,41 +182,82 @@ function readSettingsWidget() {
                             if (!layer[i].getElementsByTagName("url")[0] || !layer[i].getElementsByTagName("id")[0])
                                 alert("Error in " + app + "/SettingsWidget.xml. Missing url or id in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                             else {
+                                // build array of unique buffer radius, id_vis_only, url, and geometry. These layers can be called all at once in identify. Query will need to call each layer indepently.
                                 for (var j = 0; j < identifyLayerIds[identifyGroups[f]].length; j++) {
+                                    // Buffer points and
                                     // Identify only visible layers. Each layer in this folder in SettingsWidget.xml must have a vis_id and vis_url tags
                                     if ((folder[f].getAttribute("id_vis_only") && folder[f].getAttribute("id_vis_only").toLowerCase() == "true") &&
+                                        layer[i].getElementsByTagName("buffer")[0] !== undefined &&
+                                        identifyLayerIds[identifyGroups[f]][j].buffer == parseFloat(layer[i].getElementsByTagName("buffer")[0].childNodes[0].nodeValue) &&  
                                         identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
                                         identifyLayerIds[identifyGroups[f]][j].vis_url == layer[i].getElementsByTagName("vis_url")[0].childNodes[0].nodeValue &&
                                         identifyLayerIds[identifyGroups[f]][j].geometry == layer[i].getElementsByTagName("geometry")[0].childNodes[0].nodeValue.toLowerCase()) {
                                             identifyLayerIds[identifyGroups[f]][j].ids.push(layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue);
                                             identifyLayerIds[identifyGroups[f]][j].vis_ids.push(layer[i].getElementsByTagName("vis_id")[0].childNodes[0].nodeValue);
+                                            identifyLayerIds[identifyGroups[f]][j].labels.push(layer[i].getAttribute("label"));
                                             found = true;
-                                    } else if (identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
+                                    } 
+                                    // Buffer points
+                                    // Identify visible and hidden layers
+                                    else if (layer[i].getElementsByTagName("buffer")[0] !== undefined &&
+                                        identifyLayerIds[identifyGroups[f]][j].buffer == parseFloat(layer[i].getElementsByTagName("buffer")[0].childNodes[0].nodeValue) &&  
+                                        identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
                                         identifyLayerIds[identifyGroups[f]][j].geometry == layer[i].getElementsByTagName("geometry")[0].childNodes[0].nodeValue.toLowerCase()) {
                                             identifyLayerIds[identifyGroups[f]][j].ids.push(layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue);
+                                            identifyLayerIds[identifyGroups[f]][j].labels.push(layer[i].getAttribute("label"));
                                             found = true;
                                     }
+                                    // Do not buffer points and
+                                    // Identify only visible layers. Each layer in this folder in SettingsWidget.xml must have a vis_id and vis_url tags
+                                    else if (layer[i].getElementsByTagName("buffer")[0] === undefined && !identifyLayerIds[identifyGroups[f]][j].buffer &&
+                                        (folder[f].getAttribute("id_vis_only") && folder[f].getAttribute("id_vis_only").toLowerCase() == "true") &&
+                                        identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
+                                        identifyLayerIds[identifyGroups[f]][j].vis_url == layer[i].getElementsByTagName("vis_url")[0].childNodes[0].nodeValue &&
+                                        identifyLayerIds[identifyGroups[f]][j].geometry == layer[i].getElementsByTagName("geometry")[0].childNodes[0].nodeValue.toLowerCase()) {
+                                            identifyLayerIds[identifyGroups[f]][j].ids.push(layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue);
+                                            identifyLayerIds[identifyGroups[f]][j].vis_ids.push(layer[i].getElementsByTagName("vis_id")[0].childNodes[0].nodeValue);
+                                            identifyLayerIds[identifyGroups[f]][j].labels.push(layer[i].getAttribute("label"));
+                                            found = true;
+                                    }
+                                    // Do not buffer points
+                                    // Identify visible and hidden layers
+                                    else if (layer[i].getElementsByTagName("buffer")[0] === undefined && !identifyLayerIds[identifyGroups[f]][j].buffer &&
+                                        identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
+                                        identifyLayerIds[identifyGroups[f]][j].geometry == layer[i].getElementsByTagName("geometry")[0].childNodes[0].nodeValue.toLowerCase()) {
+                                            identifyLayerIds[identifyGroups[f]][j].ids.push(layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue);
+                                            identifyLayerIds[identifyGroups[f]][j].labels.push(layer[i].getAttribute("label"));
+                                            found = true;
+                                    } 
                                 }
                             }
                             if (!found) {
-                                // url was not found in list, add it
+                                // url was not found in list, add it. It had unique values for buffer, id_vis_only, url, and geometry
                                 if (!layer[i].getElementsByTagName("url")[0] || !layer[i].getElementsByTagName("id")[0])
                                     alert("Error in " + app + "/SettingsWidget.xml. Missing url or id in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else {
                                     // Add id_vis_only for layer identify option LAYER_OPTION_ALL or LAYER_OPTION_VISIBLE at the folder level 1-9-18
                                     var vis_url = null,
                                         vis_ids = [];
+                                    
                                     if (folder[f].getAttribute("id_vis_only") && folder[f].getAttribute("id_vis_only").toLowerCase() == "true") {
                                         vis_url = layer[i].getElementsByTagName("vis_url")[0].childNodes[0].nodeValue;
                                         vis_ids.push(layer[i].getElementsByTagName("vis_id")[0].childNodes[0].nodeValue);
                                     }
+
+                                    // buffer point by x miles TODO***********************
+                                    var buffer = null; // buffer distance around point
+                                    if(layer[i].getElementsByTagName("buffer")[0] !== undefined)
+                                        buffer = parseFloat(layer[i].getElementsByTagName("buffer")[0].innerHTML);
+
                                     identifyLayerIds[identifyGroups[f]].push({
                                         url: layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue,
                                         ids: new Array(layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue),
                                         geometry: layer[i].getElementsByTagName("geometry")[0].childNodes[0].nodeValue.toLowerCase(),
                                         id_vis_only: folder[f].getAttribute("id_vis_only") && folder[f].getAttribute("id_vis_only").toLowerCase() == "true" ? true : false,
                                         vis_url: vis_url,
-                                        vis_ids: vis_ids
+                                        vis_ids: vis_ids,
+                                        buffer: buffer,
+                                        labels: [layer[i].getAttribute("label")]
                                     });
                                 }
                             }
@@ -380,6 +422,7 @@ function doIdentify(evt){
         theTitle[identifyGroups[i]] = null;
     }
     clickPoint = evt.mapPoint;
+
     displayContent();
 }
 
@@ -421,29 +464,33 @@ function displayContent() {
         return;
     }
 
-    require(["esri/rest/identify", "esri/rest/query", "esri/rest/support/Query"], 
-    function(Identify, query, Query) {
+    require(["esri/rest/support/IdentifyParameters", "esri/rest/identify", "esri/rest/query", "esri/rest/support/Query"], 
+    function(IdentifyParameters, Identify, query, Query) {
         try{
-            identifyParams.geometry = clickPoint; 
-            identifyParams.mapExtent = view.extent;
-            identifyParams.width = view.width;
-            identifyParams.height = view.height;
-
             var skip = -1; // if id_vis_only and the top layer is hidden this will be true
 
             var deferreds = [];
+            var showIncidents = false;
             for (var i = 0; i < identifyLayerIds[identifyGroup].length; i++) {
                 var item = identifyLayerIds[identifyGroup][i];
                 if (item) {
+                    let identifyParams = new IdentifyParameters();
+                    identifyParams.returnGeometry = true;
+                    identifyParams.layerOption = "all"; // top, visible, all, popup
+                    identifyParams.geometry = clickPoint; 
+                    identifyParams.mapExtent = view.extent;
+                    identifyParams.width = view.width;
+                    identifyParams.height = view.height;
+
                     // 10-19-20 Add identify Wildfires
                     if (item.url.indexOf("Wildfire")>-1 || item.url.indexOf("WFIGS")>-1){
-                        params = new Query({
+                        let params = new Query({
                             returnGeometry: true,
                             geometry: clickPoint,
                             spatialRelationship: "intersects",
                             outSpatialReference: map.spatialReference
                         });
-                        if (identifyLayers[identifyGroup]["Wildfire Incidents"] && identifyLayers[identifyGroup]["Wildfire Incidents"].url === item.url){
+                        if (!showIncidents && identifyLayers[identifyGroup]["Wildfire Incidents"] && identifyLayers[identifyGroup]["Wildfire Incidents"].url === item.url){
                             params.outFields = identifyLayers[identifyGroup]["Wildfire Incidents"].fields;
                             if (view.scale <= 36112)
 								params.distance = 0.25;
@@ -456,6 +503,7 @@ function displayContent() {
 							else
 								params.distance = 10;
                             params.units = "miles";
+                            showIncidents = true;
                         }
                         else if (identifyLayers[identifyGroup]["Wildfire Perimeters"] && identifyLayers[identifyGroup]["Wildfire Perimeters"].url === item.url){
                             params.outFields = identifyLayers[identifyGroup]["Wildfire Perimeters"].fields;
@@ -464,9 +512,41 @@ function displayContent() {
                             alert("In SettingsWidget.xml tag Wildfire folder, must contain layers with the following names: Wildfire Incidents or Wildfire Perimeters.", "Data Error");
                         skip = true;
                         deferreds.push(new Promise((identifySuccess, handleQueryError) => {
-                            query.executeQueryJSON(item.url, params).then(identifySuccess).catch(handleQueryError);
+                            query.executeQueryJSON(item.url, params) //.then(identifySuccess).catch(handleQueryError);
+                            .then((response) => {
+                                if (response.results)
+                                    identifySuccess(response.results);
+                                else
+                                    identifySuccess(response);
+                            })
+                            .catch(handleQueryError);
                         }));
                         //deferreds.push(query.executeQueryJSON(item.url, params).then(identifySuccess).catch(handleQueryError));
+                        continue;
+                    }
+                    if (item.buffer){
+                        let params = new Query({
+                            returnGeometry: true,
+                            geometry: clickPoint,
+                            spatialRelationship: "intersects",
+                            outSpatialReference: map.spatialReference
+                        });
+                        for (var j=0; j<identifyLayerIds[identifyGroup][i].ids.length; j++){
+                            params.outFields = identifyLayers[identifyGroup][identifyLayerIds[identifyGroup][i].labels[j]].fields;
+                            params.distance = parseFloat(item.buffer);
+                            params.units = "miles";
+                            skip = true;
+                            deferreds.push(new Promise((identifySuccess, handleQueryError) => {
+                                query.executeQueryJSON(item.url+"/"+identifyLayerIds[identifyGroup][i].ids[j], params)
+                                .then((response) => {
+                                    if (response.results)
+                                        identifySuccess(response.results);
+                                    else
+                                        identifySuccess(response);
+                                })
+                                .catch(handleQueryError);
+                            }));
+                        }
                         continue;
                     }
                                         
@@ -530,7 +610,8 @@ function displayContent() {
                     // remove Big Game GMU if this is identifying Bighorn or Goat GMU
                     if (settings.elkUrl && item.url == settings.elkUrl.slice(0, settings.elkUrl.lastIndexOf("/") + 1) && gmu != "Big Game GMU") {
                         // Find the index to the layerId for Big Game GMU and remove it from the layer ids.
-                        var index = identifyParams.layerIds.indexOf(settings.elkUrl.slice(settings.elkUrl.lastIndexOf("/") + 1));
+                        var elkID = parseInt(settings.elkUrl.slice(settings.elkUrl.lastIndexOf("/") +1));
+                        var index = identifyParams.layerIds.indexOf(elkID);
                         if (index > -1) identifyParams.layerIds.splice(index, 1);
                     }
                     if (identifyParams.layerIds.length == 0) skip = true;
@@ -550,8 +631,15 @@ function displayContent() {
                 }
             }
             // Add goat and sheep gmus
-            if (identifyGroup === "GMU and Land Management") {
+            if (identifyGroup === "Hunter Resources") { // ***************** TODO which group is GMU in?????? GMU and Land Management") {
                 if (gmu == "Bighorn GMU") {
+                    let identifyParams = new IdentifyParameters();
+                    identifyParams.returnGeometry = true;
+                    identifyParams.layerOption = "all"; // top, visible, all, popup
+                    identifyParams.geometry = clickPoint; 
+                    identifyParams.mapExtent = view.extent;
+                    identifyParams.width = view.width;
+                    identifyParams.height = view.height;
                     identifyParams.tolerance = 1;
                     identifyParams.layerIds = [settings.sheepUrl.slice(settings.sheepUrl.lastIndexOf("/") + 1)];
                     deferreds.push(new Promise((identifySuccess, handleQueryError) => {
@@ -566,6 +654,13 @@ function displayContent() {
                     }));
                     //deferreds.push(Identify.identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
                 } else if (gmu == "Goat GMU") {
+                    let identifyParams = new IdentifyParameters();
+                    identifyParams.returnGeometry = true;
+                    identifyParams.layerOption = "all"; // top, visible, all, popup
+                    identifyParams.geometry = clickPoint; 
+                    identifyParams.mapExtent = view.extent;
+                    identifyParams.width = view.width;
+                    identifyParams.height = view.height;
                     identifyParams.tolerance = 1;
                     identifyParams.layerIds = [settings.goatUrl.slice(settings.goatUrl.lastIndexOf("/") + 1)];
                     deferreds.push(new Promise((identifySuccess, handleQueryError) => {
@@ -663,6 +758,7 @@ function handleQueryResults(results) {
                     if (result.features.length > 0) noData = false;
                     result.features.forEach(function(feature){
                         var layerName = "Wildfire Incidents";
+                        if (feature.geometry.type === "polygon") layerName = "Wildfire Perimeters";
                         if (feature.attributes.IncidentName) {
                             str += "<h3 style='margin-bottom: 5px;margin-top: 5px;'>"+feature.attributes.IncidentName+"</h3><span class='idTitle'>"+layerName+"</span><div style='padding-left: 10px;'>";
                             // set the title, use the first wildfire
@@ -772,7 +868,9 @@ function handleQueryResults(results) {
             }
 
             // Write the content for the identify 
+            var countResults = -1;
             results.forEach(function(result) {
+                countResults++; // to get result layerName for buffered points
                 if (result.length > 0) {
                     result.forEach(function(r) {
                         var feature = r.feature;
@@ -854,12 +952,12 @@ function handleQueryResults(results) {
                                                             }
                                                         }
                                                     }
-                                                    tmpStr += "</div><br/>";
                                                     processedDatabaseCalls++;
                                                     // don't add it twice, but add it to the features geometry array
                                                     if (str.indexOf(tmpStr) == -1) {
                                                         // highlight polygon/point on mouse over, hide highlight on mouse out
-                                                        str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'>"+tmpStr;
+                                                        //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"<div>";
+                                                        str += tmpStr+"</div><br/>";
                                                         groupContent[identifyGroup] = str; // cache content
                                                     }
                                                     features.push(r.feature);
@@ -921,16 +1019,37 @@ function handleQueryResults(results) {
                                             tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": </span><span class='idSubValue'>" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]]+"</span>";
                                     }
                                 }
-                                tmpStr += "</div></div><br/>";
                                 // don't add it twice, but add it to the features geometry array
                                 if (str.indexOf(tmpStr) == -1) {
                                     // highlight polygon/point on mouse over, hide highlight on mouse out
-                                    str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'>"+tmpStr;
+                                    //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div>";
+                                    // needed if not using highlight
+                                    str += tmpStr+"</div><br/>";
                                     groupContent[identifyGroup] = str; // cache content
                                 }
                                 features.push(r.feature);
                             }
                         }
+                    });
+                }
+                // buffered point Query not Identify
+                else if (result.features && result.features.length > 0) {
+                    noData = false;
+                    result.features.forEach(function(feature){
+                        // Get distance from click point to feature
+                        require(["esri/geometry/Point","esri/geometry/support/geodesicUtils"],
+                            function (Point, geodesicUtils){
+                            var pt2 = new Point(feature.geometry.x, feature.geometry.y, map.spatialReference);
+                            const join = geodesicUtils.geodesicDistance
+                            (
+                                new Point({ x: clickPoint.longitude, y: clickPoint.latitude }),
+                                new Point({ x: pt2.longitude, y: pt2.latitude }),
+                                "miles"
+                            );
+                            const { distance, azimuth } = join;
+                            console.log("Campground: "+feature.attributes['name']+" Distance: ", distance, ", Direction: ", azimuth);
+                        });  
+                        
                     });
                 }
             });
@@ -1091,10 +1210,11 @@ function setPrj(){
 function customStuff(theContent){
     // add a drop down list and footer to the popup content
     const outerDiv = document.createElement("div");
-    outerDiv.style.margin = "-12px";
+    outerDiv.style.marginLeft = "-12px";
+    outerDiv.style.marginRight = "-12px";
     //outerDiv.style.display = "grid";
     //outerDiv.style.gridTemplateRows = "min-content auto min-content";
-    outerDiv.style.height = "100%";
+    //outerDiv.style.height = "100%";
  
     // menu drop down   ******* TODO ****** change to tabs
     /*var content = "<div style='padding:12px;'><strong>Show:</strong> <select id='id_group' name='id_group' style='margin:5px;color:black;' onChange='changeIdentifyGroup(this)'>";
@@ -1118,12 +1238,12 @@ function customStuff(theContent){
     for (i = 0; i < identifyGroups.length; i++) {
         content += "<calcite-tab";
         if (identifyGroup == identifyGroups[i]){
-            content += " select='true'>";
+            content += " select='true' style='height:calc(100vh - 280px);'>";
             content += "<div style='overflow:auto;border-bottom: 1px solid #dfdfdf;padding:12px;'>"+theContent+"</div>";
             // XY point
-            content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <span class='idTitle'>Location:</span> <input type='text' value='Loading XY...' id='idXY' disabled='true' style='padding:3px;border-radius:5px;'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;color:var(--press)'><calcite-icon aria-hidden='true' icon='copy' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon></a> <span id='copyNote'></span>";
+            content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='m' style='color:var(--press);vertical-align:middle;'></calcite-icon> <span class='idTitle'>Location:</span> <input type='text' value='Loading XY...' id='idXY' disabled='true'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;color:var(--press)'><calcite-icon aria-hidden='true' icon='copy' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon></a> <span id='copyNote'></span>";
             content += '<div id="xycoordsDialog" title="Change Display Format" style="margin-left:25px;margin-top:10px;">';
-            content += '    <label for="idxycoords">Format: </label><select id="idxycoords" size="1" onChange="setPrj()" style="padding:3px;border-radius:5px;">';
+            content += '    <label for="idxycoords" class="idSubValue">Format: </label><select id="idxycoords" size="1" onChange="setPrj()">';
             // XY point format
             //const xyValue=["mercator","dd","dms","dm","32612","32613","26912","26913","26712","26713"];
             //const xyDisplay=["WGS84 Web Mercator","Decimal Degrees","Degrees, Minutes, Seconds","Degrees, Minutes","WGS84 UTM Zone 12N","WGS84 UTM Zone 13N","NAD83 UTM Zone 12N","NAD83 UTM Zone 13N","NAD27 UTM Zone 12N","NAD27 UTM Zone 13N"];
@@ -1140,7 +1260,7 @@ function customStuff(theContent){
             content += "<div id='idXYlocation'></div>";
             
             // Elevation
-            content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='altitude' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> <span id='idElevation'>Loading elevation...</span></div>"
+            content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='altitude' scale='l' style='color:var(--press);vertical-align:middle;'></calcite-icon> <span id='idElevation'>Loading elevation...</span></div>"
             // Zoom To
             //content += "<div slot='footer' style='padding:12px;display:flex'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> Zoom To</a> ";
             // Get Directions
@@ -1171,6 +1291,7 @@ function displayInfoWindow(theContent) {
     view.openPopup();
     view.popup.when(() => {
         document.getElementsByClassName("esri-popup__main-container")[0].style.marginTop = "90px"; // place below title and search
+        document.getElementsByClassName("esri-popup__main-container")[0].getElementsByClassName("esri-features__container")[0].style.overflow="hidden"; // remove double scroll bar
     });
     // wait for popup to populate header then add drop down
     /*var h = document.getElementsByClassName("esri-popup__main-container")[0];

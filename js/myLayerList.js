@@ -52,6 +52,7 @@ function myLayerList() {
 
     // Add each root layer to layer list
     for (var i = 0; i < mapLayers.length; i++) {
+        if (mapLayers[i].listMode === "hide") continue;
         const rootlayer = mapLayers[i]; // rootLayers
         const listItem = document.createElement("calcite-list-item");
         try {
@@ -76,11 +77,23 @@ function myLayerList() {
             listHeader.innerHTML = rootlayer.title; // title displayed
             listHeader.id = rootlayer.title.replace(/ /g, "_") + "_listItem";
             listHeader.slot = "actions-start";
+            listItem.appendChild(listHeader);
             listItem.value = rootlayer.title;
             //listItem.label = rootlayer.title; // duplicates the name
-            listItem.style.fontSize = "16px";
+            //listItem.style.fontSize = "16px";
+            // make the empty space in content-container clickable
+            //const listContent = document.createElement("span");
+            //listContent.innerHTML = " ";
+            //listContent.slot = "content";
+            //listItem.appendChild(listContent);
             // Open sub-dialog on click
-            listHeader.addEventListener("click", () => {
+            listItem.addEventListener("click", () => {
+                if(document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog")){
+                    document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog").open = true;
+                }
+            });
+            // Open sub-dialog on click
+            /*listHeader.addEventListener("click", () => {
                 if(document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog")){
                     document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog").open = true;
                 }
@@ -90,8 +103,7 @@ function myLayerList() {
                 if(document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog")){
                     document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog").open = true;
                 }
-            });
-            listItem.appendChild(listHeader);
+            });*/
         }catch(err){
             alert("Problem creating root layer in layer list. Layer title: "+rootlayer.title+" Error: "+err+" Message:"+err.message+" Stack:"+err.stack,"Error");
         }
@@ -247,21 +259,26 @@ function addToLayerListIfAllLoaded(layer){
     }
 }
 
+var goatFL=null,bighornFL=null; 
 function setGMU(item){
-        if (app.toLowerCase() != "huntingatlas") return;
+    // change the search widget GMU layer to ELK Bighorn or Mountain Goat
+    // display the gmu layer on the map
+        if (app.toLowerCase() != "huntingatlas" && app.toLowerCase() != "testatlas") return;
         // set gmu species && display GMU layer
-        if (item.title === "Bighorn" && item.visible == true) {
+        var gmuIndex = findGMUIndex();
+        if (item.title === "Bighorn Sheep") {
           gmu = "Bighorn GMU";
 
           // switch searchWidget GMU layer to Bighorn GMUs
           // find the index of the Find a Place GMUs
-          if (gmuIndex == -1) {
-            gmuIndex = findGMUIndex();
-          }
           if (gmuIndex != -1) {
-            var bighornFL = new FeatureLayer({
-              url: settings.sheepUrl
-            });
+            if (!bighornFL){
+                require(["esri/layers/FeatureLayer"], function(FeatureLayer){
+                    bighornFL = new FeatureLayer({
+                        url: settings.sheepUrl
+                    });
+                });
+            }
             searchWidget.sources.items[gmuIndex].layer = bighornFL;
             searchWidget.sources.items[gmuIndex].searchFields = [settings.sheepField];
             searchWidget.sources.items[gmuIndex].displayField = settings.sheepField;
@@ -270,16 +287,17 @@ function setGMU(item){
             searchWidget.sources.items[gmuIndex].placeholder = "Search Bighorn GMUs";
           }
         }
-        else if (item.title === "Mountain Goat" && item.visible == true) {
+        else if (item.title === "Mountain Goat") {
           gmu = "Goat GMU";
           // find the index of the Find a Place GMUs
-          if (gmuIndex == -1) {
-            gmuIndex = findGMUIndex();
-          }
           if (gmuIndex != -1) {
-            var goatFL = new FeatureLayer({
-              url: settings.goatUrl
-            });
+            if (!goatFL){
+                require(["esri/layers/FeatureLayer"], function(FeatureLayer){
+                    goatFL = new FeatureLayer({
+                        url: settings.goatUrl
+                    });
+                });
+            }
             searchWidget.sources.items[gmuIndex].layer = goatFL;
             searchWidget.sources.items[gmuIndex].searchFields = [settings.goatField];
             searchWidget.sources.items[gmuIndex].displayField = settings.goatField;
@@ -291,14 +309,8 @@ function setGMU(item){
         else {
           gmu = "Big Game GMU";
           // find the index of the Find a Place GMUs
-          if (gmuIndex == -1) {
-            gmuIndex = findGMUIndex();
-          }
           if (gmuIndex != -1) {
-            var elkFL = new FeatureLayer({
-              url: settings.elkUrl
-            });
-            searchWidget.sources.items[gmuIndex].layer = elkFL;
+            searchWidget.sources.items[gmuIndex].layer = gmuFL;
             searchWidget.sources.items[gmuIndex].searchFields = [settings.elkField];
             searchWidget.sources.items[gmuIndex].displayField = settings.elkField;
             searchWidget.sources.items[gmuIndex].outFields = [settings.elkField];
@@ -350,7 +362,6 @@ function setGMU(item){
           }
           return true; // Hunter Reference not found yet
         });
-
 }
 
 // Add Sublayer Dialogs once the layer has loaded
@@ -494,6 +505,11 @@ function layerListAddSublayerDialogs(event,theLayer){
                     selectedItem = species.title;
                     radioGroup.parentNode.placeholder = selectedItem;
                     radioGroup.parentNode.open = false;
+                    // Updates identify for the correct GMU layer
+                    //if (selectedItem === "Bighorn Sheep") gmu = "Bighorn GMU";
+                    //else if (selectedItem === "Mountain Goat") gmu = "Goat GMU";
+                    //else gmu = "Big Game GMU";
+                    setGMU(species); // update search widget and map
                 });
                 radioGroup.appendChild(radio); 
             });
@@ -503,32 +519,33 @@ function layerListAddSublayerDialogs(event,theLayer){
             block.heading = "Layer Descriptions:";
             block.headingLevel = hLevel;
             block.setAttribute("collapsible", true);
-            // Add print button
-            var printBtn = document.createElement("calcite-icon");
-            printBtn.icon = "print";
-            printBtn.style.padding = "15px 10px";
-            printBtn.slot = "actions-end";
-            printBtn.scale = "s";
-            printBtn.addEventListener("click", function (event) {
-                window.open("layer-desc/layer-description.html","_blank");// + selectedItem + ".html", "_blank");
-            });
-            block.appendChild(printBtn);
+            
             
             // Description
             var notice = document.createElement("calcite-notice");
             notice.open = true;
-            notice.style.overflowY = "auto";
+            //notice.style.overflowY = "auto";
             notice.style.height = "auto";
             notice.style.padding="0";
             var iframe1 = document.createElement("iframe");
             iframe1.style.height = "300px"; 
             iframe1.style.width = "100%";
             iframe1.slot="message";
-            iframe1.src = "layer-desc/layer-description.html";// + selectedItem + ".html";
+            iframe1.src = "layer-desc/" + selectedItem + ".html";
             iframe1.setAttribute("frameborder",0);
             //iframe.style.border = "none";
             iframe1.style.margin = "0";
             iframe1.title = "Description of " + selectedItem + " map layer(s)";
+            // Add magnify button
+            var printBtn = document.createElement("calcite-icon");
+            printBtn.icon = "search";
+            printBtn.style.padding = "0";
+            printBtn.slot = "title";
+            printBtn.scale = "m";
+            printBtn.addEventListener("click", function (event) {
+                window.open("layer-desc/" + selectedItem + ".html", "_blank");
+            });
+            notice.appendChild(printBtn);
             notice.appendChild(iframe1);
             block.appendChild(notice);
 
@@ -658,41 +675,36 @@ function layerListAddSublayerDialogs(event,theLayer){
                 block.heading = "Layer Descriptions:";
                 block.headingLevel = hLevel;
                 block.setAttribute("collapsible", true);
-                //block.iconEnd = "print";
 
                 var notice = document.createElement("calcite-notice");
                 notice.open = true;
                 //notice.style.overflowY = "auto";
                 //notice.style.height = "auto";
                 //notice.style.maxHeight = "300px";
+                notice.style.padding="0";
                 notice.description = layer.title;
                 block.appendChild(notice);
-                // Add print button
-                var printBtn = document.createElement("calcite-icon");
-                printBtn.icon = "print";
-                printBtn.style.padding = "15px 10px";
-                printBtn.slot = "actions-end";
-                printBtn.scale = "s";
-                printBtn.addEventListener("click", function (event) {
-                    window.open("layer-desc/layer-description.pdf","_blank");// + layer.title + ".html", "_blank");
-                });
-                block.appendChild(printBtn);
 
                 // html description
-                var notice = document.createElement("calcite-notice");
-                notice.open = true;
-                notice.style.overflowY = "auto";
-                notice.style.height = "auto";
-                notice.style.padding="0";
                 var iframe1 = document.createElement("iframe");
                 iframe1.style.height = "300px"; 
                 iframe1.style.width = "100%";
                 iframe1.slot="message";
-                iframe1.src = "layer-desc/layer-description.html";// + selectedItem + ".html";
+                iframe1.src = "layer-desc/" + layer.title + ".html";
                 iframe1.setAttribute("frameborder",0);
                 //iframe.style.border = "none";
                 iframe1.style.margin = "0";
-                iframe1.title = "Description of " + selectedItem + " map layer(s)";
+                iframe1.title = "Description of " + layer.title + " map layer(s)";
+                // Add print button
+                var printBtn = document.createElement("calcite-icon");
+                printBtn.icon = "search";
+                printBtn.style.padding = "0";
+                printBtn.slot = "title";
+                printBtn.scale = "m";
+                printBtn.addEventListener("click", function (event) {
+                    window.open("layer-desc/" + layer.title + ".html", "_blank");
+                });
+                notice.appendChild(printBtn);
                 notice.appendChild(iframe1);
                 block.appendChild(notice);
 
@@ -966,4 +978,13 @@ function layerListAddSublayerDialogs(event,theLayer){
             });
         },500);
     });
+}
+function findGMUIndex() {
+    // search Find a place widget sources to find index of GMU source
+    for (var i = 0; i < searchWidget.sources.items.length; i++) {
+      if (searchWidget.sources.items[i].name.indexOf("GMUs") > -1) {
+        return i;
+      }
+    }
+    return -1;
 }

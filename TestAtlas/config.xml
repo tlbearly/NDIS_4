@@ -98,7 +98,7 @@
         <operationallayers>
 			<!--layer label="Hunter Reference" open="true" type="dynamic" visible="false" alpha="0.6"
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"/-->
-			<layer label="Base Data" open="true" type="dynamic" visible="true" alpha="1.0"
+			<layer label="Base Data" open="true" type="dynamic" visible="true" alpha="1.0" listMode="hide"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer"/>
 			<layer label="Transportation" open="true" type="dynamic" visible="false" alpha="1.0"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer"/>
@@ -106,6 +106,10 @@
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccess2025/MapServer"/>
 			<layer label="Game Species" open="true" type="dynamic" visible="false" alpha="1.0"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/GameSpecies2025/MapServer"/>
+            <layer group="Wildfire" open="false" visible="true" alpha="1" radio="false"/>
+                <layer parentGroup="Wildfire" label="Wildfire Perimeters" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
+                <layer parentGroup="Wildfire" label="Wildfire Incidents" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
+
 
 
 

@@ -21,19 +21,19 @@
  
   
   <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=7" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=12" async="true" />
   
-  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=16" async="true" />
+  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=26" async="true" />
   
   <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
 
   <script type="text/javascript" src="js/xmlUtils.js?v=1" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js" async="true"></script>
-  <script type="text/javascript" src="js/utilFuncs.js?v=9" async="true"></script>
+  <script type="text/javascript" src="js/utilFuncs.js?v=10" async="true"></script>
   <script type="text/javascript" src="js/addMapLayers.js?v=17" async="true"></script>
   <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=90" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=5" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=94" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=12" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=0" async="true"></script>
 
@@ -66,7 +66,6 @@
               }
           }
         },1000);
-        
       }, 500);
     };
   </script>
@@ -78,17 +77,17 @@
     const ndisVer = Date.now();
     // this is read from SettingsWidget.xml file in identify.js readSettingsWidget()
     var settings = {
-      elkField: "GMUID",
-      elkUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2",
-      sheepField: "BSGMU",
-      sheepUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/15",
-      goatField: "MGGMU",
-      goatUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/16"
+      //elkField: "GMUID",
+      //elkUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2",
+      //sheepField: "BSGMU",
+      //sheepUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/15",
+      //goatField: "MGGMU",
+      //goatUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/16"
     };
     var XMLHttpRequestObjects = []; // holds database call object
     var gmu = "Big Game GMU";
     var searchWidget;
-    var hideGroupSublayers = ["Emergency", "Field Office", "Chamber of Commerce or Welcome Center", "2License Agent", "Campgrounds and SWA Facilities", "GMU boundary (Hunting Units)"];
+    var hideGroupSublayers = ["Emergency", "Field Office", "Chamber of Commerce or Welcome Center", "License Agent", "Campgrounds and SWA Facilities", "GMU boundary (Hunting Units)"];
     var labelFromURL = false;
     // Protect against XSS attacks
     // preserve new lines in way point descriptions (For future changes, if we decide to add them like the Mobile version.)
@@ -344,15 +343,7 @@
         var layerList;
         var gmuIndex = -1;
 
-        function findGMUIndex() {
-          // search Find a place widget sources to find index of GMU source
-          for (var i = 0; i < searchWidget.sources.items.length; i++) {
-            if (searchWidget.sources.items[i].name.indexOf("GMUs") > -1) {
-              return i;
-            }
-          }
-          return -1;
-        }
+        
         async function defineActions(event) {
           // The event object contains an item property.
           // is is a ListItem referencing the associated layer
@@ -583,6 +574,7 @@
         //**********************
         //   Add Search Widget
         //**********************
+        var gmuFL=null;
         async function addFindPlace() {
           // Find a Place Widget ESRI default
           //define layers for boundaries
@@ -597,7 +589,8 @@
           var propertyFL = new FeatureLayer({
             url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3"
           });
-          var gmuFL = new FeatureLayer({
+          // global variable used in myLayerList.js
+          gmuFL = new FeatureLayer({
             url: settings.elkUrl //"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2"
           });
           var forestFL = new FeatureLayer({
@@ -765,9 +758,23 @@
               view.extent = newExtent;
           });
           
+         
           // Center in title div
           searchWidget.when(()=>{
-            
+            // if identify is showing close it when click on search widget
+            searchWidget.container.addEventListener("click", function(event) {
+              view.closePopup();
+            });
+
+            // change filter icon from down arrow to filter
+            searchWidget.container.children[0].querySelector(".esri-icon-down-arrow").className = "esri-icon-filter";
+            // change tool tip for filter button
+            searchWidget.container.children[0].querySelector(".esri-icon-filter").parentNode.title = "Filter search";
+            // change tool tip of submit button
+            searchWidget.container.children[0].querySelector(".esri-icon-search").parentNode.title = "Submit search";
+            // change tool tip for search input box
+            searchWidget.container.children[0].querySelector("input").title = "Search for a Colorado place or address";
+
             if (screen.width > 768) {
               searchWidget.container.style.left = "85px";
               searchWidget.container.style.position = "relative";
@@ -821,7 +828,6 @@
 <body class="green-theme">
   <calcite-loader id="loadingImg" label="Loading..." style="display:none;position:absolute;top:calc(50% - 90px);left:50%;z-index:4;"></calcite-loader>
   <div id="viewDiv"></div>
-    <div id="hiddenDiv" style="position: absolute; left:calc(100vw + 100px)"></div>
     <!-- XY Coordinate Format Dialog ***** MOVE TO IDENTIFY??? ******-->
     <div id="xycoordsDialog" title="Change Display Format" style="display:none;width:210px;">
         <select id="xycoords_combo" size="4" onChange="xycoordsDialog.hide();setCookie('xycoords',document.getElementById('xycoords_combo').value);" style="position: absolute;bottom:0">
