@@ -113,6 +113,7 @@ function readSettingsWidget() {
                     } else {
                         settings.useGMUs = false;
                     }
+                    addFindPlace();
                     driving_directions = xmlDoc.getElementsByTagName("driving_directions")[0] && xmlDoc.getElementsByTagName("driving_directions")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
                     if (driving_directions) {
                         // Add a link into the InfoWindow Actions panel

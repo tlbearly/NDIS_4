@@ -33,7 +33,8 @@
   <script type="text/javascript" src="js/addMapLayers.js?v=17" async="true"></script>
   <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
   <script type="text/javascript" src="js/myLayerList.js?v=94" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=12" async="true"></script>
+  <script type="text/javascript" src="js/mySearch.js?v=0" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=13" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=0" async="true"></script>
 
@@ -74,6 +75,7 @@
     var app = "huntingatlas";
     var map, view, mapLayers = [];
     var  queryObj;
+    var gmuFL=null; // big game gmu layer
     const ndisVer = Date.now();
     // this is read from SettingsWidget.xml file in identify.js readSettingsWidget()
     var settings = {
@@ -245,8 +247,9 @@
                   getInputArea();
               }
           });
-          addFindPlace();
-          readSettingsWidget(); // identify
+          
+          readSettingsWidget(); // identify addFindPlace needs elkUrl
+          
           addMeasure(graphicsLayer);
 
 
@@ -340,7 +343,7 @@
         // *********************************
         // Creates actions in the LayerList.
         // *********************************
-        var layerList;
+        /*var layerList;
         var gmuIndex = -1;
 
         
@@ -567,15 +570,14 @@
               title: "Legend"
             };
           }
-        }
+        }*/
 
 
 
         //**********************
         //   Add Search Widget
         //**********************
-        var gmuFL=null;
-        async function addFindPlace() {
+        /*function addFindPlace() {
           // Find a Place Widget ESRI default
           //define layers for boundaries
           var countyFL = new FeatureLayer({
@@ -793,7 +795,7 @@
             position: "top-left",
             index: 2
           });
-        }
+        }*/
 
 
         function createPrintWidget(prtDisclaimer) {
