@@ -373,6 +373,7 @@ function layerListAddSublayerDialogs(event,theLayer){
         else
             layer = theLayer;
 
+        if(layer.listMode === "hide")return;
         // Make sure all sublayers have loaded
         if (!addToLayerListIfAllLoaded(layer)) return;
 

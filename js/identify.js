@@ -163,6 +163,18 @@ function readSettingsWidget() {
                         // Description
                         if (folder[f].getElementsByTagName("desc")[0])
                             identifyLayers[identifyGroups[f]].desc = folder[f].getElementsByTagName("desc")[0].firstChild.nodeValue;
+                        
+                        // Title to use for this group's identify title
+                        if (folder[f].getAttribute("title_layer")) {
+                            identifyLayers[identifyGroups[f]].titleLayer = folder[f].getAttribute("title_layer");
+                            if (!folder[f].getAttribute("pre_title"))
+                                alert("Error in " + app + "/SettingsWidget.xml. Missing pre_title in folder: " + identifyGroups[f] + ". <folder label='' pre_title='GMU Units ' layer-title='layer name to use as identify title'>", "Data Error");
+                            else
+                            identifyLayers[identifyGroups[f]].preTitle = folder[f].getAttribute("pre_title");
+                        }
+                        else
+                        identifyLayers[identifyGroups[f]].titleLayer = null;
+
                         // Layers
                         var label = "missing label";
                         for (var i = 0; i < layer.length; i++) {
@@ -401,12 +413,8 @@ function readSettingsWidget() {
 // 6-11/24 userd to be doIdentify2
 function doIdentify(evt){
     showLoading();
-    /*if (view.popup.isShowing){
-        map.infoWindow.hide();
-        map.infoWindow.setTitle("");
-        hideLoading();
-        return;
-    }*/
+    view.graphics.removeAll();//(view.graphics.items[view.graphics.items.length-1]); // remove last marker symbol
+        
     if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Identify'});
 
     // Called for each map click or identify group change
@@ -424,10 +432,31 @@ function doIdentify(evt){
     }
     clickPoint = evt.mapPoint;
 
+    // add marker at clickpoint
+    
+    require(["esri/Graphic"], function ( Graphic) {
+        const symbol = {
+          type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
+          url: "./assets/images/pin.svg",
+          size: 24,
+          width: 24,
+          height: 24,
+          xoffset: 6,
+          yoffset: -6,
+          declaredClass: "markerColor" // does nothing!!! can add fill to svg
+        };
+        let point = new Graphic({
+          geometry: clickPoint,
+          symbol: symbol
+        });
+        view.graphics.add(point);
+
+        //view.graphics.remove(point);
+    });
     displayContent();
 }
 
-function setIdentifyHeader() {
+/*function setIdentifyHeader() {
     // Set title drop down
     // Called by displayContent on empty content and handleQueryResults
     var h = document.getElementsByClassName("esri-popup__main-container")[0];
@@ -453,7 +482,7 @@ function setIdentifyHeader() {
         h2.innerHTML = title;
         h.parentNode.insertBefore(h2, h);
     }
-}
+}*/
 
 function displayContent() {
     // Display cached content if available
@@ -737,6 +766,8 @@ function handleQueryResults(results) {
                 return;
             }
 
+            theTitle[identifyGroup] = identifyGroup;
+
             // Set info Content Header
             var tmpStr = "";
 	        var str = "";
@@ -763,8 +794,10 @@ function handleQueryResults(results) {
                         if (feature.attributes.IncidentName) {
                             str += "<h3 style='margin-bottom: 5px;margin-top: 5px;'>"+feature.attributes.IncidentName+"</h3><span class='idTitle'>"+layerName+"</span><div style='padding-left: 10px;'>";
                             // set the title, use the first wildfire
-                            theTitle[identifyGroup] = feature.attributes.IncidentName;
-                            view.popup.title = theTitle[identifyGroup];
+                            if (theTitle[identifyGroup] === identifyGroup){
+                                theTitle[identifyGroup] = feature.attributes.IncidentName;
+                                view.popup.title = theTitle[identifyGroup];
+                            }
                         }
                         var d;
                         
@@ -957,7 +990,7 @@ function handleQueryResults(results) {
                                                     // don't add it twice, but add it to the features geometry array
                                                     if (str.indexOf(tmpStr) == -1) {
                                                         // highlight polygon/point on mouse over, hide highlight on mouse out
-                                                        //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"<div>";
+                                                        //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div></div><br/>";
                                                         str += tmpStr+"</div><br/>";
                                                         groupContent[identifyGroup] = str; // cache content
                                                     }
@@ -1000,9 +1033,18 @@ function handleQueryResults(results) {
                             else {
                                 tmpStr = "<span class='idTitle'>"+ r.layerName + "</span><div style='padding-left: 10px;'>";
                                 var first = true;
-                                // set header with first field value
-                                if (r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
-                                else theTitle[identifyGroup] = r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                // set header with the layer specified in SettingsWidget.xml file or use first field value
+                                if (theTitle[identifyGroup] == identifyGroup){
+                                    if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
+                                        if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1)
+                                            theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                        // handle Bighorn and Goat GMU
+                                        else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU Unit "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                    }else {
+                                        theTitle[identifyGroup] = r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                    }
+                                }
+
                                 view.popup.title = theTitle[identifyGroup];
                                 for (i = 0; i < identifyLayers[identifyGroup][r.layerName].displaynames.length; i++) {
                                     if ((r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] &&
@@ -1023,7 +1065,7 @@ function handleQueryResults(results) {
                                 // don't add it twice, but add it to the features geometry array
                                 if (str.indexOf(tmpStr) == -1) {
                                     // highlight polygon/point on mouse over, hide highlight on mouse out
-                                    //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div>";
+                                    // str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div></div><br/>";
                                     // needed if not using highlight
                                     str += tmpStr+"</div><br/>";
                                     groupContent[identifyGroup] = str; // cache content
@@ -1210,14 +1252,10 @@ function setPrj(){
 }
 function customStuff(theContent){
     // add a drop down list and footer to the popup content
-    const outerDiv = document.createElement("div");
-    outerDiv.style.marginLeft = "-12px";
-    outerDiv.style.marginRight = "-12px";
-    //outerDiv.style.display = "grid";
-    //outerDiv.style.gridTemplateRows = "min-content auto min-content";
-    //outerDiv.style.height = "100%";
+    const outerDiv = document.createElement("calcite-tabs");
+    //outerDiv.style.marginLeft = "-12px";
+    //outerDiv.style.marginRight = "-12px";
  
-    // menu drop down   ******* TODO ****** change to tabs
     /*var content = "<div style='padding:12px;'><strong>Show:</strong> <select id='id_group' name='id_group' style='margin:5px;color:black;' onChange='changeIdentifyGroup(this)'>";
     for (var i = 0; i < identifyGroups.length; i++) {
         content += "<option";
@@ -1226,7 +1264,7 @@ function customStuff(theContent){
     }
     content += "</select></div>";*/
     
-    var content = '<calcite-tabs><calcite-tab-nav slot="title-group">';
+    var content = '<calcite-tab-nav slot="title-group">';// style="position:fixed;background-color:white;height:50px;width:444px;margin-top:-12px;padding:10px;">';
     var i,j;
     for (i = 0; i < identifyGroups.length; i++) {
         content += '<calcite-tab-title onclick="changeIdentifyGroup(this)"';
@@ -1239,10 +1277,10 @@ function customStuff(theContent){
     for (i = 0; i < identifyGroups.length; i++) {
         content += "<calcite-tab";
         if (identifyGroup == identifyGroups[i]){
-            content += " select='true' style='height:calc(100vh - 280px);'>";
-            content += "<div style='overflow:auto;border-bottom: 1px solid #dfdfdf;padding:12px;'>"+theContent+"</div>";
+            content += " select='true'>";// style='margin-top:30px;'>";// style='overflow:auto;'>";
+            content += "<div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'>"+theContent+"</div>";
             // XY point
-            content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='m' style='color:var(--press);vertical-align:middle;'></calcite-icon> <span class='idTitle'>Location:</span> <input type='text' value='Loading XY...' id='idXY' disabled='true'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;color:var(--press)'><calcite-icon aria-hidden='true' icon='copy' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon></a> <span id='copyNote'></span>";
+            content += "<div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='m' style='color:var(--press);vertical-align:middle;'></calcite-icon> <span class='idTitle'>Location:</span> <input type='text' value='Loading XY...' id='idXY' disabled='true'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;color:var(--press)'><calcite-icon aria-hidden='true' icon='copy' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon></a> <span id='copyNote'></span>";
             content += '<div id="xycoordsDialog" title="Change Display Format" style="margin-left:25px;margin-top:10px;">';
             content += '    <label for="idxycoords" class="idSubValue">Format: </label><select id="idxycoords" size="1" onChange="setPrj()">';
             // XY point format
@@ -1261,20 +1299,20 @@ function customStuff(theContent){
             content += "<div id='idXYlocation'></div>";
             
             // Elevation
-            content += "<div style='border-bottom: 1px solid #dfdfdf;padding:12px;'><calcite-icon aria-hidden='true' icon='altitude' scale='l' style='color:var(--press);vertical-align:middle;'></calcite-icon> <span id='idElevation'>Loading elevation...</span></div>"
+            content += "<div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'><calcite-icon aria-hidden='true' icon='altitude' scale='l' style='color:var(--press);vertical-align:middle;'></calcite-icon> <span id='idElevation'>Loading elevation...</span></div>"
             // Zoom To
-            //content += "<div slot='footer' style='padding:12px;display:flex'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='vertical-align:middle;margin-right: 5px;'></calcite-icon> Zoom To</a> ";
+            content += "<div style='padding:12px;'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='color:var(--press);vertical-align:middle;margin-right: 5px;'></calcite-icon><span style='color:var(--calcite-color-text-2)'> Zoom To</span></a> ";
             // Get Directions
-            //if (driving_directions){
-            //    content += "<a href='javascript:getDirections()' style='float:left;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='vertical-align:middle;margin-right: 5px;'></span> Get Directions</a></div>";
-            //}
+            if (driving_directions){
+                content += "<a href='javascript:getDirections()' style='float:left;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='color:var(--press);vertical-align:middle;margin-right: 5px;'></span><span style='color:var(--calcite-color-text-2)'> Get Directions</span></a></div>";
+            }
         } else {
-            content += "><div style='overflow:auto;border-bottom: 1px solid #dfdfdf;padding:12px;'></div>";
+            content += "><div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'></div>"; //overflow:auto;
         }
 
         content += "</calcite-tab>";
     }
-    content += "</calcite-tabs>";
+    //content += "</calcite-tabs>";
 
 
     // footer
@@ -1292,7 +1330,7 @@ function displayInfoWindow(theContent) {
     view.openPopup();
     view.popup.when(() => {
         document.getElementsByClassName("esri-popup__main-container")[0].style.marginTop = "90px"; // place below title and search
-        document.getElementsByClassName("esri-popup__main-container")[0].getElementsByClassName("esri-features__container")[0].style.overflow="hidden"; // remove double scroll bar
+       // document.getElementsByClassName("esri-popup__main-container")[0].getElementsByClassName("esri-features__container")[0].style.overflow="hidden"; // remove double scroll bar
     });
     // wait for popup to populate header then add drop down
     /*var h = document.getElementsByClassName("esri-popup__main-container")[0];

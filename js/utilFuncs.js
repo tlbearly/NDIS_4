@@ -518,18 +518,20 @@ function addTempLabel(point, label, fontSize, shouldFade) {
     // called by Identify highlight
     require(["esri/geometry/Polyline", "esri/Graphic"],
         function (Polyline, Graphic) {
-        /*const polySymbol = {
+        const lineSymbol = {
             type: "simple-line",  // autocasts as SimpleLineSymbol()
             color: [0,255,255], //[226, 119, 40],
-            width: 3
-        }*/
+            width: 4,
+            style: "dot"
+        }
+        
         const line = new Polyline({
             paths: feature.geometry.paths,
             spatialReference: feature.geometry.spatialReference
         });
         const lineGraphic = new Graphic({
             geometry: line,
-            symbol: polySymbol
+            symbol: lineSymbol
         });
         view.graphics.add(lineGraphic);
         if (arguments.length == 1){

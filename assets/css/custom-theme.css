@@ -25,6 +25,11 @@ a:-webkit-any-link {
 }
 a:-webkit-any-link:hover {
     color: var(--hover)!important;
+    font-weight: 450;
+}
+/* identify marker symbol color */
+.markerColor {
+    fill: var(--press);
 }
 :host{
     stroke: var(--brand);
@@ -76,6 +81,7 @@ select{
     border-width: 2px;
     padding: 3px;
 }
+/* try to get rid of blue border on selected button */
 button,
     textarea,
     input,

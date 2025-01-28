@@ -21,20 +21,20 @@
  
   
   <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=12" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=13" async="true" />
   
-  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=26" async="true" />
+  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=29" async="true" />
   
   <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
 
   <script type="text/javascript" src="js/xmlUtils.js?v=1" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js" async="true"></script>
-  <script type="text/javascript" src="js/utilFuncs.js?v=10" async="true"></script>
+  <script type="text/javascript" src="js/utilFuncs.js?v=11" async="true"></script>
   <script type="text/javascript" src="js/addMapLayers.js?v=17" async="true"></script>
   <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=94" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=95" async="true"></script>
   <script type="text/javascript" src="js/mySearch.js?v=0" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=13" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=16" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=0" async="true"></script>
 
@@ -161,6 +161,11 @@
           extent: initExtent,
           container: "viewDiv", // Div element
           extent: initExtent,
+          highlightOptions: { // for Identify not working!!!!!
+            color: [255, 255, 0, 1],
+            haloOpacity: 0.9,
+            fillOpacity: 0.2
+          },
           popup: {
             dockEnabled: true,
             //collapseEnabled: false,
@@ -171,6 +176,7 @@
               breakpoint: false,
               position: "top-left"
             },
+            highlightEnabled:true, // not working!!!!!!
             visibleElements: {
               collapseButton: false
             }

@@ -131,7 +131,7 @@
 	<elevation_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Elevation/MapServer</elevation_url>
 	
 	<tree>
-		<folder label="Hunter Resources">
+		<folder label="Hunter Resources" pre_title="GMU Unit " title_layer="Big Game GMU Boundaries">
 			<!-- CPW Properties -->
 			<layer label="CPW Public Access Properties">
 				<id>3</id>
@@ -230,6 +230,13 @@
 		</folder>
 		
 		<folder label="Roads and Trails">
+			<layer label="Trails">
+				<id>2</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer</url>
+				<geometry>line</geometry>
+				<fields>name,surface,hiking,horse,dogs,motorcycle,snowmobile,ski,snowshoe,length_mi_rounded,oneway,min_elevation,max_elevation</fields>
+				<displaynames>Name,Surface type,Allows hiking,Allows horses,Allows dogs,Allows motorcycles,Allows snowmobiles,Allows skiing,Allows snowshoeing,Trail length in miles,One way,Min Elevation,Max Elevation</displaynames>
+			</layer>
 			<layer label="BLM Roads and Trails">
 				<id>0</id>
 				<url>https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer</url>
