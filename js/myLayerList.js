@@ -87,13 +87,13 @@ function myLayerList() {
             //listContent.slot = "content";
             //listItem.appendChild(listContent);
             // Open sub-dialog on click
-            listItem.addEventListener("click", () => {
+            /*listItem.addEventListener("click", () => {
                 if(document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog")){
                     document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog").open = true;
                 }
-            });
+            });*/
             // Open sub-dialog on click
-            /*listHeader.addEventListener("click", () => {
+            listHeader.addEventListener("click", () => {
                 if(document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog")){
                     document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog").open = true;
                 }
@@ -103,7 +103,7 @@ function myLayerList() {
                 if(document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog")){
                     document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog").open = true;
                 }
-            });*/
+            });
         }catch(err){
             alert("Problem creating root layer in layer list. Layer title: "+rootlayer.title+" Error: "+err+" Message:"+err.message+" Stack:"+err.stack,"Error");
         }
@@ -426,7 +426,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             sublayerDialog.label = layer.title;
             sublayerDialog.heading = layer.title;
             // image in header     
-            if (layer.visibilityMode === "exclusive") {
+            /*if (layer.visibilityMode === "exclusive") {
                 // add image to header
                 var img = document.createElement("img");
                 img.src = "assets/images/home_hunt.jpg";
@@ -436,7 +436,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 img.style.width = "auto";
                 img.style.margin = "0";
                 sublayerDialog.appendChild(img);
-            }
+            }*/
         }catch(err){
             alert("Problem creating sublayer-dialog title in layer list in myLayerList.js/layerListAddSublayerDialogs. For layer title: "+layer.title+". Error: "+err+" Message: "+err.message+" Stack: "+err.stack,"Error");
         }
@@ -503,10 +503,13 @@ function layerListAddSublayerDialogs(event,theLayer){
                     selectedItem = species.title;
                     radioGroup.parentNode.placeholder = selectedItem;
                     radioGroup.parentNode.open = false;
-                    // Updates identify for the correct GMU layer
-                    //if (selectedItem === "Bighorn Sheep") gmu = "Bighorn GMU";
-                    //else if (selectedItem === "Mountain Goat") gmu = "Goat GMU";
-                    //else gmu = "Big Game GMU";
+                    // Update layer description
+                    // TODO ************************************************************
+                    iframe1.src = "layer-desc/" + selectedItem + ".html";
+
+
+
+
                     setGMU(species); // update search widget and map
                 });
                 radioGroup.appendChild(radio); 

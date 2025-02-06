@@ -131,8 +131,8 @@
 	<elevation_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Elevation/MapServer</elevation_url>
 	
 	<tree>
-		<folder label="Hunter Resources" pre_title="GMU Unit " title_layer="Big Game GMU Boundaries">
-			<!-- CPW Properties -->
+		<folder label="Hunt Areas" pre_title="GMU Unit " title_layer="Big Game GMU Boundaries" title_field="GMUID">
+		<!-- CPW Properties -->
 			<layer label="CPW Public Access Properties">
 				<id>3</id>
 				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
@@ -176,6 +176,11 @@
 		   		<fields>GMUID</fields>
 	     		<displaynames>GMU Number</displaynames>
 	   		</layer>
+		</folder>
+		<folder label="Hunter Resources" pre_title="Contact Info " title_layer="Contact Info" title_field="CDOW_FOName">
+			<link label="Buy License">https://cpw.state.co.us/rules-and-regulations</link>
+			<link label="Big Game Brochure">https://cpw.state.co.us/rules-and-regulations</link>
+			
 			<!-- Campground  -->
 			<layer label="Campground">
 				<!--buffer>10</buffer--><!-- list campgrounds within 10 miles of click point -->
@@ -206,8 +211,8 @@
 				<id>1</id>
 				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
 				<geometry>polygon</geometry>
-				<fields>COUNTYNAME,CDOW_Area,CDOW_AWM,CDOW_FOName,CDOW_FOAddress,CDOW_FOCity,CDOW_FOPhone,CDOW_District,CDOW_DWM</fields>
-				<displaynames>County,CPW Area,Area Manager,Office Name,Address,City,Phone,CPW District,District Manager</displaynames>
+				<fields>CDOW_FOName,COUNTYNAME,CDOW_Area,CDOW_AWM,CDOW_FOAddress,CDOW_FOCity,CDOW_FOPhone,CDOW_District,CDOW_DWM</fields>
+				<displaynames>Office Name,County,CPW Area,Area Manager,Address,City,Phone,CPW District,District Manager</displaynames>
 			</layer>
 		</folder>
 		<!-- Set the IRWIN_to_Inciweb_View feature service here. Used in identify. Use url with id!!! (FeatureServer/0) -->  

@@ -23,18 +23,18 @@
   <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" async="true" />
   <link rel="stylesheet" href="./assets/css/main.css?v=13" async="true" />
   
-  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=29" async="true" />
+  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=30" async="true" />
   
   <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
 
   <script type="text/javascript" src="js/xmlUtils.js?v=1" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js" async="true"></script>
-  <script type="text/javascript" src="js/utilFuncs.js?v=11" async="true"></script>
+  <script type="text/javascript" src="js/utilFuncs.js?v=13" async="true"></script>
   <script type="text/javascript" src="js/addMapLayers.js?v=17" async="true"></script>
   <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=95" async="true"></script>
-  <script type="text/javascript" src="js/mySearch.js?v=0" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=16" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=96" async="true"></script>
+  <script type="text/javascript" src="js/mySearch.js?v=1" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=20" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=0" async="true"></script>
 
@@ -178,7 +178,9 @@
             },
             highlightEnabled:true, // not working!!!!!!
             visibleElements: {
-              collapseButton: false
+              collapseButton: false,
+              actionBar: false // hide zoom in button
+              //closeButton: true
             }
           }
         });
@@ -186,14 +188,51 @@
         const nonLayers = ["Graphics Layer", "World Hillshade", "World Imagery", "USGSTopo", "USA Topo Maps", "USGSImageryTopo", "", "World Topo Map", "World Basemap", "World Basemap v2"];
 
         // Handle Filling Identify Content Here
+        var IdentifyPt;
         view.on("click", function (event) {
-          //var pt = event.MapPoint();
+          IdentifyPt = event.mapPoint;
           doIdentify(event);
         });
 
+
+        var popupOpenCount = 0;
         view.when(() => {
+          // Hide graphic pin when identify closes
+          reactiveUtils.watch(
+            () => view.popup.visible,
+            (visible) => {
+              if (!visible){
+                console.log("Popup closed"+popupOpenCount);
+                view.graphics.removeAll();
+              }
+              else {
+                popupOpenCount++;
+                console.log("Popup open"+popupOpenCount);
+
+                // add marker at clickpoint
+                require(["esri/Graphic"], function ( Graphic) {
+                    const symbol = {
+                      type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
+                      url: "./assets/images/pin.svg",
+                      width: 24,
+                      height: 24,
+                      xoffset: 0,
+                      yoffset: 8
+                    };
+                    let point = new Graphic({
+                      geometry: IdentifyPt,
+                      symbol: symbol
+                    });
+                    view.graphics.add(point);
+                });
+              }
+            }
+          );
+        
           // test using esri layerlist
           //myMapLayers();
+
+          // Add title, logo, and search
           const cpw_link = document.createElement("a");
           cpw_link.href="cpw.state.co.us";
           cpw_link.style.paddingRight="10px";
@@ -235,14 +274,9 @@
           // + - zoom buttons
           view.ui.move("zoom", "bottom-right");
 
-          /*view.popup.visibleElements = {
-            closeButton: false
-          };*/
-
           // This Identify action button event fires for each click on any action
           // This event fires for each click on any action
-          //reactiveUtils.on(()=>view.popup?.popupViewModel, "trigger-action", (event)=>{
-            reactiveUtils.on(()=>view.popup, "trigger-action", (event)=>{
+            /*reactiveUtils.on(()=>view.popup, "trigger-action", (event)=>{
               if(event.action.id === "zoom-to-feature"){
                   zoomToPt();
               }
@@ -252,7 +286,14 @@
               else if(event.action.id === "input-area"){
                   getInputArea();
               }
-          });
+          });*/
+          // just capture when it closes
+        
+          
+       
+         /* reactiveUtils.on(()=>view.popup, "visible", (event)=>{
+            alert("close");
+          });*/
           
           readSettingsWidget(); // identify addFindPlace needs elkUrl
           

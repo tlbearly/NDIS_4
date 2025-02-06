@@ -118,7 +118,7 @@ function readSettingsWidget() {
                     if (driving_directions) {
                         // Add a link into the InfoWindow Actions panel
                         // Get Directions
-                        view.popup.actions = [
+                        /* view.popup.actions = [
                             {
                                 id: "directions",
                                 className: "esri-icon-directions2",
@@ -131,7 +131,7 @@ function readSettingsWidget() {
                                 className: "esri-icon-map-pin",
                                 title: "Input Area"
                             }
-                        ];
+                        ];*/
                     }
 
                     if (xmlDoc.getElementsByTagName("elevation")[0] && xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue)
@@ -170,10 +170,17 @@ function readSettingsWidget() {
                             if (!folder[f].getAttribute("pre_title"))
                                 alert("Error in " + app + "/SettingsWidget.xml. Missing pre_title in folder: " + identifyGroups[f] + ". <folder label='' pre_title='GMU Units ' layer-title='layer name to use as identify title'>", "Data Error");
                             else
-                            identifyLayers[identifyGroups[f]].preTitle = folder[f].getAttribute("pre_title");
+                                identifyLayers[identifyGroups[f]].preTitle = folder[f].getAttribute("pre_title");
                         }
                         else
-                        identifyLayers[identifyGroups[f]].titleLayer = null;
+                            identifyLayers[identifyGroups[f]].titleLayer = null;
+
+                        // Filed to use for this group's identify title
+                        if (folder[f].getAttribute("title_field")) {
+                            identifyLayers[identifyGroups[f]].titleField = folder[f].getAttribute("title_field");
+                        }
+                        else
+                            identifyLayers[identifyGroups[f]].titleField = null;
 
                         // Layers
                         var label = "missing label";
@@ -432,27 +439,6 @@ function doIdentify(evt){
     }
     clickPoint = evt.mapPoint;
 
-    // add marker at clickpoint
-    
-    require(["esri/Graphic"], function ( Graphic) {
-        const symbol = {
-          type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-          url: "./assets/images/pin.svg",
-          size: 24,
-          width: 24,
-          height: 24,
-          xoffset: 6,
-          yoffset: -6,
-          declaredClass: "markerColor" // does nothing!!! can add fill to svg
-        };
-        let point = new Graphic({
-          geometry: clickPoint,
-          symbol: symbol
-        });
-        view.graphics.add(point);
-
-        //view.graphics.remove(point);
-    });
     displayContent();
 }
 
@@ -789,13 +775,27 @@ function handleQueryResults(results) {
                 results.forEach(function(result) {
                     if (result.features.length > 0) noData = false;
                     result.features.forEach(function(feature){
+                        features.push(feature);
                         var layerName = "Wildfire Incidents";
                         if (feature.geometry.type === "polygon") layerName = "Wildfire Perimeters";
                         if (feature.attributes.IncidentName) {
                             str += "<h3 style='margin-bottom: 5px;margin-top: 5px;'>"+feature.attributes.IncidentName+"</h3><span class='idTitle'>"+layerName+"</span><div style='padding-left: 10px;'>";
                             // set the title, use the first wildfire
-                            if (theTitle[identifyGroup] === identifyGroup){
-                                theTitle[identifyGroup] = feature.attributes.IncidentName;
+                            //if (theTitle[identifyGroup] === identifyGroup){
+                            //    theTitle[identifyGroup] = feature.attributes.IncidentName;
+                            //    view.popup.title = theTitle[identifyGroup];
+                            //}
+                            // set header with the layer specified in SettingsWidget.xml file or use first field value
+                            if (theTitle[identifyGroup] == identifyGroup){
+                                if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
+                                    if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
+                                        view.popup.title = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
+                                        theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
+                                        highlightFeature(features.length-1,false);
+                                    }
+                                }else {
+                                    theTitle[identifyGroup] = feature.attributes.IncidentName;
+                                }
                                 view.popup.title = theTitle[identifyGroup];
                             }
                         }
@@ -862,7 +862,7 @@ function handleQueryResults(results) {
                             // don't add it twice, but add it to the features geometry array
                             //if (tmpStr != "" && str.indexOf(tmpStr) == -1) {
                                 // highlight polygon/point on mouse over, hide highlight on mouse out
-                                //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
+                                //str += "<div onMouseOver='javascript:highlightFeature(\""+(features.length-1)+"\", true)' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
                                 //str += "<div>" + tmpStr;
                                 str += tmpStr;
                             //}
@@ -925,11 +925,27 @@ function handleQueryResults(results) {
                                                 if (XMLHttpRequestObjects[arrIndex].status == 200) {
                                                     tmpStr = "<span class='idTitle'>"+r.layerName + "</span><div style='padding-left: 10px;'>";
 
+                                                    features.push(r.feature);
                                                     var xmlDoc = createXMLdoc(XMLHttpRequestObjects[arrIndex]);
-                                                    // set the header
-                                                    if (r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
-                                                    else theTitle[identifyGroup] = r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                                    
+                                                    // set header with the layer specified in SettingsWidget.xml file or use first field value
+                                                    if (theTitle[identifyGroup] == identifyGroup){
+                                                        if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
+                                                            if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
+                                                                theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
+                                                                highlightFeature(features.length-1,false);
+                                                            }
+                                                            // handle Bighorn and Goat GMU
+                                                            else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU Unit "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                                        }else {
+                                                            theTitle[identifyGroup] = r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                                        }
+                                                    }
                                                     view.popup.title = theTitle[identifyGroup];
+                                                    // set the popup title
+                                                    //if (r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                                    //else theTitle[identifyGroup] = r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                                    //view.popup.title = theTitle[identifyGroup];
                                                     
                                                     for (i = 0; i < identifyLayers[identifyGroup][r.layerName].displaynames.length; i++) {
                                                         if ((i > 0 && r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] &&
@@ -949,6 +965,7 @@ function handleQueryResults(results) {
                                                         }
                                                         // add the database info at position specified
                                                         if (identifyLayers[identifyGroup][r.layerName].position == i) {
+                                                            //features.push(r.feature);
                                                             // one2one_display: one2one_fields values
                                                             if (typeof identifyLayers[identifyGroup][r.layerName].one2one_fields != "undefined") {
                                                                 for (j = 0; j < identifyLayers[identifyGroup][r.layerName].one2one_fields.length; j++) {
@@ -990,11 +1007,11 @@ function handleQueryResults(results) {
                                                     // don't add it twice, but add it to the features geometry array
                                                     if (str.indexOf(tmpStr) == -1) {
                                                         // highlight polygon/point on mouse over, hide highlight on mouse out
-                                                        //str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div></div><br/>";
+                                                        //str += "<div onMouseOver='javascript:highlightFeature(\""+(features.length-1)+"\",true)' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div></div><br/>";
                                                         str += tmpStr+"</div><br/>";
                                                         groupContent[identifyGroup] = str; // cache content
                                                     }
-                                                    features.push(r.feature);
+                                                    //features.push(r.feature);
                                                 }
                                                 // if failed
                                                 else {
@@ -1031,21 +1048,24 @@ function handleQueryResults(results) {
                             }
                             // Layer without database call
                             else {
+                                features.push(r.feature);
                                 tmpStr = "<span class='idTitle'>"+ r.layerName + "</span><div style='padding-left: 10px;'>";
                                 var first = true;
                                 // set header with the layer specified in SettingsWidget.xml file or use first field value
                                 if (theTitle[identifyGroup] == identifyGroup){
                                     if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
-                                        if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1)
-                                            theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
+                                        if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
+                                            theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
+                                            highlightFeature(features.length-1,false);
+                                        }
                                         // handle Bighorn and Goat GMU
                                         else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU Unit "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
                                     }else {
                                         theTitle[identifyGroup] = r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
                                     }
                                 }
-
                                 view.popup.title = theTitle[identifyGroup];
+
                                 for (i = 0; i < identifyLayers[identifyGroup][r.layerName].displaynames.length; i++) {
                                     if ((r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] &&
                                             r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== " " &&
@@ -1065,12 +1085,12 @@ function handleQueryResults(results) {
                                 // don't add it twice, but add it to the features geometry array
                                 if (str.indexOf(tmpStr) == -1) {
                                     // highlight polygon/point on mouse over, hide highlight on mouse out
-                                    // str += "<div onMouseOver='javascript:highlightFeature(\""+features.length+"\")' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div></div><br/>";
+                                    // str += "<div onMouseOver='javascript:highlightFeature(\""+(features.length-1)+"\",true)' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div></div><br/>";
                                     // needed if not using highlight
                                     str += tmpStr+"</div><br/>";
                                     groupContent[identifyGroup] = str; // cache content
                                 }
-                                features.push(r.feature);
+                                //features.push(r.feature);
                             }
                         }
                     });
@@ -1105,22 +1125,28 @@ function handleQueryResults(results) {
     //});
 }
 
-function highlightFeature(id) {
+var numHighlightFeatures=0;
+function highlightFeature(id,fade) {
     // highlight geometry on mouse over, no fade = true
     if (!features[id] || !features[id].geometry || features[id].geometry === undefined) return;
     if (features[id].geometry.type === undefined || !features[id].geometry.type) return;
     if (features[id].geometry.type === "point" ) {
-        addHighlightPoint(features[id]);
+        addHighlightPoint(features[id],fade);
+        numHighlightFeatures++;
     }else if (features[id].geometry.type === "polygon") {
-        addTempPolygon(features[id],true);
+        addTempPolygon(features[id],fade);
+        numHighlightFeatures++;
     } else if (features[id].geometry.type === "polyline") {
-        addTempLine(features[id],true);
+        addTempLine(features[id],fade);
+        numHighlightFeatures++;
     }
 }
 
 function removeHighlight() {
-    // remove old highlight
-    view.graphics.remove(view.graphics.items[view.graphics.items.length-1]);
+    // remove old highlight  but don't remove pin at clickpoint
+    for (var i=0; i<numHighlightFeatures; i++)
+        view.graphics.remove(view.graphics.items[view.graphics.items.length-2]);
+    numHighlightFeatures=0;
 }
 
 /*function setIdentifyContentHeader(name) {
@@ -1204,15 +1230,14 @@ function setIdentifyFooter(clickPt) {
 }
 
 function changeIdentifyGroup(sel) {
+    removeHighlight();
     identifyGroup = sel.innerText;
-    //identifyGroup = sel.options[sel.selectedIndex].value;
     view.popup.content = "<p align='center'>Loading...</p>";
     view.popupEnabled = false;
     features = [];
     numDatabaseCalls = 0;
     processedDatabaseCalls = 0;
     displayContent();
-    //doIdentify(theEvt);
 }
 
 function accumulateContent(theContent){

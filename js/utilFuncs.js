@@ -382,7 +382,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
     // Add text at a point. Fade out after 10 seconds.
     // point: Point, label: text, fontSize: int
     // if point is a polygon use the centroid
-    // noFade: should it fade away? default is true
+    // shouldFade: should it fade away?
     require(["esri/symbols/TextSymbol", "esri/Graphic"], function (TextSymbol, Graphic) {
       //var shouldFade = true;
       //if (arguments.length >= 2) fontSize = 11;
@@ -431,13 +431,10 @@ function addTempLabel(point, label, fontSize, shouldFade) {
     // pt: Point
     // add point and remove it in 10 seconds
     // if noFade is passed in do not fade
-    // added 4/25/24
-    //var shouldFade = true;	
-    //if (arguments.length == 2) shouldFade = false;
     require(["esri/symbols/PictureMarkerSymbol", "esri/Graphic"], function (PictureMarkerSymbol, Graphic) {
       const symbol = {
         type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-        url: "/assets/images/i_flag.png",
+        url: "/assets/images/pin.svg", //,i_flag.png", // color is hard coded in pin.svg!!!!!! Can't get it to set color here??????
         size: 24,
         width: 24,
         height: 24,
@@ -449,7 +446,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
         symbol: symbol
       });
       view.graphics.add(point);
-      if (shouldFade) {
+      if (arguments.length == 1 || shouldFade) {
         setTimeout(function () {
           view.graphics.remove(point);
         }, 13000);
@@ -459,8 +456,8 @@ function addTempLabel(point, label, fontSize, shouldFade) {
   function addHighlightPoint(pt){
     require (["esri/Graphic","esri/geometry/Circle"],(Graphic,Circle) => {
         let r = 1;
-        if (view.scale < 24000) r = .25;
-        else if (view.scale < 24000) r = .5;
+        if (view.scale > 24000) r = .25;
+        else if (view.scale <= 24000) r = .5;
 
         const circle = new Circle({
             center: pt.geometry,
@@ -473,10 +470,11 @@ function addTempLabel(point, label, fontSize, shouldFade) {
             geometry: circle,
             symbol: {
                 type: "simple-fill",
-                style: "none",
+                color: "#d4dbbe" + "9C", // 40% tranparency
+                style: "solid",
                 outline: {
-                  width: 3,
-                  color: "cyan"
+                  width: 2,
+                  color: "#778743"
                 }
             }
         });
@@ -484,15 +482,18 @@ function addTempLabel(point, label, fontSize, shouldFade) {
     });
   }
   const polySymbol = {
-    type: "simple-line",  // autocasts as SimpleLineSymbol()
-    color: [0, 255, 255], //[226, 119, 40],
-    width: 3
+    type: "simple-fill",
+    color: "#d4dbbe" + "9C", // 40% tranparency
+    style: "solid",
+    outline: {  // autocasts as new SimpleLineSymbol()
+      color: "#778743",
+      width: 3
+    }
   }
   function addTempPolygon(feature, shouldFade) {
     // add polygon outline and remove it in 10 seconds
-    // if noFade is passed in do not fade
-    //var shouldFade = true;	
-    //if (arguments.length == 2) shouldFade = false;
+    // if shouldFade is false do not fade
+    // if shouldFade is not passed or is true it fades
     require(["esri/geometry/Polygon", "esri/Graphic"],
       function (Polygon, Graphic) {
 
@@ -505,7 +506,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
           symbol: polySymbol
         });
         view.graphics.add(poly);
-        if (shouldFade) {
+        if (arguments.length == 1 || shouldFade) {
           setTimeout(function () {
             view.graphics.remove(poly);
           }, 13000);
@@ -520,7 +521,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
         function (Polyline, Graphic) {
         const lineSymbol = {
             type: "simple-line",  // autocasts as SimpleLineSymbol()
-            color: [0,255,255], //[226, 119, 40],
+            color: "#778743"+"9C", // 40% tranparency
             width: 4,
             style: "dot"
         }
@@ -534,7 +535,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
             symbol: lineSymbol
         });
         view.graphics.add(lineGraphic);
-        if (arguments.length == 1){
+        if (arguments.length == 1 || shouldFade){
             setTimeout(function(){
                 view.graphics.remove(lineGraphic);
             },13000);
