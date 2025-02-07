@@ -13,10 +13,10 @@ function addGraphicsAndLabels() {
     require(["esri/geometry/SpatialReference"], (SpatialReference) => {
         try {
             var sr;
-            if (!queryObj.get("prj") || queryObj.get("prj") == "")
+            if (!queryObj.prj || queryObj.prj == "")
                 sr = new SpatialReference(3857);
             else
-                sr = new SpatialReference(parseInt(queryObj.get("prj")));
+                sr = new SpatialReference(parseInt(queryObj.prj));
 
             //----------------------------
             //        Add points
@@ -24,8 +24,8 @@ function addGraphicsAndLabels() {
             // points = circle|size|color|alpha(transparency)|outline color|outline width|x|y|
             //   text|font|font size|color|bold as t or f|italic as t or f|underline as t or f|placement|offset, next point...
             // For example: circle|10|4173788|1|0|1|-11713310|4743885|480;779; 4;333;990|1|12|4173788|t|f|f|above|5
-            if (queryObj.get("point") && queryObj.get("point") != "") {
-                points(queryObj.get("point"), sr);
+            if (queryObj.point && queryObj.point != "") {
+                points(queryObj.point, sr);
             }
             
             //----------------------------
@@ -34,8 +34,8 @@ function addGraphicsAndLabels() {
             // &line= style | color | alpha | lineWidth | number of paths | [number of points | x | y | x | y |... repeat for each path] 
             // |x|y|label|font|font-size|color|bold|italic|underline|placement|offset, repeat for each line
             // &line=solid|4173788|1|5|1|3|-11900351|4800983|-11886749|4805344|-11883462|4812449|-11891907|4806716|10.5 mi|1|12|4173788|t|f|f|above|5
-            if (queryObj.get("line") && queryObj.get("line") != "") {
-                addLines(queryObj.get("line"), sr);
+            if (queryObj.line && queryObj.line != "") {
+                addLines(queryObj.line, sr);
             }
             //----------------------------
             //        Add polygons
@@ -43,8 +43,8 @@ function addGraphicsAndLabels() {
             // &poly=  fillStyle | fillColor | fillAlpha | lineStyle | lineColor | lineWidth | 
             // number of rings | number of points | x | y | x | y |... repeat for each ring , repeat for each polygon
             // fillAlpha is now in fillColor (was used in flex), lineStyle = solid, lineWidth = 2
-            if (queryObj.get("poly") && queryObj.get("poly") != "") {
-                addPolys(queryObj.get("poly"), sr);
+            if (queryObj.poly && queryObj.poly != "") {
+                addPolys(queryObj.poly, sr);
             }
             //----------------------------
             //        Add rectangles
@@ -52,20 +52,20 @@ function addGraphicsAndLabels() {
             // &rect=  fillStyle | fillColor | fillAlpha | lineStyle | lineColor | lineWidth | 
             // number of rings | number of points | x | y | x | y |... repeat for each ring , repeat for each polygon
             // fillAlpha is now in fillColor (was used in flex), lineStyle = solid, lineWidth = 2
-            if (queryObj.get("rect") && queryObj.get("rect") != "") {
-                addRects(queryObj.get("rect"), sr);
+            if (queryObj.rect && queryObj.rect != "") {
+                addRects(queryObj.rect, sr);
             }
             //----------------------------
             //        Add labels
             //----------------------------
             // &text=x|y|text|font|font size|color|bold as t or f|italic as t or f|underline as t or f
             // font, color, bold, italic, and underline are not used in this version. They default to Helvetica, black, bold
-            if (queryObj.get("text") && queryObj.get("text") != "") {
-                addLabels(queryObj.get("text"), sr);
+            if (queryObj.text && queryObj.text != "") {
+                addLabels(queryObj.text, sr);
             }
             sr = null;
         } catch (e) {
-            alert("Error loading graphics from the URL. In javascript/readConfig.js. Error message: " + e.message, "URL Graphics Error", e);
+            alert("Error loading graphics from the URL. In js/addMapLayers.js addGraphicsAndLabels(). Error message: " + e.message, "URL Graphics Error", e);
         }
     });
 }
@@ -130,7 +130,7 @@ function addMapLayers(){
             //      https://ndismaps.nrel.colostate.edu/index.html?app=HuntingAtlas&prj=102100
             //      &extent=-11915180,4735706,-11800601,4794104&layer=streets|Hunter%20Reference|0.8|0-1-13-18-19-79-88-89-101-102-103,
             //      Game%20Species|0.7|9-11-12-13-15-16
-            if (queryObj.get("layer") && queryObj.get("layer") != "") {
+            if (queryObj.layer && queryObj.layer != "") {
                 if (url.toLowerCase().indexOf("mapserver") > -1) {
                     if (layerObj[id]){
                         myLayer = new MapImageLayer({
@@ -180,7 +180,7 @@ function addMapLayers(){
                         });
                 }
                 else {
-                    alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit readConfig.js line 600 to add new type.");
+                    alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit addMapLayers.js line 183 to add new type.");
                     return;
                 }
             // Set layer properties from config.xml file
@@ -592,15 +592,27 @@ function addMapLayers(){
             pos = str.indexOf("/");
             var fsName = str.substr(0,pos); // trim out feature service name ie. CPWSpeciesData
             if (title !== null && title !== fsName){
-                subGroupLayer = new FeatureLayer({
-                    url: fsUrl,
-                    visible: visible,
-                    title: title,
-                    listMode: listMode,
-                    legendEnabled: legendEnabled,
-                    //id: id, // do not use id, let it create this on it's own
-                    legendEnabled: true
-                });
+                if (url.toLowerCase().indexOf("mapserver") > -1){
+                    subGroupLayer = new MapImageLayer({
+                        url: url,
+                        //opacity: Number(alpha),
+                        title: title,
+                        id: id,
+                        listMode: listMode,
+                        legendEnabled: legendEnabled,
+                        visible: visible 
+                    });
+                }else{
+                    subGroupLayer = new FeatureLayer({
+                        url: fsUrl,
+                        visible: visible,
+                        title: title,
+                        listMode: listMode,
+                        legendEnabled: legendEnabled,
+                        //id: id, // do not use id, let it create this on it's own
+                        legendEnabled: true
+                    });
+                }   
                 // identify popup template
                 if (popupFields && popupLabels){
                     const template = addPopupTemplate(title,popupFields,popupLabels);
@@ -608,13 +620,25 @@ function addMapLayers(){
                 }
             }
             else{
-                subGroupLayer = new FeatureLayer({
-                    url: fsUrl,
-                    visible: visible,
-                    //id: id, // do not use id, let it create this on it's own
-                    listMode: listMode,
-                    legendEnabled: legendEnabled
-                });
+                if (url.toLowerCase().indexOf("mapserver") > -1){
+                    subGroupLayer = new MapImageLayer({
+                        url: url,
+                        //opacity: Number(alpha),
+                        title: title,
+                        id: id,
+                        listMode: listMode,
+                        legendEnabled: legendEnabled,
+                        visible: visible 
+                    });
+                }else {
+                    subGroupLayer = new FeatureLayer({
+                        url: fsUrl,
+                        visible: visible,
+                        //id: id, // do not use id, let it create this on it's own
+                        listMode: listMode,
+                        legendEnabled: legendEnabled
+                    });
+                }
 
                 // Wait until layer loads then the title will be assigned. Then remove feature service name from the title (eg. "CPWSpeciesData -")
                 subGroupLayer.on("layerview-create", function(event){
@@ -737,9 +761,9 @@ function addMapLayers(){
         // 		&layer= basemap | id | opacity | visible layers , id | opacity | visible layers , repeat...
         // 		&layer= streets|layer2|.8|3-5-12,layer3|.65|2-6-10-12
         // 		get array of layers without the basemap stuff;
-        if (queryObj.get("layer") && queryObj.get("layer") != "") {
+        if (queryObj.layer && queryObj.layer != "") {
             loadedFromCfg = false; // the layer is loaded from config.xml. If false loaded from url &layers.
-            var layersArr = queryObj.get("layer").substring(queryObj.get("layer").indexOf("|") + 1).split(",");
+            var layersArr = queryObj.layer.substring(queryObj.layer.indexOf("|") + 1).split(",");
             layerObj = {};
             //if (layersArr.length == 1) layersArr.pop(); // remove empty element if no layers are visible
             for (i = 0; i < layersArr.length; i++) {
@@ -906,15 +930,27 @@ function addMapLayers(){
                 }
                 if (layer[i].getAttribute("popup_fields")) popupFields = layer[i].getAttribute("popup_fields").split(",");
                 if (layer[i].getAttribute("popup_labels")) popupLabels = layer[i].getAttribute("popup_labels").split(",");
-                if (url.toLowerCase().indexOf("mapservice") > -1) alert("Group layer cannot be a map service at this time. Need to reprogram addMapLayer.js");
-                var fsLayer = new FeatureLayer({
-                    visible: layerVis === "true",
-                    url: url,
-                    title: label,
-                    opacity: Number(opacity),
-                    //layerId: label, // do not use layerId, it sets this from url
-                    id: label
-                });
+                var fsLayer;
+                if (url.toLowerCase().indexOf("mapserver") > -1){
+                    //alert("Group layer cannot be a map service at this time. Need to reprogram addMapLayer.js");
+                    fsLayer = new MapImageLayer({
+                        visible: layerVis === "true",
+                        url: url,
+                        title: label,
+                        opacity: Number(opacity),
+                        //layerId: label, // do not use layerId, it sets this from url
+                        id: label
+                    });
+                }else {
+                    fsLayer = new FeatureLayer({
+                        visible: layerVis === "true",
+                        url: url,
+                        title: label,
+                        opacity: Number(opacity),
+                        //layerId: label, // do not use layerId, it sets this from url
+                        id: label
+                    });
+                }
             
                 // identify popup template
                 if (popupFields && popupLabels){
@@ -952,7 +988,7 @@ function readURLParmeters(){
         // preserve new lines in way point descriptions (For future changes, if we decide to add them like the Mobile version.)
         //var location = document.location.search.replace(/\%0D/g,"newline");
         // TODO **************************** location
-        //queryObj = new URL(window.location.toLocaleString()).searchParams;
+        //queryObjParams = new URL(window.location.toLocaleString()).searchParams;
         
         // Sanitize user input. Protect against XSS attacks.
         // test for XSS attack. Pattern contains allowed characters. [^ ] means match any character that is not
@@ -960,127 +996,127 @@ function readURLParmeters(){
         var regexp;
         // For labels allow ' " for degrees minutes seconds
         // Points
-        if (queryObj.get("point")){
-            queryObj.get("point") = queryObj.get("point").replace(/~/g, " "); // for email from mobile app
+        if (queryObjParams.get("point")){
+            queryObjParams.get("point") = queryObjParams.get("point").replace(/~/g, " "); // for email from mobile app
             regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
-            if (regexp.test(queryObj.get("point"))) alert("Illegal characters were removed from way point labels.","Warning");
+            if (regexp.test(queryObjParams.get("point"))) alert("Illegal characters were removed from way point labels.","Warning");
             regexp=/([^a-zA-Z0-9 °\-\'\"\|;,\.!_\*()])/g;
-            queryObj.get("point")=queryObj.get("point").replace(regexp,""); // clean it
-            queryObj.get("point") = queryObj.get("point").replace(/newline/g,"\n"); // preserve new line characters in point description used on mobile
+            queryObjParams.get("point")=queryObjParams.get("point").replace(regexp,""); // clean it
+            queryObj.point = queryObjParams.get("point").replace(/newline/g,"\n"); // preserve new line characters in point description used on mobile
         }
 
         // Lines
-        if (queryObj.get("line")){
+        if (queryObjParams.get("line")){
             regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
-            if (regexp.test(queryObj.get("line"))) alert("Illegal characters were removed from the line labels.","Warning");
+            if (regexp.test(queryObjParams.get("line"))) alert("Illegal characters were removed from the line labels.","Warning");
             regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
-            queryObj.get("line")=queryObj.get("line").replace(regexp,""); // clean it
+            queryObj.line=queryObjParams.get("line").replace(regexp,""); // clean it
         }
 
         // Polygons
-        if (queryObj.get("poly")){
+        if (queryObjParams.get("poly")){
             regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
-            if (regexp.test(queryObj.get("poly"))) alert("Illegal characters were removed from the shape (polygon) labels.","Warning");
+            if (regexp.test(queryObjParams.get("poly"))) alert("Illegal characters were removed from the shape (polygon) labels.","Warning");
             regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
-            queryObj.get("poly")=queryObj.get("poly").replace(regexp,""); // clean it
+            queryObj.poly=queryObjParams.get("poly").replace(regexp,""); // clean it
         }
 
         // Rectangles
-        if (queryObj.get("rect")){
+        if (queryObjParams.get("rect")){
             regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
-            if (regexp.test(queryObj.get("rect"))) alert("Illegal characters were removed from the rectangle labels.","Warning");
+            if (regexp.test(queryObjParams.get("rect"))) alert("Illegal characters were removed from the rectangle labels.","Warning");
             regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
-            queryObj.get("rect")=queryObj.get("rect").replace(regexp,""); // clean it
+            queryObj.rect=queryObjParams.get("rect").replace(regexp,""); // clean it
         }
         
         // Text
-        if (queryObj.get("text")){
+        if (queryObjParams.get("text")){
             regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()\\])/g; // allow \ for the test (\' \") but remove it for the clean
-            if (regexp.test(queryObj.get("text"))) alert("Illegal characters were removed from the point labels.","Warning");
+            if (regexp.test(queryObjParams.get("text"))) alert("Illegal characters were removed from the point labels.","Warning");
             regexp=/([^a-zA-Z0-9 \-\'\|;,\.!_\*()])/g;
-            queryObj.get("text")=queryObj.get("text").replace(regexp,""); // clean it
+            queryObj.text=queryObjParams.get("text").replace(regexp,""); // clean it
         }
 
         // Layer
-        if (queryObj.get("layer")){
-            queryObj.get("layer") = queryObj.get("layer").replace(/~/g, " "); // for email from mobile app
+        if (queryObjParams.get("layer")){
+            queryObjParams.get("layer") = queryObjParams.get("layer").replace(/~/g, " "); // for email from mobile app
             regexp=/([^a-zA-Z0-9 \-\|,\._()])/g; // allow \ for the test (\' \") but remove it for the clean
-            if (regexp.test(queryObj.get("layer"))) alert("Illegal characters were found on the URL. Layers may not load properly.","Warning");
+            if (regexp.test(queryObjParams.get("layer"))) alert("Illegal characters were found on the URL. Layers may not load properly.","Warning");
             //regexp=/([^a-zA-Z0-9 \-,\._()])/g; // Used if testing for \\ above
-            queryObj.get("layer")=queryObj.get("layer").replace(regexp,""); // clean it
+            queryObj.layer=queryObjParams.get("layer").replace(regexp,""); // clean it
         }
 
         // keyword
-        if (queryObj.get("keyword")){
+        if (queryObjParams.get("keyword")){
             regexp=/([^a-zA-Z0-9 \-\._()])/g; // allow \ for the test (\' \") but remove it for the clean
-            if (regexp.test(queryObj.get("keyword"))) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
+            if (regexp.test(queryObjParams.get("keyword"))) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
             //regexp=/([^a-zA-Z0-9 \-\._()])/g; // Used if testing for \\ above
-            queryObj.get("keyword")=queryObj.get("keyword").replace(regexp,""); // clean it
+            queryObj.keyword=queryObjParams.get("keyword").replace(regexp,""); // clean it
         }
 
         // value
-        if (queryObj.get("value")){
+        if (queryObjParams.get("value")){
             // 8-18-20 added # and / as safe characters in the value
             //regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\])/g; // allow \ for the test \" but remove it for the clean
             regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\#/&])/g; // allow \ for the test \" but remove it for the clean
-            if (regexp.test(queryObj.get("value"))) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
+            if (regexp.test(queryObjParams.get("value"))) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
             regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#/&])/g;
-            queryObj.get("value")=queryObj.get("value").replace(regexp,""); // clean it
+            queryObjParams.get("value")=queryObjParams.get("value").replace(regexp,""); // clean it
             // 8-18-20 single quote is used in the SQL expression, replace it with '' and it will be used as '.
             var quote = /'/g;
-            queryObj.get("value") = queryObj.get("value").replace(quote,"''");
+            queryObj.value = queryObjParams.get("value").replace(quote,"''");
         }
 
         // label
-        if (queryObj.get("label")){
+        if (queryObjParams.get("label")){
             regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#&/\\])/g; // allow \ for the test (\' \") but remove it for the clean
-            if (regexp.test(queryObj.get("label"))) alert("Illegal characters were found on the URL. Point labels may not load properly.","Warning");
+            if (regexp.test(queryObjParams.get("label"))) alert("Illegal characters were found on the URL. Point labels may not load properly.","Warning");
             regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#&/])/g;
-            queryObj.get("label")=queryObj.get("label").replace(regexp,""); // clean it
+            queryObj.label=queryObjParams.get("label").replace(regexp,""); // clean it
         }
 
         // map
-        if (queryObj.map){
+        if (queryObjParams.get("map")){
             regexp=/([^a-zA-Z0-9 \-,\._():\/])/g; // allow \ for the test (\' \") but remove it for the clean
-            if (regexp.test(queryObj.map)) alert("Illegal characters were found on the URL. Map may not load properly.","Warning");
+            if (regexp.test(queryObjParams.get("map"))) alert("Illegal characters were found on the URL. Map may not load properly.","Warning");
             //regexp=/([^a-zA-Z0-9 \-\=,\._():\/])/g; // Used if testing for \\ above
-            queryObj.map=queryObj.map.replace(regexp,""); // clean it
+            queryObj.map=queryObjParams.get("map").replace(regexp,""); // clean it
         }
 
         // field
-        if (queryObj.get("field")){
+        if (queryObjParams.get("field")){
             regexp=/([^a-zA-Z0-9 \-_])/g; // allow \ for the test (\' \") but remove it for the clean
-            if (regexp.test(queryObj.get("field"))) alert("Illegal characters were found on the URL. Map may not load properly.","Warning");
+            if (regexp.test(queryObjParams.get("field"))) alert("Illegal characters were found on the URL. Map may not load properly.","Warning");
             //regexp=/([^a-zA-Z0-9 \-\=,\._():\/])/g; // Used if testing for \\ above
-            queryObj.get("field")=queryObj.get("field").replace(regexp,""); // clean it
+            queryObj.field=queryObjParams.get("field").replace(regexp,""); // clean it
         }
 
         // projection Only allow integers.
-        if (queryObj.get("prj") && isNaN(queryObj.get("prj"))) {
-            queryObj.get("prj") = 102100;
+        if (queryObjParams.get("prj") && isNaN(queryObjParams.get("prj"))) {
+            queryObj.prj = 102100;
             alert("Problem reading map projection from the URL, defaulting to WGS84. addMapLayers.js/readURLParmeters","Warning");
         }
 
         // Extent
-        if (queryObj.get("extent")){
+        if (queryObjParams.get("extent")){
             regexp=/([^0-9 \-,\.])/g; // allow \ for the test (\' \") but remove it for the clean
-            if (regexp.test(queryObj.get("extent"))) alert("Illegal characters were found on the URL. Map extent may not load properly.","Warning");
-            queryObj.get("extent")=queryObj.get("extent").replace(regexp,""); // clean it
+            if (regexp.test(queryObjParams.get("extent"))) alert("Illegal characters were found on the URL. Map extent may not load properly.","Warning");
+            queryObj.extent=queryObjParams.get("extent").replace(regexp,""); // clean it
         }
 
         // Place
-        if (queryObj.get("place")){
+        if (queryObjParams.get("place")){
             regexp=/([^a-zA-Z0-9 \-\',\.!_*():#&/\\])/g; // allow \ for the test (\' \") but remove it for the clean, : used in degree, min, sec point
-            if (regexp.test(queryObj.get("place"))) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
+            if (regexp.test(queryObjParams.get("place"))) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
             regexp=/([^a-zA-Z0-9 \-\',\.!_*():#&/])/g;
-            queryObj.get("place")=queryObj.get("place").replace(regexp,""); // clean it
+            queryObj.place=queryObjParams.get("place").replace(regexp,""); // clean it
         }
     }catch (err) {
         alert("Problem reading URL parameters. addMapLayers.js/readURLParmeters"+err,"Error")
     }
     addMapLayers();
     addGraphicsAndLabels();
-    
+    zoomToQueryParams();
 }
 
 function readConfig(){
@@ -1181,6 +1217,289 @@ function readConfig(){
             xmlhttp.send(null);
         } catch (e) {
             alert("Error in js/addMapLayers.js readConfig. " + e.message, "Code Error", e);
+        }
+    });
+}
+
+function zoomToQueryParams(){
+    require(["esri/geometry/Extent"],function(Extent){
+        // Zoom to extent on startup if specified on url
+        if (queryObj.extent && queryObj.extent != "") {
+            var extArr = [];
+            if (Object.prototype.toString.call(queryObj.extent) === '[object Array]')
+                extArr = queryObj.extent[0].split(",");
+            else
+                extArr = queryObj.extent.split(",");
+            var prj;
+            if (queryObj.prj && queryObj.prj != ""){
+                prj = queryObj.prj;
+            }
+            else {
+                // check for lat long
+                if (extArr[0] < 0 && extArr[0] > -200) {
+                    prj = 4326;
+                } else
+                    prj = 26913;
+            }
+            ext = new Extent({
+                    "xmin": parseFloat(extArr[0]),
+                    "ymin": parseFloat(extArr[1]),
+                    "xmax": parseFloat(extArr[2]),
+                    "ymax": parseFloat(extArr[3]),
+                    "spatialReference": {
+                        "wkid": parseInt(prj)
+                    }
+                });
+            var params = new ProjectParameters();
+            params.geometries = [ext];
+            params.outSpatialReference = new SpatialReference(wkid);
+            GeometryService.project(geometryService,params).then((newExt) => {
+                initExtent = newExt[0];
+                view.extent = initExtent;
+            }).catch ( (error) => {
+                let msg = "There was a problem converting the extent read from the URL to Web Mercator projection. extent=" + extArr[0] + ", " + extArr[1] + ", " + extArr[2] + ", " + extArr[3] + "  prj=" + prj + "  " + error.message;
+                alert(msg, "URL Extent Error", error);
+            });
+        // Use initextent read from config.xml file
+        } else {
+            initExtent = new Extent({
+                    "xmin": parseFloat(ext[0]),
+                    "ymin": parseFloat(ext[1]),
+                    "xmax": parseFloat(ext[2]),
+                    "ymax": parseFloat(ext[3]),
+                    "spatialReference": {
+                        "wkid": wkid
+                    }
+                });
+            view.extent = initExtent;
+        }
+        
+        // Zoom to a place on startup
+        if (queryObj.place && queryObj.place != "") {
+            var place = queryObj.place.replace("%20", " ");
+            if (queryObj.prj && queryObj.prj != ""){
+                settings = {
+                    XYProjection: queryObj.prj
+                };
+            }
+            // check if it is a xy coordinate
+            var digits = "0123456789-";
+            if (digits.indexOf(place.substring(0, 1)) > -1 && place.indexOf(",") > -1) {
+                handleCoordinate(place);
+            }
+            else{
+                if (place.toLowerCase().indexOf("gmu ") == 0) place = place.substring(4);
+                if (place.toLowerCase().indexOf(" county") > -1) place = place.substring(0,place.length-7);
+                if (queryObj.label)labelFromURL = true;
+                if(searchWidget && searchWidget.search)
+                    searchWidget.search(place);
+                else{
+                    var tim = setInterval(function(){
+                        if(searchWidget && searchWidget.search) {
+                            searchWidget.search(place);
+                            clearInterval(tim);
+                        }
+                    },500);
+                }
+            }
+        }
+        
+        // Zoom to a keyword and value on startup
+        if (queryObj.keyword && queryObj.keyword != "") {
+            if (!queryObj.value || queryObj.value == "")
+                alert("When &keyword is used on the URL, there must be a &value also.", "URL Keyword/Value Error");
+            else {
+                require(["esri/rest/query", "esri/rest/support/Query"], function (query, Query) {
+                    var urlFile = app + "/url.xml?v=" + ndisVer;
+                    var xmlurl = createXMLhttpRequest();
+                    xmlurl.onreadystatechange = function () {
+                        if (xmlurl.readyState == 4 && xmlurl.status === 200) {
+                            var xmlDoc = createXMLdoc(xmlurl);
+                            var layer = xmlDoc.getElementsByTagName("layer");
+                            for (var i = 0; i < layer.length; i++) {
+                                if (!layer[i].getElementsByTagName("keyword")[0] || !layer[i].getElementsByTagName("keyword")[0].firstChild)
+                                    alert("Missing tag keyword or blank, in " + app + "/url.xml file.", "Data Error");
+                                if (queryObj.keyword == layer[i].getElementsByTagName("keyword")[0].firstChild.nodeValue)
+                                    break;
+                            }
+                            if (i == layer.length)
+                                alert("Keyword [" + queryObj.keyword + "] is not defined in " + app + "/url.xml file.", "Data Error");
+                            else {
+                                if (!layer[i].getElementsByTagName("url")[0] || !layer[i].getElementsByTagName("url")[0].firstChild)
+                                    alert("Missing tag url or blank, in " + app + "/url.xml file for keyword: " + queryObj.keyword + ".", "Data Error");
+                                if (!layer[i].getElementsByTagName("expression")[0] || !layer[i].getElementsByTagName("expression")[0].firstChild)
+                                    alert("Missing tag expression, in " + app + "/url.xml file for keyword: " + queryObj.keyword, "Data Error");
+                                else {
+                                    var expr = layer[i].getElementsByTagName("expression")[0].firstChild.nodeValue.replace("[value]", queryObj.value);
+                                    
+                                    const params = new Query({
+                                        returnGeometry: true,
+                                        where: expr
+                                    });
+                                    query.executeQueryJSON(layer[i].getElementsByTagName("url")[0].firstChild.nodeValue, params).then((response) =>  {
+                                        if (response.features.length == 0) {
+                                            gotoLocation(queryObj.value, true);
+                                        } else {
+                                            // Zoom to point or polygon
+                                            require(["esri/geometry/Point", "esri/Graphic"],
+                                            function (Point, Graphic) {
+                                                var pt;
+                                                if (response.geometryType === "point") {
+                                                    var level = 24000; // 4-21-17 Updated lods, used to be 14
+                                                    if (layer[i].getElementsByTagName("mapscale")[0] && layer[i].getElementsByTagName("mapscale")[0].firstChild){
+                                                        level = parseInt(layer[i].getElementsByTagName("mapscale")[0].firstChild.nodeValue);
+                                                        if (level < 1000){
+                                                            switch (level){
+                                                                case (7):
+                                                                    level = 50000
+                                                                case (6):
+                                                                    level = 100000
+                                                                case (5):
+                                                                    level = 250000
+                                                                default:
+                                                                    level = 24000
+                                                            }
+                                                        }
+                                                    }
+                                                    pt = new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference);
+                                                    // zoom to point
+                                                    view.goTo({
+                                                        target: pt,
+                                                        scale: level
+                                                    });
+                                                    // add point symbol
+                                                    addTempPoint(pt);
+                                                    if (queryObj.label && queryObj.label != "") {
+                                                        // add label view.graphics
+                                                        addTempLabel(pt,queryObj.label);
+                                                    }
+                                                } else if (response.geometryType === "polygon") {
+                                                    var union=false;
+                                                    if (layer[i].getElementsByTagName("union")[0] && layer[i].getElementsByTagName("union")[0].firstChild &&
+                                                        layer[i].getElementsByTagName("union")[0].firstChild.nodeValue.toLowerCase() === "true"){
+                                                            union=true;
+                                                    }
+                                                    // zoom to extent of first feature
+                                                    if (!union){
+                                                        pt = response.features[0].geometry.centroid;
+                                                        view.extent = response.features[0].geometry.extent.clone().expand(1.5);
+                                                        addTempPolygon(response.features[0]);
+                                                    }
+
+                                                    // zoom to extent of all features 1-14-19
+                                                    else{
+                                                        var newExtent = response.features[0].geometry.extent;//new Extent(response.features[0].geometry.getExtent());
+                                                        //var largestArea = 0;
+                                                        //var indexLgArea = 0; // feature index for the largest area to center the label over
+                                                        for (var j = 0; j < response.features.length; j++) { 
+                                                            var thisExtent = response.features[j].geometry.extent;
+                                                            // center label over largest polygon
+                                                            /*area = thisExtent.width * thisExtent.height;
+                                                            if (area > largestArea){
+                                                                largestArea = area;
+                                                                indexLgArea = j;
+                                                            }*/
+                                                            // making a union of all polygon extents
+                                                            newExtent = newExtent.union(thisExtent);
+                                                            // highlight polygons
+                                                            addTempPolygon(response.features[j]);
+                                                            // label each polygon
+                                                            if (queryObj.label && queryObj.label != "") {
+                                                                // add label to view.graphics
+                                                                addTempLabel(response.features[j],queryObj.label);
+                                                            }
+                                                        }
+                                                        view.extent = newExtent.clone().expand(1.5);
+                                                        //pt = response.features[indexLgArea].geometry.extent.center;
+                                                    }	
+
+                                                    
+                                                } else {
+                                                    // not a point or polygon
+                                                    view.extent = response.features[0].geometry.extent;
+                                                    //map.setExtent(response.features[0].geometry.getExtent(), true);
+                                                    poly[0] = new Graphic({
+                                                        geometry: view.extent,
+                                                        symbol: polySymbol
+                                                    });
+                                                    view.graphics.add(poly[0]);
+                                                    setTimeout(function(){
+                                                        view.graphics.remove(poly[0]);
+                                                    },10000);
+                                                    pt = view.extent.center;
+                                                    if (queryObj.label && queryObj.label != "") {
+                                                        addTempLabel(pt,queryObj.label,12);
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }).catch ( (error) => {
+                                        if (error.responseText) {
+                                            alert("Error: Failed to zoom to keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message + error.responseText, "URL Keyword/Value Error", error);
+                                        } else {
+                                            alert("Error: Failed to zoom to keyword=" + queryObj.keyword + " value=" + queryObj.value + " " + error.message, "URL Keyword/Value Error", error);
+                                        }
+                                    });
+                                }
+                            }
+                        } else if (xmlurl.status === 404)
+                            alert("Missing url.xml file in " + app + " directory.", "Data Error");
+                        else if (xmlurl.readyState === 4 && xmlurl.status === 500)
+                            alert("Error: had trouble reading " + app + "/url.xml file in readConfig.js.", "Data Error");
+                    };
+                    xmlurl.open("GET", urlFile, true);
+                    xmlurl.send(null);
+                });
+            }
+        }
+        if (queryObj.map && queryObj.map != "") {
+            if (!queryObj.value || queryObj.value == "" || !queryObj.field || queryObj.field == "")
+                alert("When &map is used on the URL, there must also be an &field and &value.", "URL Map/Value Error");
+            else {
+                //require(["esri/request", "esri/tasks/QueryTask", "esri/tasks/query"], function (esriRequest, QueryTask, Query) {
+                require(["esri/rest/query", "esri/rest/support/Query"], function (query, Query) {
+                    var expr;	
+                    //var queryTask = new QueryTask(queryObj.map);
+                    //var query = new Query();
+                    if (Number(queryObj.value))
+                        expr = queryObj.field + "=" + queryObj.value;
+                    else
+                        expr = "UPPER(" + queryObj.field + ") LIKE UPPER('" + queryObj.value + "')";
+                    const params = new Query({
+                        returnGeometry: true,
+                        where: expr
+                    });
+                    query.executeQueryJSON(queryObj.map, params).then((response) =>  {
+
+                    //queryTask.execute(query, function (response) {
+                        // Zoom to point or polygon
+                        require(["esri/geometry/Point"], function (Point) {
+                            if (response.features.length == 0)
+                                alert("Cannot zoom to " + queryObj.value + ". The feature was not found in " + queryObj.map + " for field " + queryObj.field, "URL Map/Value Error");
+                            else {
+                                if (response.geometryType == "point"){
+                                    let pt = new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference);
+                                    view.goTo({
+                                        target: pt,
+                                        scale: 24000
+                                    });
+                                    addTempPoint(pt);
+                                    //map.centerAndZoom(new Point(response.features[0].geometry.x, response.features[0].geometry.y, response.spatialReference), 8);
+                                }
+                                else  {
+                                    view.extent = response.features[0].geometry.extent.clone().expand(1.5);
+                                    addTempPolygon(response.features[0]);
+                                }
+                            }
+                        });
+                    }, function (error) {
+                        if (error.responseText)
+                            alert("Error: QueryTask failed for map=" + queryObj.map + " " + error.message + error.responseText, "URL Map/Value Error", error);
+                        else
+                            alert("Error: QueryTask failed for map=" + queryObj.map + " " + error.message, "URL Map/Value Error", error);
+                    });
+                });
+            }
         }
     });
 }

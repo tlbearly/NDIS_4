@@ -100,7 +100,22 @@
 					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"/-->
 			<layer label="Base Data" open="true" type="dynamic" visible="true" alpha="1.0" listMode="hide"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer"/>
-			<layer label="Transportation" open="true" type="dynamic" visible="false" alpha="1.0"
+			<!-- layers in groups must be feature services! -->
+            <!--layer group="Transportation2" open="false" visible="true" alpha="1" radio="false"/-->
+                <!--layer parentGroup="Transportation2" label="Trail Heads" alpha="1.0" visible="true"
+                    url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer/1"/-->
+                <!--layer parentGroup="Transportation2" label="Trails" alpha="1.0" visible="true"
+                    url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer/2"/-->
+                <!--layer group="MVUM" parentGroup="Transportation2" label="Motor Vehicle Use Map" open="true" type="dynamic" visible="true" alpha="1"
+                    url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"
+                    layerIds="1,2",
+                    layerVis="true,true"/-->
+                <!--layer parentGroup="Transportation2" label="Motor Vehicle Use Map Trails" open="true" type="dynamic" visible="true" alpha="1"
+                    url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/2"/-->
+                <!--layer parentGroup="Transportation2" label="BLM Roads and Trails" open="true" type="dynamic" visible="false" alpha="1"
+                    url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer/5" /-->
+
+            <layer label="Transportation" open="true" type="dynamic" visible="false" alpha="1.0"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer"/>
 			<layer label="Land and Access" open="true" type="dynamic" visible="true" alpha="1.0"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccess2025/MapServer"/>

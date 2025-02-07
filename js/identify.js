@@ -64,8 +64,11 @@ function readSettingsWidget() {
                     var myPrj = getCookie("prj");
                     if (myPrj !== "")
                         settings = { "XYProjection": myPrj };
-                    else
-                        settings = { "XYProjection": xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue };		
+                    else{
+                        if (xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0])
+                            settings = { "XYProjection": xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue };
+                        else alert("Missing tag: xy_projection in "+app+"/SettingsWidget.xml", "Data Error");
+                    }
 
                     // Map Link Not Used
                     /*use_map_link = xmlDoc.getElementsByTagName("use_map_link")[0] && xmlDoc.getElementsByTagName("use_map_link")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
@@ -427,6 +430,7 @@ function doIdentify(evt){
     // Called for each map click or identify group change
     numDatabaseCalls = 0;
     processedDatabaseCalls = 0;
+    numHighlightFeatures = 0;
     features = [];
     theEvt = evt; // Save the click point so we can call this again from changeIdentifyGroup
     view.popup.title = "Identify";
@@ -795,12 +799,14 @@ function handleQueryResults(results) {
                                     }
                                 }else {
                                     theTitle[identifyGroup] = feature.attributes.IncidentName;
+                                    highlightFeature(features.length-1,false);
                                 }
                                 view.popup.title = theTitle[identifyGroup];
                             }
                         }
                         var d;
                         
+                        // popup content
                         for (var i = 0; i < identifyLayers[identifyGroup][layerName].displaynames.length; i++) {
                             tmpStr = "";
                             if ((feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] &&
@@ -870,6 +876,8 @@ function handleQueryResults(results) {
                         str += "</div><br/>";
                     });
                 });
+                if (numHighlightFeatures == 0)
+                    highlightFeature(0,false);
                 if (noData){
                     displayInfoWindow("No wildfires at this point.");
                     theTitle[identifyGroup] = "No Wildfires";
@@ -901,7 +909,7 @@ function handleQueryResults(results) {
                 }
             }
 
-            // Write the content for the identify 
+            // Write the content for the identify
             var countResults = -1;
             results.forEach(function(result) {
                 countResults++; // to get result layerName for buffered points
@@ -1035,6 +1043,10 @@ function handleQueryResults(results) {
                                                 }
                                                 if (isAllComplete) {
                                                     accumulateContent(str);
+                                                    // highlight first feature if none were specified by pre_title title title_field in SettingsWidget.xml file
+                                                    //if (numHighlightFeatures == 0){
+                                                    //    highlightFeature(0,true);
+                                                    //}
                                                 }
                                             }
                                         };
@@ -1089,6 +1101,7 @@ function handleQueryResults(results) {
                                     // needed if not using highlight
                                     str += tmpStr+"</div><br/>";
                                     groupContent[identifyGroup] = str; // cache content
+                                    
                                 }
                                 //features.push(r.feature);
                             }
@@ -1116,7 +1129,10 @@ function handleQueryResults(results) {
                     });
                 }
             });
-             
+            // highlight first feature if none were specified by pre_title title title_field in SettingsWidget.xml file
+            if (numHighlightFeatures == 0){
+                highlightFeature(0,true);
+            }
             accumulateContent(str);
         } catch (e) {
             alert(e.message + " in javascript/identify.js handleQueryResults().", "Code Error", e);
@@ -1128,24 +1144,44 @@ function handleQueryResults(results) {
 var numHighlightFeatures=0;
 function highlightFeature(id,fade) {
     // highlight geometry on mouse over, no fade = true
-    if (!features[id] || !features[id].geometry || features[id].geometry === undefined) return;
-    if (features[id].geometry.type === undefined || !features[id].geometry.type) return;
-    if (features[id].geometry.type === "point" ) {
-        addHighlightPoint(features[id],fade);
-        numHighlightFeatures++;
-    }else if (features[id].geometry.type === "polygon") {
-        addTempPolygon(features[id],fade);
-        numHighlightFeatures++;
-    } else if (features[id].geometry.type === "polyline") {
-        addTempLine(features[id],fade);
-        numHighlightFeatures++;
+    if (features[id] && features[id].geometry && (features[id].geometry != undefined && features[id].geometry.type)) {
+        //if (features[id].geometry.type === undefined || !features[id].geometry.type) return;
+        if (features[id].geometry.type === "point" ) {
+            addHighlightPoint(features[id],fade);
+            numHighlightFeatures++;
+        }else if (features[id].geometry.type === "polygon") {
+            addTempPolygon(features[id],fade);
+            numHighlightFeatures++;
+        } else if (features[id].geometry.type === "polyline") {
+            addTempLine(features[id],fade);
+            numHighlightFeatures++;
+        }
     }
+
+    // add marker pin at clickpoint
+    require(["esri/Graphic"], function ( Graphic) {
+        const symbol = {
+            type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
+            url: "./assets/images/pin.svg",
+            width: 24,
+            height: 24,
+            xoffset: 0,
+            yoffset: 8
+        };
+        let point = new Graphic({
+            geometry: clickPoint,
+            symbol: symbol
+        });
+
+        view.graphics.add(point);
+        numHighlightFeatures++;
+    });
 }
 
 function removeHighlight() {
     // remove old highlight  but don't remove pin at clickpoint
     for (var i=0; i<numHighlightFeatures; i++)
-        view.graphics.remove(view.graphics.items[view.graphics.items.length-2]);
+        view.graphics.remove(view.graphics.items[view.graphics.items.length-1]);
     numHighlightFeatures=0;
 }
 
@@ -1557,8 +1593,8 @@ function getDirections() {
 }
 
 function zoomToPt() {
-    var level = 250000;
-    if (view.scale < 250000) level = view.scale; // don't zoom out!!!
+    var level = 100000;
+    if (view.scale < level) level = view.scale; // don't zoom out!!!
     // zoom to point
     view.goTo({
         target: view.popup.viewModel.location,

@@ -46,7 +46,7 @@
 	//**************
 	function handleCoordinate(label) {
 		// Zoom to and label a coordinate, Called from &place on URL
-		require(["esri/geometry/SpatialReference", "esri/rest/geometryService", "esri/rest/support/ProjectParameters", "esri/geometry/Point", "esri/Graphic", "dojo/domReady!"], function (SpatialReference, GeometryService, ProjectParameters, Point, Graphic) {
+		require(["esri/geometry/SpatialReference", "esri/rest/geometryService", "esri/rest/support/ProjectParameters", "esri/geometry/Point"], function (SpatialReference, GeometryService, ProjectParameters, Point) {
 			var point;
 			var inSR,
 			pointX,

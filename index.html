@@ -29,12 +29,12 @@
 
   <script type="text/javascript" src="js/xmlUtils.js?v=1" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js" async="true"></script>
-  <script type="text/javascript" src="js/utilFuncs.js?v=13" async="true"></script>
-  <script type="text/javascript" src="js/addMapLayers.js?v=17" async="true"></script>
+  <script type="text/javascript" src="js/utilFuncs.js?v=18" async="true"></script>
+  <script type="text/javascript" src="js/addMapLayers.js?v=20" async="true"></script>
   <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=96" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=99" async="true"></script>
   <script type="text/javascript" src="js/mySearch.js?v=1" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=20" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=21" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=0" async="true"></script>
 
@@ -74,7 +74,7 @@
   <script>
     var app = "huntingatlas";
     var map, view, mapLayers = [];
-    var  queryObj;
+    var  queryObj = {};
     var gmuFL=null; // big game gmu layer
     const ndisVer = Date.now();
     // this is read from SettingsWidget.xml file in identify.js readSettingsWidget()
@@ -90,12 +90,13 @@
     var gmu = "Big Game GMU";
     var searchWidget;
     var hideGroupSublayers = ["Emergency", "Field Office", "Chamber of Commerce or Welcome Center", "License Agent", "Campgrounds and SWA Facilities", "GMU boundary (Hunting Units)"];
+    var radioLayers = null;
     var labelFromURL = false;
     // Protect against XSS attacks
     // preserve new lines in way point descriptions (For future changes, if we decide to add them like the Mobile version.)
     //var location = document.location.search.replace(/\%0D/g,"newline");
-    var queryObj = new URL(window.location.toLocaleString()).searchParams;
-    app = queryObj.get("app");
+    var queryObjParams = new URL(window.location.toLocaleString()).searchParams;
+    app = queryObjParams.get("app");
     if (!app)
         app = "HuntingAtlas";
     else {
@@ -210,7 +211,7 @@
                 console.log("Popup open"+popupOpenCount);
 
                 // add marker at clickpoint
-                require(["esri/Graphic"], function ( Graphic) {
+                /*require(["esri/Graphic"], function ( Graphic) {
                     const symbol = {
                       type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
                       url: "./assets/images/pin.svg",
@@ -224,7 +225,7 @@
                       symbol: symbol
                     });
                     view.graphics.add(point);
-                });
+                });*/
               }
             }
           );

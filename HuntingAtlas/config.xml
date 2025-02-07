@@ -196,7 +196,7 @@
                     layerVis="false,true,true,true,false,true,true,false"
                     popup_fields="EDIT_DATE"
                     popup_labels="Last Edit Date"/>
-                <layer group="Bighorn" parentGroup="Game Species" open="false" visible="false"
+                <layer group="Bighorn " parentGroup="Game Species" open="false" visible="false"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
                     layerIds="8,9,15-17,10,11,18"
                     layerVis="false,true,true,true,true,false,true,false"

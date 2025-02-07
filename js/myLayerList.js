@@ -442,8 +442,9 @@ function layerListAddSublayerDialogs(event,theLayer){
         }
 
         // Radio button list
-        if (layer.visibilityMode === "exclusive" || radioLayers.indexOf(layer.title)>-1 ) {
+        if (layer.visibilityMode === "exclusive" || (radioLayers && radioLayers.indexOf(layer.title)>-1 )) {
             var selectedItem; // default title for radio button sublayer popover
+            var selectedLayer;
             // Add dropdown combo box
             const combo = document.createElement("calcite-combobox");
             var radioArr;
@@ -482,7 +483,8 @@ function layerListAddSublayerDialogs(event,theLayer){
             radioGroup.style.padding = "10px";
             combo.appendChild(radioGroup);
             sublayerDialog.appendChild(combo);
-        
+            let iframe1 = null;
+
             // drop down list of radio buttons
             radioArr.forEach(species => {
                 const radio = document.createElement("calcite-label");
@@ -491,6 +493,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                     radio.innerHTML = "<calcite-radio-button id='radio"+species.title+"' value='"+species.title+"' label='"+species.title+"' checked></calcite-radio-button> "+species.title;
                     //accItem0.description = species.title;
                     selectedItem = species.title;
+                    selectedLayer = species;
                     combo.label = selectedItem;
                     combo.placeholder = selectedItem;
                 }
@@ -500,16 +503,14 @@ function layerListAddSublayerDialogs(event,theLayer){
                 radio.addEventListener("click",() =>{
                     document.getElementById(selectedItem).style.visibility = "collapse";
                     document.getElementById(species.title).style.visibility = "visible";
+                    selectedLayer.visible = false; // turn off last layer
+                    species.visible = true; // turn on selected layer
                     selectedItem = species.title;
+                    selectedLayer = species;
                     radioGroup.parentNode.placeholder = selectedItem;
                     radioGroup.parentNode.open = false;
                     // Update layer description
-                    // TODO ************************************************************
                     iframe1.src = "layer-desc/" + selectedItem + ".html";
-
-
-
-
                     setGMU(species); // update search widget and map
                 });
                 radioGroup.appendChild(radio); 
@@ -528,7 +529,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             //notice.style.overflowY = "auto";
             notice.style.height = "auto";
             notice.style.padding="0";
-            var iframe1 = document.createElement("iframe");
+            iframe1 = document.createElement("iframe");
             iframe1.style.height = "300px"; 
             iframe1.style.width = "100%";
             iframe1.slot="message";
@@ -576,11 +577,22 @@ function layerListAddSublayerDialogs(event,theLayer){
             subLayeronOffBtn.layer = layer;
             subLayeronOffBtn.style.padding = "10px 14px 0 10px";
             subLayeronOffBtn.setAttribute("scale", "l"); // large
-            if (layer.visible) subLayeronOffBtn.checked = true;
-            else subLayeronOffBtn.checked = false;
+            if (layer.visible) {
+                subLayeronOffBtn.checked = true;
+                block.style.opacity = "1.0";
+            } else {
+                subLayeronOffBtn.checked = false;
+                block.style.opacity = "0.6";
+            }
             // Set value when clicked
             subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                 event.target.layer.visible = event.target.checked;
+                // gray out options if not visible
+                if (event.target.checked){
+                    block.style.opacity = "1.0";
+                }else {
+                    block.style.opacity = "0.6";
+                }
                 // Set switch on parent dialog Visibility
                 if (document.getElementById("layerlist")){
                     var switches = document.getElementById("layerlist").querySelectorAll("calcite-list-item");
@@ -642,7 +654,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                             // Add legend to icon slot
                             var subLayerIcon = document.createElement("img");
 
-// TODO
+                            // TODO add picture of legend ??????? Maybe **********************
 
 
 
@@ -696,6 +708,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 //iframe.style.border = "none";
                 iframe1.style.margin = "0";
                 iframe1.title = "Description of " + layer.title + " map layer(s)";
+                
                 // Add print button
                 var printBtn = document.createElement("calcite-icon");
                 printBtn.icon = "search";
@@ -723,7 +736,6 @@ function layerListAddSublayerDialogs(event,theLayer){
 
                 sublayerDialog.appendChild(block);
 
-
                 // Visible List
                 block = document.createElement("calcite-block");
                 block.heading = "Visibility:";
@@ -737,11 +749,24 @@ function layerListAddSublayerDialogs(event,theLayer){
                 subLayeronOffBtn.layer = layer;
                 subLayeronOffBtn.style.padding = "10px 14px 0 4px";
                 subLayeronOffBtn.setAttribute("scale", "l"); // large
-                if (layer.visible) subLayeronOffBtn.checked = true;
-                else subLayeronOffBtn.checked = false;
+                if (layer.visible) {
+                    subLayeronOffBtn.checked = true;
+                    block.style.opacity = "1.0";
+                }
+                else {
+                    subLayeronOffBtn.checked = false;
+                    // gray out options if not visible
+                    block.style.opacity = "0.6";
+                }
                 // Set value when clicked
                 subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                     event.target.layer.visible = event.target.checked;
+                    // gray out options if not visible
+                    if (event.target.checked){
+                        block.style.opacity = "1.0";
+                    }else {
+                        block.style.opacity = "0.6";
+                    }
                     // Set switch on parent dialog Visibility
                     if (document.getElementById("layerlist")){
                         var switches = document.getElementById("layerlist").querySelectorAll("calcite-list-item");

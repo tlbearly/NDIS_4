@@ -156,6 +156,7 @@ function getCookie(cname) {
                 div.innerHTML = geoPt[0] + ", " + geoPt[1];
             else alert("Warning", "Undefined DOM node id="+div);
         } else { // utm
+          if (myPrj !== "32613") alert("Unknown projection in SettingsWidget.xml file of "+myPrj+". dd or 32613 are the only allowed projections. Change this in js/identify.js.","Data Error");
             var outSR = new SpatialReference(Number(myPrj));
             // converts point to selected projection
             var params = new ProjectParameters({
@@ -395,7 +396,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
         color: "black",//[255, 255, 255],
         haloColor: [255, 255, 153, 1.0],//[1, 68, 33],
         haloSize: "2px",
-        yoffset: -23,//-1 * (fontSize) - 3,
+        yoffset: -35,//-23,//-1 * (fontSize) - 3,
         font: {
           family: "Arial Unicode MS",
           size: fontSize
@@ -434,7 +435,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
     require(["esri/symbols/PictureMarkerSymbol", "esri/Graphic"], function (PictureMarkerSymbol, Graphic) {
       const symbol = {
         type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-        url: "/assets/images/pin.svg", //,i_flag.png", // color is hard coded in pin.svg!!!!!! Can't get it to set color here??????
+        url: "./assets/images/pin.svg", //,i_flag.png", // color is hard coded in pin.svg!!!!!! Can't get it to set color here??????
         size: 24,
         width: 24,
         height: 24,
@@ -513,7 +514,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
         }
       });
   }
-  function addTempLine(feature,noFade){
+  function addTempLine(feature,shouldFade){
     // add polygon outline and remove it in 10 seconds
     // if noFade is passed in do not fade
     // called by Identify highlight
@@ -523,7 +524,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
             type: "simple-line",  // autocasts as SimpleLineSymbol()
             color: "#778743"+"9C", // 40% tranparency
             width: 4,
-            style: "dot"
+            style: "solid"
         }
         
         const line = new Polyline({
@@ -612,6 +613,143 @@ function addTempLabel(point, label, fontSize, shouldFade) {
     });
 }
 
+//**************
+	// Coordinates 
+	//**************
+	function handleCoordinate(label) {
+		// Zoom to and label a coordinate, Called from &place on URL
+		require(["esri/geometry/SpatialReference", "esri/rest/geometryService", "esri/rest/support/ProjectParameters", "esri/geometry/Point"], 
+      function (SpatialReference, GeometryService, ProjectParameters, Point) {
+			var point;
+			var inSR,
+			pointX,
+			pointY;
+			const lodLevel = 24000; //10;
+			if (label.indexOf(":") > 0) {
+				var pos,
+				pos2;
+				pointX = label.substring(0, label.indexOf(","));
+				pointY = label.substring(label.indexOf(",") + 1, label.length);
+				pos = pointX.indexOf(":");
+				var degX = pointX.substring(0, pos);
+				var secX = 0;
+				var minX;
+				pos2 = pointX.substring(pos + 1).indexOf(":")
+				if (pos2 > -1) {
+					minX = pointX.substr(pos + 1, pos2);
+					secX = pointX.substring(pos + pos2 + 2);
+				} else
+					minX = pointX.substring(pos + 1);
+				// if degX is the longitude value and it is negative subtract the numbers 11/6/20
+				if (degX < 0)
+					pointX = Number(degX) - Number(minX) / 60 - Number(secX) / 3600;
+				else
+					pointX = Number(degX) + Number(minX) / 60 + Number(secX) / 3600;
+				if (pointX >= 100 && pointX <= 110)
+					pointX = pointX * -1;
+				pos = pointY.indexOf(":");
+				var degY = pointY.substring(0, pos);
+				var secY = 0;
+				var minY;
+				pos2 = pointY.substring(pos + 1).indexOf(":")
+				if (pos2 > -1) {
+					minY = pointY.substr(pos + 1, pos2);
+					secY = pointY.substring(pos + pos2 + 2);
+				} else
+					minY = pointY.substring(pos + 1);
+				// if degY is the longitude value and it is negative subtract the numbers 11/6/20
+				if (degY < 0)
+					pointY = Number(degY) - Number(minY) / 60 - Number(secY) / 3600;
+				else
+					pointY = Number(degY) + Number(minY) / 60 + Number(secY) / 3600;
+				if (pointY >= 100 && pointY <= 110)
+					pointY = pointY * -1;
+				label = degX + '° ' + minX + '\' ';
+				if (secX > 0)
+					label += secX + '"';
+				label += ", " + degY + '° ' + minY + '\' ';
+				if (secY > 0)
+					label += secY + '"';
+			} else {
+				pointX = Number(label.substring(0, label.indexOf(",")));
+				pointY = Number(label.substring(label.indexOf(",") + 1, label.length));
+			}
+			if (((pointY >= -110 && pointY <= -100) || (pointY >= 100 && pointY <= 110)) && (pointX >= 35 && pointX <= 42)) {
+				var pos = label.indexOf(",");
+				label = label.substr(0, pos) + " N" + label.substr(pos) + " W";
+				if (pointY > 0)
+					pointY = pointY * -1;
+				inSR = new SpatialReference(4326);
+				point = new Point(pointY, pointX, inSR);
+				var params = new ProjectParameters({
+					outSpatialReference: new SpatialReference(wkid),
+					geometries: [point]
+				});
+				GeometryService.project(geometryService,params).then( (feature) => {
+					view.goTo({
+						target: feature[0],
+						scale: lodLevel
+						//zoom: lodLevel
+					});
+					addTempPoint(feature[0]);
+					addTempLabel(feature[0],label);
+				}).catch ( (err) => {
+					alert("Error projecting point. " + err.message, "Warning");
+				});
+				return;
+			} else if (((pointX >= -110 && pointX <= -100) || (pointX >= 100 && pointX <= 110)) && (pointY >= 35 && pointY <= 42)) {
+				var pos = label.indexOf(",");
+				label = label.substr(0, pos) + " W" + label.substr(pos) + " N";
+				if (pointX > 0)
+					pointX = pointX * -1;
+				inSR = new SpatialReference(4326);
+				point = new Point(pointX, pointY, inSR);
+				var params = new ProjectParameters({
+					outSpatialReference: new SpatialReference(wkid),
+					geometries: [point]
+				});
+				GeometryService.project(geometryService,params).then( (feature) => {
+					view.goTo({
+						target: feature[0],
+						scale: lodLevel
+						//zoom: lodLevel
+					});
+					addTempPoint(feature[0]);
+					addTempLabel(feature[0],label);
+				}).catch( (err)=> {
+					alert("Error projecting point. " + err.message, "Warning");
+				});
+				return;
+			} else if ((pointX >= 133000 && pointX <= 1300000) && (pointY >= 4095000 && pointY <= 4580000)) {
+				if (!settings)
+					inSR = new SpatialReference(26913);
+				else
+					inSR = new SpatialReference(Number(settings.XYProjection));
+				point = new Point(pointX, pointY, inSR);
+				var params = new ProjectParameters({
+					outSpatialReference: new SpatialReference(wkid),
+					geometries: [point]
+				});
+				GeometryService.project(geometryService,params).then( (feature) => {
+					view.goTo({
+						target: feature[0],
+						scale: lodLevel
+						//zoom: lodLevel
+					});
+					addTempPoint(feature[0]);
+					addTempLabel(feature[0],label);
+				}).catch ( (err) => {
+					alert("Error projecting point. " + err.message, "Warning");
+				});
+				return;
+			} else {
+				alert("<p>Warning:  This point is not in Colorado, or it is not in one of the supported projections of:</p><ul>" + "<li>Lat, Long decimal degrees (e.g. 39.2, 103.5032 or 39.2, -103.5032)</li>" + "<li>Long, Lat decimal degrees (e.g. -104.345, 39.012 or 104.345, 39.012)</li>" + "<li>Lat, Long degrees, decimal minutes (e.g. 39:3.5,104:30.223)</li>" + "<li>Lat, Long degrees, minutes, seconds (e.g. 39:3:30,104:30:1.44)</li>" + "<li>Long, Lat degrees, decimal minutes (e.g. 104:30.45,39:3.5)</li>" + "<li>Lat, Long degrees, decimal minutes (e.g. 39:3.5,104:30.45)</li>" + "<li>NAD83 UTM (e.g. 1020042,  4333793)</li>" + "<li>NAD27 UTM, or WGS84 UTM.</li></ul>Use a comma to separate the coordinates.", "Warning");
+				hideLoading();
+				return;
+			}
+		});
+	}
+	
 //************************
 //     Array Functions
 //************************

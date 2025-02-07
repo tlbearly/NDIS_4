@@ -131,8 +131,18 @@
 	<elevation_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Elevation/MapServer</elevation_url>
 	
 	<tree>
-		<folder label="Hunt Areas" pre_title="GMU Unit " title_layer="Big Game GMU Boundaries" title_field="GMUID">
-		<!-- CPW Properties -->
+		<folder label="Hunter Resources" pre_title="GMU Unit " title_layer="Big Game GMU Boundaries" title_field="GMUID">
+			<link label="Moon Rise, Sun Rise and Set at click point">https://</link>
+			<link label="Weather at click point">https://</link>
+			<!-- GMU      NOTE: cannot use vis_id with GMU -->
+			<layer label="Big Game GMU Boundaries">
+				<id>2</id>
+	     		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
+	     		<geometry>polygon</geometry>
+		   		<fields>GMUID</fields>
+	     		<displaynames>GMU Number</displaynames>
+	   		</layer>
+			<!-- CPW Properties -->
 			<layer label="CPW Public Access Properties">
 				<id>3</id>
 				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
@@ -168,18 +178,6 @@
 		   		<fields>NAME,MANAGER</fields>
 		   		<displaynames>Property Name,Land Manager</displaynames>
 	   		</layer>
-			<!-- GMU      NOTE: cannot use vis_id with GMU -->
-			<layer label="Big Game GMU Boundaries">
-				<id>2</id>
-	     		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
-	     		<geometry>polygon</geometry>
-		   		<fields>GMUID</fields>
-	     		<displaynames>GMU Number</displaynames>
-	   		</layer>
-		</folder>
-		<folder label="Hunter Resources" pre_title="Contact Info " title_layer="Contact Info" title_field="CDOW_FOName">
-			<link label="Buy License">https://cpw.state.co.us/rules-and-regulations</link>
-			<link label="Big Game Brochure">https://cpw.state.co.us/rules-and-regulations</link>
 			
 			<!-- Campground  -->
 			<layer label="Campground">
@@ -234,7 +232,7 @@
 			</layer>
 		</folder>
 		
-		<folder label="Roads and Trails">
+		<folder label="Roads and Trails" pre_title="Trail " title_layer="Trails" title_field="name">
 			<layer label="Trails">
 				<id>2</id>
 				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer</url>
@@ -249,6 +247,13 @@
 				<fields>Planned Allowed Mode of Transportation,Route Primary Name,Route Primary Number</fields>
 				<displaynames>Allowed Mode of Transportation,Route Name,Route Number</displaynames>
 			</layer>
+			<!--layer label="Motor Vehicle Use Map">
+				<id>0</id>
+                <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer</url>
+				<geometry>line</geometry>
+				<fields></fields>
+				<displaynames></displaynames>
+			</layer-->
 		</folder>
 	</tree>
 </configuration>
