@@ -488,7 +488,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
     style: "solid",
     outline: {  // autocasts as new SimpleLineSymbol()
       color: "#778743",
-      width: 3
+      width: 2
     }
   }
   function addTempPolygon(feature, shouldFade) {

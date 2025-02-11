@@ -21,20 +21,21 @@
  
   
   <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=13" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=14" async="true" />
   
-  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=30" async="true" />
+  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=31" async="true" />
   
   <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
 
   <script type="text/javascript" src="js/xmlUtils.js?v=1" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js" async="true"></script>
-  <script type="text/javascript" src="js/utilFuncs.js?v=18" async="true"></script>
+  <script type="text/javascript" src="js/utilFuncs.js?v=19" async="true"></script>
   <script type="text/javascript" src="js/addMapLayers.js?v=20" async="true"></script>
   <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=99" async="true"></script>
-  <script type="text/javascript" src="js/mySearch.js?v=1" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=21" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=100" async="true"></script>
+  <script type="text/javascript" src="js/mySearch.js?v=3" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=25" async="true"></script>
+  <script type="text/javascript" src="js/errorBox.js?v=1" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=0" async="true"></script>
 
@@ -877,6 +878,11 @@
 
 <body class="green-theme">
   <calcite-loader id="loadingImg" label="Loading..." style="display:none;position:absolute;top:calc(50% - 90px);left:50%;z-index:4;"></calcite-loader>
+  <div id="errBox" class="errorbox" style="display:none;">
+    <div id="errTitle" class="errortitle"></div>
+    <div id="errMsg" class="errormsg"></div>
+    <button id="errBtn" class="errorbtn">OK</button>
+  </div>
   <div id="viewDiv"></div>
     <!-- XY Coordinate Format Dialog ***** MOVE TO IDENTIFY??? ******-->
     <div id="xycoordsDialog" title="Change Display Format" style="display:none;width:210px;">

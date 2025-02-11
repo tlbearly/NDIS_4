@@ -61,12 +61,15 @@ function readSettingsWidget() {
                     // Read Globals
                     //---------------
                     // Load user saved XY projection
+                    if (settings.XYProjection !== "dd" || settings.XYProjection !== "32613")
+                        alert("Error in "+app+"/SettingsWidget.xml file. Tag xy_projection must be dd or 32613.","Data Error");
                     var myPrj = getCookie("prj");
                     if (myPrj !== "")
                         settings = { "XYProjection": myPrj };
                     else{
-                        if (xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0])
+                        if (xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0]) {
                             settings = { "XYProjection": xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue };
+                        }
                         else alert("Missing tag: xy_projection in "+app+"/SettingsWidget.xml", "Data Error");
                     }
 
@@ -1149,7 +1152,7 @@ function highlightFeature(id,fade) {
         if (features[id].geometry.type === "point" ) {
             addHighlightPoint(features[id],fade);
             numHighlightFeatures++;
-        }else if (features[id].geometry.type === "polygon") {
+        }else if (features[id].geometry.type === "polygon" && view.scale <= 4000000) {
             addTempPolygon(features[id],fade);
             numHighlightFeatures++;
         } else if (features[id].geometry.type === "polyline") {
@@ -1348,7 +1351,7 @@ function customStuff(theContent){
             //const xyValue=["mercator","dd","dms","dm","32612","32613","26912","26913","26712","26713"];
             //const xyDisplay=["WGS84 Web Mercator","Decimal Degrees","Degrees, Minutes, Seconds","Degrees, Minutes","WGS84 UTM Zone 12N","WGS84 UTM Zone 13N","NAD83 UTM Zone 12N","NAD83 UTM Zone 13N","NAD27 UTM Zone 12N","NAD27 UTM Zone 13N"];
             const xyValue=["dd","32613"];
-            const xyDisplay=["Decimal Degrees","NAD83 UTM Zone 13N"];
+            const xyDisplay=["Decimal Degrees","WGS 84/UTM zone 13"];
 
             for (j=0; j<xyValue.length;j++){
                 content += '        <option value="'+xyValue[j]+'"';
@@ -1362,10 +1365,10 @@ function customStuff(theContent){
             // Elevation
             content += "<div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'><calcite-icon aria-hidden='true' icon='altitude' scale='l' style='color:var(--press);vertical-align:middle;'></calcite-icon> <span id='idElevation'>Loading elevation...</span></div>"
             // Zoom To
-            content += "<div style='padding:12px;'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='color:var(--press);vertical-align:middle;margin-right: 5px;'></calcite-icon><span style='color:var(--calcite-color-text-2)'> Zoom To</span></a> ";
+            content += "<div style='padding:12px;'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='color:var(--press);vertical-align:middle;margin-right: 5px;'></calcite-icon><span style='color:var(--press)'> Zoom To</span></a> ";
             // Get Directions
             if (driving_directions){
-                content += "<a href='javascript:getDirections()' style='float:left;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='color:var(--press);vertical-align:middle;margin-right: 5px;'></span><span style='color:var(--calcite-color-text-2)'> Get Directions</span></a></div>";
+                content += "<a href='javascript:getDirections()' style='float:left;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='color:var(--press);vertical-align:middle;margin-right: 5px;'></span><span style='color:var(--press)'> Get Directions</span></a></div>";
             }
         } else {
             content += "><div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'></div>"; //overflow:auto;

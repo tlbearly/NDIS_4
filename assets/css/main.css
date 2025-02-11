@@ -89,6 +89,51 @@ calcite-panel,
   max-height: calc(100% - 90px);
 }
 
+/* error box */
+.errorbox {
+  background-color: white;
+  width: 400px;
+  height: 350px;
+  border: 1px solid lightgray;
+  border-radius: 12px;
+  position: absolute;
+  top: calc(50% - 200px);
+  left: calc(50% - 200px);
+  z-index: 2;
+}
+.errortitle {
+  text-align: center;
+  background-color: var(--brand);
+  padding:10px;
+  margin:0;
+  font-weight: 450;
+  font-size: 1.125rem;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+.errormsg{
+  padding:10px;
+  margin:0;
+  height:250px;
+  overflow-y: auto;
+}
+.errorbtn {
+  color: #fff;
+    background-color: var(--brand);
+    border: 1px solid var(--hover);
+    width: 60px;
+    height: 40px;
+    border-radius: 12px;
+    color: black;
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+}
+.errorbtn:hover{
+  background-color: var(--hover);
+  border: 1px solid var(--press);
+  color: white;
+}
 /* map layer loaded status icon blink */
 .waitingForConnection {
   animation: blinker 3s linear infinite;

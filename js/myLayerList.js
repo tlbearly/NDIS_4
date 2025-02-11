@@ -619,7 +619,10 @@ function layerListAddSublayerDialogs(event,theLayer){
                     if (element.sublayers) speciesSubArr = element.sublayers;
                     else if (element.layers) speciesSubArr = element.layers;
                     if (speciesSubArr && speciesSubArr.items) {
-                        speciesSubArr.items.forEach(item => {
+                        let layers = speciesSubArr.items.reverse();
+                        // TODO *********************** reverse list also is reversing map layers
+                        layers.forEach(item => {
+                            //speciesSubArr.items.forEach(item => {
                             subLayerListItem = document.createElement("calcite-list-item");
                             subLayerListHeader = document.createElement("h3");
                             subLayerListItem.style.fontSize=listFontSize;
@@ -787,7 +790,9 @@ function layerListAddSublayerDialogs(event,theLayer){
                 if (layer.sublayers) sublayerArr = layer.sublayers;
                 else if (layer.layers) sublayerArr = layer.layers;       
                 if (sublayerArr && sublayerArr.items) {
-                    sublayerArr.items.forEach(element => {
+                    let layers = sublayerArr.items.reverse();
+                    layers.forEach(element => {
+                        //sublayerArr.items.forEach(element => {
                         //console.log("-->"+element.title);
                         if (element.listMode === "show") {
                             // 1st level group layer

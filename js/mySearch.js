@@ -77,7 +77,7 @@ function addFindPlace() {
                 displayField: "NAME",
                 exactMatch: false,
                 outFields: ["NAME"],
-                name: "Wildernesses",
+                name: "Wilderness",
                 placeholder: "Search Wildernesses"
             },
             {
@@ -97,19 +97,20 @@ function addFindPlace() {
                 name: "Colorado Places",
                 placeholder: "Search Colorado Places"
             },
-            // Address limit search to Colorado
+            // Address 
             {
+                //limit search to Colorado
                 filter: {
-                geometry: new Extent({
-                    //-12350000 4250000 -11150000 5250000
-                    xmax: -11150000,
-                    xmin: -12350000,
-                    ymax: 5250000,
-                    ymin: 4250000,
-                    spatialReference: {
-                    wkid: 102100
-                    }
-                })
+                    geometry: new Extent({
+                        //-12350000 4250000 -11150000 5250000
+                        xmax: -11359101, //-11150000,
+                        xmin: -12140593, //-12350000,
+                        ymax: 5012943, //5250000,
+                        ymin: 443828, //4250000,
+                        spatialReference: {
+                            wkid: 102100
+                        }
+                    })
                 },
                 url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/",
                 singleLineFieldName: "SingleLine",
@@ -198,20 +199,25 @@ function addFindPlace() {
             // change tool tip for filter button
             searchWidget.container.children[0].querySelector(".esri-icon-filter").parentNode.title = "Filter search";
             // change tool tip of submit button
-            searchWidget.container.children[0].querySelector(".esri-icon-search").parentNode.title = "Submit search";
+            //searchWidget.container.children[0].querySelector(".esri-icon-search").parentNode.title = "Submit search";
+            // hide submit button (magnifying glass)
+            searchWidget.container.children[0].querySelector(".esri-icon-search").parentNode.style.display = "none";
             // change tool tip for search input box
             searchWidget.container.children[0].querySelector("input").title = "Search for a Colorado place or address";
+            searchWidget.container.children[0].querySelector("input").parentNode.parentNode.style.borderRadius  = "12px";
+            searchWidget.container.children[0].querySelector("input").parentNode.parentNode.style.paddingRight  = "12px";
 
             if (screen.width > 768) {
-            searchWidget.container.style.left = "85px";
-            searchWidget.container.style.position = "relative";
-            searchWidget.container.style.top = "-2px";
+                searchWidget.container.style.left = "85px";
+                searchWidget.container.style.position = "relative";
+                searchWidget.container.style.top = "-2px";
+                searchWidget.container.style.width = "195px";
             }
             else {
-            searchWidget.container.style.left = "30px";
-            searchWidget.container.style.marginRight = "auto";
-            searchWidget.container.style.marginLeft = "auto";
-
+                searchWidget.container.style.left = "30px";
+                searchWidget.container.style.marginRight = "30px";
+                searchWidget.container.style.marginLeft = "7px";
+                searchWidget.container.style.width = "195px";
             }
         });
         // Adds the search widget below other elements in
@@ -219,6 +225,27 @@ function addFindPlace() {
         view.ui.add(searchWidget, {
             position: "top-left",
             index: 2
+        });
+
+        // Home button
+        require(["esri/widgets/Home"], (Home) => { 
+            let homeWidget = new Home({
+                view: view
+            });
+            homeWidget.when(() =>{
+                if (screen.width > 768) {
+                    homeWidget.container.style.position = "relative";
+                    homeWidget.container.style.left = "285px";
+                    homeWidget.container.style.top = "-52px";
+                }else {
+                    homeWidget.container.style.position = "relative";
+                    homeWidget.container.style.left = "209px";
+                    homeWidget.container.style.top = "-51px";
+                }
+            });
+            
+            // adds the home widget to the top left corner of the MapView
+            view.ui.add(homeWidget, "top-left");
         });
     });
 }
