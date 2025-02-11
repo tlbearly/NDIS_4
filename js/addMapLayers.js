@@ -1373,7 +1373,7 @@ function zoomToQueryParams(){
                                                     addTempPoint(pt);
                                                     if (queryObj.label && queryObj.label != "") {
                                                         // add label view.graphics
-                                                        addTempLabel(pt,queryObj.label);
+                                                        addTempLabel(pt,queryObj.label,11,true);
                                                     }
                                                 } else if (response.geometryType === "polygon") {
                                                     var union=false;
@@ -1408,7 +1408,7 @@ function zoomToQueryParams(){
                                                             // label each polygon
                                                             if (queryObj.label && queryObj.label != "") {
                                                                 // add label to view.graphics
-                                                                addTempLabel(response.features[j],queryObj.label);
+                                                                addTempLabel(response.features[j],queryObj.label,11,true);
                                                             }
                                                         }
                                                         view.extent = newExtent.clone().expand(1.5);
@@ -1430,7 +1430,7 @@ function zoomToQueryParams(){
                                                     },10000);
                                                     pt = view.extent.center;
                                                     if (queryObj.label && queryObj.label != "") {
-                                                        addTempLabel(pt,queryObj.label,12);
+                                                        addTempLabel(pt,queryObj.label,12,true);
                                                     }
                                                 }
                                             });

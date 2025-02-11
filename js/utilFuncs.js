@@ -687,7 +687,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
 						//zoom: lodLevel
 					});
 					addTempPoint(feature[0]);
-					addTempLabel(feature[0],label);
+					addTempLabel(feature[0],label,11,true);
 				}).catch ( (err) => {
 					alert("Error projecting point. " + err.message, "Warning");
 				});
@@ -710,7 +710,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
 						//zoom: lodLevel
 					});
 					addTempPoint(feature[0]);
-					addTempLabel(feature[0],label);
+					addTempLabel(feature[0],label,11,true);
 				}).catch( (err)=> {
 					alert("Error projecting point. " + err.message, "Warning");
 				});
@@ -732,7 +732,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
 						//zoom: lodLevel
 					});
 					addTempPoint(feature[0]);
-					addTempLabel(feature[0],label);
+					addTempLabel(feature[0],label,11,true);
 				}).catch ( (err) => {
 					alert("Error projecting point. " + err.message, "Warning");
 				});
