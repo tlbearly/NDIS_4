@@ -49,7 +49,7 @@ require(["esri/rest/identify"
 function readSettingsWidget() {
     // Read the SettingsWidget.xml file
     var xmlhttp = createXMLhttpRequest();
-    var settingsFile = app + "/SettingsWidget.xml?v=" + Date.now(); //+ ndisVer;
+    var settingsFile = app + "/SettingsWidget.xml?v=" + Date.now();
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             try {
@@ -61,8 +61,9 @@ function readSettingsWidget() {
                     // Read Globals
                     //---------------
                     // Load user saved XY projection
-                    if (settings.XYProjection !== "dd" || settings.XYProjection !== "32613")
-                        alert("Error in "+app+"/SettingsWidget.xml file. Tag xy_projection must be dd or 32613.","Data Error");
+                    if (xmlDoc.getElementsByTagName("xy_projection")[0] && xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0] &&
+                    (xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue !== "dd" && xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue !== "32613"))
+                        alert("Error in "+app+"/SettingsWidget.xml file. Tag, xy_projection, must be 'dd' or '32613'.","Data Error");
                     var myPrj = getCookie("prj");
                     if (myPrj !== "")
                         settings = { "XYProjection": myPrj };
@@ -1392,10 +1393,12 @@ function displayInfoWindow(theContent) {
     view.popup.content = customStuff(theContent);
     
     view.openPopup();
-    view.popup.when(() => {
-        document.getElementsByClassName("esri-popup__main-container")[0].style.marginTop = "90px"; // place below title and search
-       // document.getElementsByClassName("esri-popup__main-container")[0].getElementsByClassName("esri-features__container")[0].style.overflow="hidden"; // remove double scroll bar
-    });
+    if (view.popup){
+        view.popup.when(() => {
+            document.getElementsByClassName("esri-popup__main-container")[0].style.marginTop = "90px"; // place below title and search
+        // document.getElementsByClassName("esri-popup__main-container")[0].getElementsByClassName("esri-features__container")[0].style.overflow="hidden"; // remove double scroll bar
+        });
+    }
     // wait for popup to populate header then add drop down
     /*var h = document.getElementsByClassName("esri-popup__main-container")[0];
     if (!h || h.childNodes.length == 0) {

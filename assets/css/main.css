@@ -94,12 +94,14 @@ calcite-panel,
   background-color: white;
   width: 400px;
   height: 350px;
-  border: 1px solid lightgray;
   border-radius: 12px;
   position: absolute;
   top: calc(50% - 200px);
   left: calc(50% - 200px);
   z-index: 2;
+  box-shadow: 0 1px 4px #000c; 
+  max-height: calc(100% - 60px);
+  margin:10px;
 }
 .errortitle {
   text-align: center;
@@ -116,6 +118,7 @@ calcite-panel,
   margin:0;
   height:250px;
   overflow-y: auto;
+  max-height: calc(100% - 140px);
 }
 .errorbtn {
   color: #fff;

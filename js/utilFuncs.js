@@ -385,11 +385,6 @@ function addTempLabel(point, label, fontSize, shouldFade) {
     // if point is a polygon use the centroid
     // shouldFade: should it fade away?
     require(["esri/symbols/TextSymbol", "esri/Graphic"], function (TextSymbol, Graphic) {
-      //var shouldFade = true;
-      //if (arguments.length >= 2) fontSize = 11;
-      //else fontSize = arguments[2];
-      //if (arguments.length == 4) shouldFade = false;
-
       label = label.replace(/''/g, "'");
       let textSymbol = new TextSymbol({
         text: label,
@@ -447,7 +442,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
         symbol: symbol
       });
       view.graphics.add(point);
-      if (arguments.length == 1 || shouldFade) {
+      if (shouldFade == undefined || shouldFade) {
         setTimeout(function () {
           view.graphics.remove(point);
         }, 13000);
@@ -507,7 +502,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
           symbol: polySymbol
         });
         view.graphics.add(poly);
-        if (arguments.length == 1 || shouldFade) {
+        if (shouldFade == undefined || shouldFade) {
           setTimeout(function () {
             view.graphics.remove(poly);
           }, 13000);
@@ -536,7 +531,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
             symbol: lineSymbol
         });
         view.graphics.add(lineGraphic);
-        if (arguments.length == 1 || shouldFade){
+        if (shouldFade == undefined || shouldFade){
             setTimeout(function(){
                 view.graphics.remove(lineGraphic);
             },13000);
@@ -721,10 +716,10 @@ function addTempLabel(point, label, fontSize, shouldFade) {
 				});
 				return;
 			} else if ((pointX >= 133000 && pointX <= 1300000) && (pointY >= 4095000 && pointY <= 4580000)) {
-				if (!settings)
+				//if (!settings)
 					inSR = new SpatialReference(26913);
-				else
-					inSR = new SpatialReference(Number(settings.XYProjection));
+				//else
+				//	inSR = new SpatialReference(Number(settings.XYProjection));
 				point = new Point(pointX, pointY, inSR);
 				var params = new ProjectParameters({
 					outSpatialReference: new SpatialReference(wkid),

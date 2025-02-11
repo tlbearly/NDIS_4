@@ -59,9 +59,12 @@ function oldversion(){
 	return false;
 }
 
-document.getElementById("errBtn").addEventListener("click",function() {
-    document.getElementById("errBox").style.display = "none";
+window.onload = function(){
+	document.getElementById("errBtn").addEventListener("click",function() {
+		document.getElementById("errBox").style.display = "none";
 });
+}
+
 // Error Popup
 function alert(){
 	// alert(msg, title, error object)

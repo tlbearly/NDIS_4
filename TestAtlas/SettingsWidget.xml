@@ -115,7 +115,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 -->
 <configuration xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/SettingsWidget.xsd">
-	<xy_projection>26913</xy_projection>
+	<xy_projection>32613</xy_projection>
 	<!--use_map_link>true</use_map_link>
 	<use_get_extent>false</use_get_extent-->
 	<use_gmus>true</use_gmus>

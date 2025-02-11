@@ -1061,7 +1061,7 @@ function readURLParmeters(){
             regexp=/([^a-zA-Z0-9 \-\',\.!_\*()\\#/&])/g; // allow \ for the test \" but remove it for the clean
             if (regexp.test(queryObjParams.get("value"))) alert("Illegal characters were found on the URL. Location may not load properly.","Warning");
             regexp=/([^a-zA-Z0-9 \-\',\.!_\*()#/&])/g;
-            queryObjParams.get("value")=queryObjParams.get("value").replace(regexp,""); // clean it
+            queryObj.value=queryObjParams.get("value").replace(regexp,""); // clean it
             // 8-18-20 single quote is used in the SQL expression, replace it with '' and it will be used as '.
             var quote = /'/g;
             queryObj.value = queryObjParams.get("value").replace(quote,"''");
@@ -1112,7 +1112,7 @@ function readURLParmeters(){
             queryObj.place=queryObjParams.get("place").replace(regexp,""); // clean it
         }
     }catch (err) {
-        alert("Problem reading URL parameters. addMapLayers.js/readURLParmeters"+err,"Error")
+        alert("Problem reading URL parameters. addMapLayers.js/readURLParmeters.\n\n"+err,"Error")
     }
     addMapLayers();
     addGraphicsAndLabels();
@@ -1249,16 +1249,18 @@ function zoomToQueryParams(){
                     "spatialReference": {
                         "wkid": parseInt(prj)
                     }
+            });
+            require([ "esri/geometry/SpatialReference","esri/rest/support/ProjectParameters", "esri/rest/geometryService"],function(SpatialReference,ProjectParameters,GeometryService){
+                var params = new ProjectParameters();
+                params.geometries = [ext];
+                params.outSpatialReference = new SpatialReference(wkid);
+                GeometryService.project(geometryService,params).then((newExt) => {
+                    initExtent = newExt[0];
+                    view.extent = initExtent;
+                }).catch ( (error) => {
+                    let msg = "There was a problem converting the extent read from the URL to Web Mercator projection. extent=" + extArr[0] + ", " + extArr[1] + ", " + extArr[2] + ", " + extArr[3] + "  prj=" + prj + "  " + error.message;
+                    alert(msg, "URL Extent Error", error);
                 });
-            var params = new ProjectParameters();
-            params.geometries = [ext];
-            params.outSpatialReference = new SpatialReference(wkid);
-            GeometryService.project(geometryService,params).then((newExt) => {
-                initExtent = newExt[0];
-                view.extent = initExtent;
-            }).catch ( (error) => {
-                let msg = "There was a problem converting the extent read from the URL to Web Mercator projection. extent=" + extArr[0] + ", " + extArr[1] + ", " + extArr[2] + ", " + extArr[3] + "  prj=" + prj + "  " + error.message;
-                alert(msg, "URL Extent Error", error);
             });
         // Use initextent read from config.xml file
         } else {
