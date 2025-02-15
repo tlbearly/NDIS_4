@@ -76,7 +76,7 @@ function myLayerList() {
             listHeader.style.margin = "0";
             listHeader.innerHTML = rootlayer.title; // title displayed
             listHeader.id = rootlayer.title.replace(/ /g, "_") + "_listItem";
-            listHeader.slot = "actions-start";
+            listHeader.slot = "content";//actions-start";
             listItem.appendChild(listHeader);
             listItem.value = rootlayer.title;
             //listItem.label = rootlayer.title; // duplicates the name
@@ -140,6 +140,11 @@ function myLayerList() {
             if (document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog")){
                 document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog").querySelectorAll("calcite-block")[1].querySelector("calcite-switch").checked = event.target.checked;
             }
+            // Set opacity of layer list in sub dialog
+            if (event.target.checked)
+                document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog").querySelector("calcite-list").style.opacity=1.0;
+            else
+                document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog").querySelector("calcite-list").style.opacity=0.4;
         });
         listItem.appendChild(onOffBtn);
         list.appendChild(listItem);
@@ -512,6 +517,10 @@ function layerListAddSublayerDialogs(event,theLayer){
                     // Update layer description
                     iframe1.src = "layer-desc/" + selectedItem + ".html";
                     setGMU(species); // update search widget and map
+                    // Update opacity is whole block is visible or not
+                    if (document.getElementById(selectedItem).parentNode.querySelector("calcite-switch").checked){
+                        document.getElementById(selectedItem).style.opacity = 1.0;
+                    } else document.getElementById(selectedItem).style.opacity = 0.4;
                 });
                 radioGroup.appendChild(radio); 
             });
@@ -579,19 +588,17 @@ function layerListAddSublayerDialogs(event,theLayer){
             subLayeronOffBtn.setAttribute("scale", "l"); // large
             if (layer.visible) {
                 subLayeronOffBtn.checked = true;
-                block.style.opacity = "1.0";
             } else {
                 subLayeronOffBtn.checked = false;
-                block.style.opacity = "0.6";
             }
             // Set value when clicked
             subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                 event.target.layer.visible = event.target.checked;
                 // gray out options if not visible
                 if (event.target.checked){
-                    block.style.opacity = "1.0";
+                    document.getElementById(selectedItem).style.opacity = 1.0;
                 }else {
-                    block.style.opacity = "0.6";
+                    document.getElementById(selectedItem).style.opacity = 0.4;
                 }
                 // Set switch on parent dialog Visibility
                 if (document.getElementById("layerlist")){
@@ -611,18 +618,28 @@ function layerListAddSublayerDialogs(event,theLayer){
                 radioArr.forEach(element => {
                     // Visible List
                     var subLayerList = document.createElement("calcite-list");
+                    // set the opacity of the layer list. Gray out if switch is off.
+                    if (!layer.visible) subLayerList.style.opacity = 0.4;
                     subLayerList.id = element.title;
                     if (element.title === selectedItem) subLayerList.style.visibility = "visible";
                     else subLayerList.style.visibility = "collapse";
                     //subLayerList.style.marginTop = "2px";
                     var speciesSubArr;
-                    if (element.sublayers) speciesSubArr = element.sublayers;
-                    else if (element.layers) speciesSubArr = element.layers;
+                    if (element.sublayers) {
+                        //element.sublayers.items = element.sublayers.items.reverse();
+                        speciesSubArr = element.sublayers;
+                    }
+                    else if (element.layers) {
+                        //element.layers.items = element.layers.items.reverse();
+                        speciesSubArr = element.layers;
+                    }
+
                     if (speciesSubArr && speciesSubArr.items) {
-                        let layers = speciesSubArr.items.reverse();
+                        //let layers = speciesSubArr.items;//.reverse();
                         // TODO *********************** reverse list also is reversing map layers
-                        layers.forEach(item => {
-                            //speciesSubArr.items.forEach(item => {
+                        //layers.forEach(item => {
+                        //layers.slice().reverse().forEach(item => {
+                        speciesSubArr.items.forEach(item => {
                             subLayerListItem = document.createElement("calcite-list-item");
                             subLayerListHeader = document.createElement("h3");
                             subLayerListItem.style.fontSize=listFontSize;
@@ -754,21 +771,22 @@ function layerListAddSublayerDialogs(event,theLayer){
                 subLayeronOffBtn.setAttribute("scale", "l"); // large
                 if (layer.visible) {
                     subLayeronOffBtn.checked = true;
-                    block.style.opacity = "1.0";
+                    //block.style.opacity = "1.0";
                 }
                 else {
                     subLayeronOffBtn.checked = false;
                     // gray out options if not visible
-                    block.style.opacity = "0.6";
+                    //block.style.opacity = "0.4";
                 }
+                let subLayerList = document.createElement("calcite-list");
                 // Set value when clicked
                 subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                     event.target.layer.visible = event.target.checked;
                     // gray out options if not visible
                     if (event.target.checked){
-                        block.style.opacity = "1.0";
+                        subLayerList.style.opacity = "1.0";
                     }else {
-                        block.style.opacity = "0.6";
+                        subLayerList.style.opacity = "0.4";
                     }
                     // Set switch on parent dialog Visibility
                     if (document.getElementById("layerlist")){
@@ -782,7 +800,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                 });
                 block.appendChild(subLayeronOffBtn);
 
-                var subLayerList = document.createElement("calcite-list");
+                // set the opacity of the layer list. Gray out if switch is off.
+                if (!layer.visible) subLayerList.style.opacity = 0.4;
                 var subLayerListItem;
                 // Visibility list in sublayer popup
                 // MapImageLayers have sublayers. FeatureLayers have layers
@@ -865,6 +884,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                                             var subLayerListItem2 = document.createElement("calcite-list-item");
                                             let subLayerListHeader2 = document.createElement("h3");
                                             subLayerListHeader2.style.fontSize=listFontSize;
+                                            // if out of scale range, gray out.
                                             if((view.scale <= item.minScale || item.minScale == 0) && 
                                             (view.scale >= item.maxScale || item.maxScale==0)){
                                                 subLayerListHeader2.style.opacity="1";

@@ -13,7 +13,16 @@ var identifyGroup;
 var theEvt;
 var identifyGroups = [];
 var identifyLayers = {};
-var groupContent = {}; // Cache the infoWindow content for each group for a map click
+var groupContent = {}; // Cache the popup content for each group for a map click
+// groupObj = [{
+//  identifyGroup: tab name
+//  title: popup title
+//  content: popup content
+//  highlightID: features id
+//  features: [] of features at click point
+// }]
+var groupObj=[]; // Cache the popup content for each group for a map click. Array of objects for each identify tab that has been viewed. title, content, highlightID (features array id), features [], identifyGroup (tab name)
+var highlightID = 0;
 var theTitle = [];
 var identifyLayerIds = []; // handles the identify tasks for each group. [GroupName][{url, layerIds, geometryType}]
 var show_elevation = false;
@@ -441,8 +450,9 @@ function doIdentify(evt){
 
     // Reset array of popupTemplate content for each group to null
     //if (groupContent["Way Point"]) delete groupContent["Way Point"]; // remove way point since we don't know if there is a way point here
+    groupObj = [];
     for (var i = 0; i < identifyGroups.length; i++) {
-        groupContent[identifyGroups[i]] = null;
+        //groupContent[identifyGroups[i]] = null;
         theTitle[identifyGroups[i]] = null;
     }
     clickPoint = evt.mapPoint;
@@ -482,11 +492,22 @@ function displayContent() {
     // Display cached content if available
     // Else loop through each layer found at the map click and call identifySuccess & handleQueryResults to handle each
     // Use cached content if available
-    if (groupContent[identifyGroup]) {
+    const obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
+    if (obj.length > 0){
+        view.popup.title = obj[0].title;
+        displayInfoWindow(obj[0].content); // do we need featues of highlightID? pass obj
+        removeHighlight();
+        features = obj[0].features;
+        highlightFeature(obj[0].highlightID,false);
+        return;
+    }
+
+// 2/12/25 old way
+    /*if (groupContent[identifyGroup]) {
         view.popup.title = theTitle[identifyGroup];
         displayInfoWindow(groupContent[identifyGroup]);
         return;
-    }
+    }*/
 
     require(["esri/rest/support/IdentifyParameters", "esri/rest/identify", "esri/rest/query", "esri/rest/support/Query"], 
     function(IdentifyParameters, Identify, query, Query) {
@@ -765,7 +786,7 @@ function handleQueryResults(results) {
             // Set info Content Header
             var tmpStr = "";
 	        var str = "";
-
+            highlightID = -1;
             // 10-19-20 Handle Wildfire
             if (identifyGroup.indexOf("Wildfire") > -1){
                 for (var r=0; r<results.length; r++){
@@ -800,10 +821,12 @@ function handleQueryResults(results) {
                                         view.popup.title = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
                                         theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
                                         highlightFeature(features.length-1,false);
+                                        highlightID = features.length-1;
                                     }
                                 }else {
                                     theTitle[identifyGroup] = feature.attributes.IncidentName;
                                     highlightFeature(features.length-1,false);
+                                    highlightID = features.length-1;
                                 }
                                 view.popup.title = theTitle[identifyGroup];
                             }
@@ -880,16 +903,32 @@ function handleQueryResults(results) {
                         str += "</div><br/>";
                     });
                 });
-                if (numHighlightFeatures == 0)
+                if (numHighlightFeatures == 0){
                     highlightFeature(0,false);
+                    highlightID = 0;
+                }
                 if (noData){
                     displayInfoWindow("No wildfires at this point.");
                     theTitle[identifyGroup] = "No Wildfires";
                     view.popup.title = "No Wildfires";
-                    groupContent[identifyGroup] = "No wildfires at this point."; // cache 
+                    groupObj.push({
+                        identifyGroup: identifyGroup,
+                        title: theTitle[identifyGroup],
+                        content: "No wildfires at this point.",
+                        highlightID: -1,
+                        features: []
+                    });
+                    //groupContent[identifyGroup] = "No wildfires at this point."; // cache 
                 }else {
                     str += "<span class='idSubTitle'>Inciweb: </span><a href='https://inciweb.wildfire.gov/state/colorado' class='idSubValue' target='_blank'>https://inciweb.wildfire.gov/state/colorado</a><br/>";
-                    groupContent[identifyGroup] = str; // cache content
+                    groupObj.push({
+                        identifyGroup: identifyGroup,
+                        title: theTitle[identifyGroup],
+                        content: str,
+                        highlightID: highlightID,
+                        features: features
+                    });
+                    //groupContent[identifyGroup] = str; // cache content
                     displayInfoWindow(str);
                 }
                 return;
@@ -946,6 +985,7 @@ function handleQueryResults(results) {
                                                             if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
                                                                 theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
                                                                 highlightFeature(features.length-1,false);
+                                                                highlightID = features.length-1;
                                                             }
                                                             // handle Bighorn and Goat GMU
                                                             else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU Unit "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
@@ -1021,7 +1061,7 @@ function handleQueryResults(results) {
                                                         // highlight polygon/point on mouse over, hide highlight on mouse out
                                                         //str += "<div onMouseOver='javascript:highlightFeature(\""+(features.length-1)+"\",true)' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div></div><br/>";
                                                         str += tmpStr+"</div><br/>";
-                                                        groupContent[identifyGroup] = str; // cache content
+                                                        //groupContent[identifyGroup] = str; // cache content
                                                     }
                                                     //features.push(r.feature);
                                                 }
@@ -1073,6 +1113,7 @@ function handleQueryResults(results) {
                                         if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
                                             theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
                                             highlightFeature(features.length-1,false);
+                                            highlightID = features.length-1;
                                         }
                                         // handle Bighorn and Goat GMU
                                         else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU Unit "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
@@ -1104,12 +1145,18 @@ function handleQueryResults(results) {
                                     // str += "<div onMouseOver='javascript:highlightFeature(\""+(features.length-1)+"\",true)' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div></div><br/>";
                                     // needed if not using highlight
                                     str += tmpStr+"</div><br/>";
-                                    groupContent[identifyGroup] = str; // cache content
-                                    
+                                    //groupContent[identifyGroup] = str; // cache content
                                 }
                                 //features.push(r.feature);
                             }
                         }
+                    });
+                    groupObj.push({
+                        identifyGroup: identifyGroup,
+                        title: theTitle[identifyGroup],
+                        content: str,
+                        highlightID: highlightID,
+                        features: features
                     });
                 }
                 // buffered point Query not Identify
@@ -1136,6 +1183,7 @@ function handleQueryResults(results) {
             // highlight first feature if none were specified by pre_title title title_field in SettingsWidget.xml file
             if (numHighlightFeatures == 0){
                 highlightFeature(0,true);
+                highlightID = 0;
             }
             accumulateContent(str);
         } catch (e) {
@@ -1289,18 +1337,35 @@ function accumulateContent(theContent){
         if (features.length == 0) {
             var str;
             var visible = "";
+            const obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
             if (identifyLayerIds[identifyGroup][0].id_vis_only) visible = "visible "; // 1-10-18 add word visible if identifying visible only
             if (identifyLayers[identifyGroup].desc) {
                 str = "<div><p style='font-style:italic;top:-15px;position:relative;'>" + identifyLayers[identifyGroup].desc + "</p>No " + visible + identifyGroup + " at this point.<br/></div>";
                 theContent = str;
-                groupContent[identifyGroup] = str; // cache content
+                // cache content
+                groupObj.push({
+                    identifyGroup: identifyGroup,
+                    title: "No "+theTitle[identifyGroup],
+                    content: str,
+                    highlightID: -1,
+                    features: []
+                });
+                //groupContent[identifyGroup] = str; // cache content
                 theTitle[identifyGroup] = "No "+identifyGroup;
                 view.popup.title = "No "+identifyGroup;
                 str = null;
             } else {
                 str = "<div>No " + visible + identifyGroup + " at this point.<br/></div>";
                 theContent = str;
-                groupContent[identifyGroup] = str; // cache content
+                // cache content
+                groupObj.push({
+                    identifyGroup: identifyGroup,
+                    title:  "No "+ theTitle[identifyGroup],
+                    content: str,
+                    highlightID: -1,
+                    features: []
+                });
+                //groupContent[identifyGroup] = str; // cache content
                 theTitle[identifyGroup] = "No "+identifyGroup;
                 view.popup.title = "No "+identifyGroup;
                 str = null;

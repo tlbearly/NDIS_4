@@ -21,7 +21,7 @@
  
   
   <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=14" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=18" async="true" />
   
   <link rel="stylesheet" href="./assets/css/custom-theme.css?v=31" async="true" />
   
@@ -29,12 +29,12 @@
 
   <script type="text/javascript" src="js/xmlUtils.js?v=1" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js" async="true"></script>
-  <script type="text/javascript" src="js/utilFuncs.js?v=20" async="true"></script>
+  <script type="text/javascript" src="js/utilFuncs.js?v=21" async="true"></script>
   <script type="text/javascript" src="js/addMapLayers.js?v=22" async="true"></script>
   <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=100" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=102" async="true"></script>
   <script type="text/javascript" src="js/mySearch.js?v=3" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=27" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=31" async="true"></script>
   <script type="text/javascript" src="js/errorBox.js?v=2" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=0" async="true"></script>
@@ -297,6 +297,16 @@
             alert("close");
           });*/
           
+          // add Scale Bar
+          let scaleBar = new ScaleBar({
+            view: view,
+            unit: "imperial"
+          });
+          // Add widget to the bottom left corner of the view
+          view.ui.add(scaleBar, {
+            position: "bottom-left"
+          });
+
           readSettingsWidget(); // identify addFindPlace needs elkUrl
           
           addMeasure(graphicsLayer);

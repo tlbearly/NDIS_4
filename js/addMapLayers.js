@@ -5,7 +5,6 @@ var tries={}; // number of times we have tried to load each map layer
 var loadedFromCfg; // true when the layer has loaded and set the visiblelayers when setting layers from URL
 var labelFromURL = false;
 
-
 function addGraphicsAndLabels() {
     //----------------------------------------------------------------
     // Add Points, Lines, Polygons, Rectangles, Labels

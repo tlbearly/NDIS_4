@@ -47,13 +47,13 @@ calcite-dialog,
 .dialog {
   --calcite-dialog-content-space: 0;
   --calcite-dialog-max-size-x: 350px;
-  --calcite-dialog-max-size-y: 100vh;
+  --calcite-dialog-max-size-y: 90vh;
   border-bottom-left-radius: 12px !important;
   border-bottom-right-radius: 12px !important;
   border-top-left-radius: 12px !important;
   border-radius: 0.75rem !important;
 }
-@media screen  and (max-width: 768px) {
+@media screen and (max-width: 768px) {
   calcite-dialog,
   .dialog {
     --calcite-dialog-max-size-y: 40vh;
@@ -93,15 +93,23 @@ calcite-panel,
 .errorbox {
   background-color: white;
   width: 400px;
+  max-width: 90vw;
+  max-height: 100vh;
   height: 350px;
   border-radius: 12px;
   position: absolute;
-  top: calc(50% - 200px);
+  top: 20%;
   left: calc(50% - 200px);
   z-index: 2;
   box-shadow: 0 1px 4px #000c; 
   max-height: calc(100% - 60px);
-  margin:10px;
+  margin:0;
+}
+@media screen and (max-width: 768px) {
+  .errorbox {
+    top: 20px;
+    left: calc(50% - 45vw);
+  }
 }
 .errortitle {
   text-align: center;

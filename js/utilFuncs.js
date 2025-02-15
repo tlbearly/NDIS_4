@@ -451,9 +451,9 @@ function addTempLabel(point, label, fontSize, shouldFade) {
   }
   function addHighlightPoint(pt){
     require (["esri/Graphic","esri/geometry/Circle"],(Graphic,Circle) => {
-        let r = 1;
-        if (view.scale > 24000) r = .25;
-        else if (view.scale <= 24000) r = .5;
+        let r = 2;
+        if (view.scale > 24000) r = .5;
+        else if (view.scale <= 24000) r = .25;
 
         const circle = new Circle({
             center: pt.geometry,
@@ -469,8 +469,8 @@ function addTempLabel(point, label, fontSize, shouldFade) {
                 color: "#d4dbbe" + "9C", // 40% tranparency
                 style: "solid",
                 outline: {
-                  width: 2,
-                  color: "#778743"
+                  width: 1,
+                  color: "#d4dbbe"
                 }
             }
         });
