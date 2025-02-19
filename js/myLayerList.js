@@ -68,6 +68,7 @@ function myLayerList() {
             listImg.style.padding = "10px 5px";
             listImg.slot = "actions-start";
             listItem.appendChild(listImg);
+            
             // Clickable root layer name
             const listHeader = document.createElement("h3");
             listHeader.style.fontWeight = "normal";
@@ -639,23 +640,26 @@ function layerListAddSublayerDialogs(event,theLayer){
                         // TODO *********************** reverse list also is reversing map layers
                         //layers.forEach(item => {
                         //layers.slice().reverse().forEach(item => {
-                        speciesSubArr.items.forEach(item => {
+                        let item = speciesSubArr.items;
+                        //speciesSubArr.items.forEach(item => {
+                        for (var i=item.length-1; i>-1; i--) {
                             subLayerListItem = document.createElement("calcite-list-item");
                             subLayerListHeader = document.createElement("h3");
                             subLayerListItem.style.fontSize=listFontSize;
                             // set opacity visible at scale?
-                            if((view.scale <= item.minScale || item.minScale == 0) && 
-                            (view.scale >= item.maxScale || item.maxScale==0)){
+                            if((view.scale <= item[i].minScale || item[i].minScale == 0) && 
+                            (view.scale >= item[i].maxScale || item[i].maxScale==0)){
                                 subLayerListHeader.style.opacity="1";
                             }else {
                                 subLayerListHeader.style.opacity="0.3";
                             }
+                            const theItem = item[i];
                             // Event handler for scale change
                             reactiveUtils.watch(
                                 () => [view.stationary, view.scale], ([stationary, scale]) => {
                                     if (stationary) {
-                                        if((scale <= item.minScale || item.minScale == 0) && 
-                                        (scale >= item.maxScale || item.maxScale==0)){
+                                        if((scale <= theItem.minScale || theItem.minScale == 0) && 
+                                        (scale >= theItem.maxScale || theItem.maxScale==0)){
                                             subLayerListHeader.style.opacity="1";
                                         }else {
                                             subLayerListHeader.style.opacity="0.3";
@@ -665,15 +669,14 @@ function layerListAddSublayerDialogs(event,theLayer){
                             subLayerListHeader.style.fontWeight = "normal";
                             subLayerListHeader.style.fontSize = listFontSize;
                             subLayerListHeader.style.margin = "0";
-                            subLayerListHeader.innerHTML = item.title.replace("CPWSpeciesData -",""); // title displayed
+                            subLayerListHeader.innerHTML = item[i].title.replace("CPWSpeciesData -",""); // title displayed
                             subLayerListHeader.slot = "content";
-                            subLayerListItem.value = item.title.replace("CPWSpeciesData -","");
-                            subLayerListItem.heading = item.title.replace("CPWSpeciesData -","");
+                            subLayerListItem.value = item[i].title.replace("CPWSpeciesData -","");
+                            subLayerListItem.heading = item[i].title.replace("CPWSpeciesData -","");
                             subLayerListItem.appendChild(subLayerListHeader);
 
                             // Add legend to icon slot
                             var subLayerIcon = document.createElement("img");
-
                             // TODO add picture of legend ??????? Maybe **********************
 
 
@@ -682,17 +685,17 @@ function layerListAddSublayerDialogs(event,theLayer){
                             // Add Switch to actions-end of list Item
                             subLayeronOffBtn = document.createElement("calcite-switch");
                             subLayeronOffBtn.slot = "actions-end";
-                            subLayeronOffBtn.layer = item;
+                            subLayeronOffBtn.layer = item[i];
                             subLayeronOffBtn.style.paddingTop = "10px";
                             subLayeronOffBtn.setAttribute("scale", "l"); // large
-                            if (item.visible) subLayeronOffBtn.checked = true;
+                            if (item[i].visible) subLayeronOffBtn.checked = true;
                             // Set value when clicked
                             subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                                 event.target.layer.visible = event.target.checked;
                             });
                             subLayerListItem.appendChild(subLayeronOffBtn);
                             subLayerList.appendChild(subLayerListItem);
-                        });
+                        }
                     }
                     block.appendChild(subLayerList);
                 });
@@ -809,17 +812,16 @@ function layerListAddSublayerDialogs(event,theLayer){
                 if (layer.sublayers) sublayerArr = layer.sublayers;
                 else if (layer.layers) sublayerArr = layer.layers;       
                 if (sublayerArr && sublayerArr.items) {
-                    let layers = sublayerArr.items.reverse();
-                    layers.forEach(element => {
-                        //sublayerArr.items.forEach(element => {
-                        //console.log("-->"+element.title);
-                        if (element.listMode === "show") {
+                    let element = sublayerArr.items;
+                    for (var i=element.length-1; i>-1; i--) {
+                        //console.log("-->"+element[i].title);
+                        if (element[i].listMode === "show") {
                             // 1st level group layer
                             // if it has sublayers make it an expandable block
-                            if (hideGroupSublayers.indexOf(element.title) == -1 && (element.layers || element.sublayers)){
+                            if (hideGroupSublayers.indexOf(element[i].title) == -1 && (element[i].layers || element[i].sublayers)){
                                 let subLayerGroup = document.createElement("calcite-block");
-                                subLayerGroup.heading = element.title;
-                                subLayerGroup.value = element.title;
+                                subLayerGroup.heading = element[i].title;
+                                subLayerGroup.value = element[i].title;
                                 subLayerGroup.headingLevel = hLevel;
                                 subLayerGroup.style.fontWeight = "normal";
                                 subLayerGroup.setAttribute("collapsible", true);
@@ -827,12 +829,13 @@ function layerListAddSublayerDialogs(event,theLayer){
 
                                 // if all of it's children are out of scale gray out
                                 // event listener for scale change
+                                const theElement = element[i];
                                 reactiveUtils.watch(
                                 () => [view.stationary, view.scale], ([stationary, scale]) => {
                                     if (stationary) {
                                         var items;
-                                        if (element.layers) items=element.layers.items;
-                                        else if (element.sublayers) items=element.sublayers.items;
+                                        if (theElement.layers) items=theElement.layers.items;
+                                        else if (theElement.sublayers) items=theElement.sublayers.items;
                                         var visibleItems = false; // Are any items in this block visible?
                                         items.forEach(item => {
                                             if((scale <= item.minScale || item.minScale == 0) && 
@@ -847,8 +850,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 });
                                 // Set the first time, if all of it's children are out of scale gray out
                                 var items;
-                                if (element.layers) items=element.layers.items;
-                                else if (element.sublayers) items=element.sublayers.items;
+                                if (element[i].layers) items=element[i].layers.items;
+                                else if (element[i].sublayers) items=element[i].sublayers.items;
                                 var visibleItems = false; // Are any items in this block visible?
                                 items.forEach(item => {
                                     if((view.scale <= item.minScale || item.minScale == 0) && 
@@ -863,10 +866,10 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 // Add Switch to actions-end of list Item
                                 let subLayeronOffBtn = document.createElement("calcite-switch");
                                 subLayeronOffBtn.slot = "actions-end";
-                                subLayeronOffBtn.layer = element;
+                                subLayeronOffBtn.layer = element[i];
                                 subLayeronOffBtn.style.paddingRight = "4px";
                                 subLayeronOffBtn.setAttribute("scale", "l"); // large
-                                if (element.visible) subLayeronOffBtn.checked = true;
+                                if (element[i].visible) subLayeronOffBtn.checked = true;
                                 else subLayeronOffBtn.checked = false;
                                 // Set value when clicked
                                 subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
@@ -875,8 +878,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 subLayerGroup.appendChild(subLayeronOffBtn);
                                 // 2nd level group layers
                                 var subSublayerArr;
-                                if (element.sublayers) subSublayerArr = element.sublayers;
-                                else if (element.layers) subSublayerArr = element.layers;
+                                if (element[i].sublayers) subSublayerArr = element[i].sublayers;
+                                else if (element[i].layers) subSublayerArr = element[i].layers;
                                 if (subSublayerArr && subSublayerArr.items) {
                                     subSublayerArr.items.forEach(item => {
                                         //console.log("--> -->"+item.title);
@@ -940,9 +943,9 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 let subLayerListHeader = document.createElement("h3");
                                 subLayerListHeader.style.fontSize=listFontSize;
                                 // gray out if not at scale
-                                if (element.minScale != 0 || element.maxScale != 0){
-                                    if((view.scale <= element.minScale || element.minScale == 0) && 
-                                        (view.scale >= element.maxScale || element.maxScale==0)){
+                                if (element[i].minScale != 0 || element[i].maxScale != 0){
+                                    if((view.scale <= element[i].minScale || element[i].minScale == 0) && 
+                                        (view.scale >= element[i].maxScale || element[i].maxScale==0)){
                                         subLayerListHeader.style.opacity="1";
                                     }else {
                                         subLayerListHeader.style.opacity="0.3";
@@ -951,8 +954,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                                     reactiveUtils.watch(
                                         () => [view.stationary, view.scale], ([stationary, scale]) => {
                                             if (stationary) {
-                                                if((scale <= element.minScale || element.minScale == 0) && 
-                                                    (scale >= element.maxScale || element.maxScale==0)){
+                                                if((scale <= theElement.minScale || theElement.minScale == 0) && 
+                                                    (scale >= theElement.maxScale || theElement.maxScale==0)){
                                                     subLayerListHeader.style.opacity="1";
                                                 }else {
                                                     subLayerListHeader.style.opacity="0.3";
@@ -962,7 +965,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 }
                                 subLayerListHeader.style.fontWeight = "normal";
                                 subLayerListHeader.style.margin = "0";
-                                subLayerListHeader.innerHTML = element.title; // title displayed
+                                subLayerListHeader.innerHTML = element[i].title; // title displayed
                                 subLayerListHeader.slot = "content";
                                 subLayerListItem.appendChild(subLayerListHeader);
                                 subLayerList.appendChild(subLayerListItem);
@@ -970,10 +973,10 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 // Add Switch to actions-end of list Item
                                 let subLayeronOffBtn = document.createElement("calcite-switch");
                                 subLayeronOffBtn.slot = "actions-end";
-                                subLayeronOffBtn.layer = element;
+                                subLayeronOffBtn.layer = element[i];
                                 subLayeronOffBtn.style.paddingRight = "4px";
                                 subLayeronOffBtn.setAttribute("scale", "l"); // large
-                                if (element.visible) subLayeronOffBtn.checked = true;
+                                if (element[i].visible) subLayeronOffBtn.checked = true;
                                 else subLayeronOffBtn.checked = false;
                                 // Set value when clicked
                                 subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
@@ -984,7 +987,7 @@ function layerListAddSublayerDialogs(event,theLayer){
 
                             
                         }
-                    });
+                    }
                 }
                 block.appendChild(subLayerList);
                 sublayerDialog.appendChild(block);

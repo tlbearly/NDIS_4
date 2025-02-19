@@ -178,7 +178,22 @@
 		   		<fields>NAME,MANAGER</fields>
 		   		<displaynames>Property Name,Land Manager</displaynames>
 	   		</layer>
-			
+			<!-- BLM Field Office with link -->
+			<layer label="BLM_CO_Administrative_Units">
+				<id>0</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
+				<geometry>polygon</geometry>
+				<fields>ADMU_NAME,ADMU_ST_UR</fields>
+				<displaynames>BLM Field Office,URL</displaynames>
+			</layer>
+			<!-- US Forest Service Ranger District Boundaries -->
+			<layer label="USFSRangerDistrictBoundaries">
+				<id>1</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
+				<geometry>polygon</geometry>
+				<fields>RANGERDIST,FOR_URL,MVUM_URL</fields>
+				<displaynames>USFS District,District Website,MVUM Website</displaynames>
+			</layer>
 			<!-- Campground  -->
 			<layer label="Campground">
 				<!--buffer>10</buffer--><!-- list campgrounds within 10 miles of click point -->
