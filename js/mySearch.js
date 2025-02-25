@@ -1,10 +1,68 @@
 //**********************
 //   Add Search Widget
 //**********************
-function addFindPlace() {
+function addSearch() {
     // Find a Place Widget ESRI default
     //define layers for boundaries
     require(["esri/layers/FeatureLayer","esri/widgets/Search","esri/geometry/Extent"],function(FeatureLayer,Search,Extent){
+        var sources = [];
+        
+        var propertyFL = new FeatureLayer({
+            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3"
+        });
+        sources.push({
+            layer: propertyFL,
+            searchFields: ["PropName"],
+            displayField: "PropName",
+            exactMatch: false,
+            maxSuggestions: 1000,
+            outFields: ["PropName"],
+            name: "CPW Properties (STL, SWA, SFU, or WWA)",
+            placeholder: "Search CPW Properties"
+        });
+        // global variable used in myLayerList.js
+        if (settings.elkUrl){
+            gmuFL = new FeatureLayer({
+                url: settings.elkUrl //"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2"
+            });
+            sources.push( {
+                layer: gmuFL,
+                searchFields: [settings.elkField],
+                displayField: settings.elkField,
+                exactMatch: false,
+                maxResults: 6,
+                maxSuggestions: 100,
+                minSuggestCharacters: 1,
+                outFields: [settings.elkField],
+                name: "Big Game GMUs",
+                placeholder: "Search GMUs"
+            });
+        }
+        var forestFL = new FeatureLayer({
+            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5"
+        });
+        sources.push({
+            layer: forestFL,
+            searchFields: ["MapName"],
+            displayField: "MapName",
+            exactMatch: false,
+            outFields: ["MapName"],
+            name: "Forests or Grasslands",
+            placeholder: "Search Forests/Grasslands"
+        });
+        var wildernessFL = new FeatureLayer({
+            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/4"
+        });
+        sources.push({
+            layer: wildernessFL,
+            searchFields: ["NAME"],
+            displayField: "NAME",
+            exactMatch: false,
+            outFields: ["NAME"],
+            name: "Wilderness",
+            placeholder: "Search Wildernesses"
+        });
+        // County
         var countyFL = new FeatureLayer({
             url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1",
             popupTemplate: {
@@ -13,18 +71,43 @@ function addFindPlace() {
             overwriteActions: true
             }
         });
-        var propertyFL = new FeatureLayer({
-            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3"
+        sources.push({
+            layer: countyFL,
+            searchFields: ["COUNTYNAME"],
+            displayField: "COUNTYNAME",
+            exactMatch: false,
+            outFields: ["COUNTYNAME"],
+            name: "Counties",
+            placeholder: "Search Counties"
         });
-        // global variable used in myLayerList.js
-        gmuFL = new FeatureLayer({
-            url: settings.elkUrl //"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2"
+         // Colorado Place GNIS
+        sources.push({
+            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer",
+            singleLineFieldName: "SingleLine",
+            outFields: ["*"],
+            name: "Colorado Places",
+            placeholder: "Search Colorado Places"
         });
-        var forestFL = new FeatureLayer({
-            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5"
-        });
-        var wildernessFL = new FeatureLayer({
-            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/4"
+        // Address
+        sources.push({
+            //limit search to Colorado
+            filter: {
+                geometry: new Extent({
+                    //-12350000 4250000 -11150000 5250000
+                    xmax: -11359101, //-11150000,
+                    xmin: -12140593, //-12350000,
+                    ymax: 5012943, //5250000,
+                    ymin: 443828, //4250000,
+                    spatialReference: {
+                        wkid: 102100
+                    }
+                })
+            },
+            url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/",
+            singleLineFieldName: "SingleLine",
+            outFields: ["*"],
+            name: "Address",
+            placeholder: "Search Address"
         });
 
         searchWidget = new Search({
@@ -39,86 +122,7 @@ function addFindPlace() {
             suggestionsEnabled: true,
             minSuggestCharacters: 2,
             allPlaceholder: "Search",
-            sources: [
-            {
-                layer: propertyFL,
-                searchFields: ["PropName"],
-                displayField: "PropName",
-                exactMatch: false,
-                maxSuggestions: 1000,
-                outFields: ["PropName"],
-                name: "CPW Properties (STL, SWA, SFU, or WWA)",
-                placeholder: "Search CPW Properties"
-            },
-            {
-                layer: gmuFL,
-                searchFields: [settings.elkField],
-                displayField: settings.elkField,
-                exactMatch: false,
-                maxResults: 6,
-                maxSuggestions: 100,
-                minSuggestCharacters: 1,
-                outFields: [settings.elkField],
-                name: "Big Game GMUs",
-                placeholder: "Search GMUs"
-            },
-            {
-                layer: forestFL,
-                searchFields: ["MapName"],
-                displayField: "MapName",
-                exactMatch: false,
-                outFields: ["MapName"],
-                name: "Forests or Grasslands",
-                placeholder: "Search Forests/Grasslands"
-            },
-            {
-                layer: wildernessFL,
-                searchFields: ["NAME"],
-                displayField: "NAME",
-                exactMatch: false,
-                outFields: ["NAME"],
-                name: "Wilderness",
-                placeholder: "Search Wildernesses"
-            },
-            {
-                layer: countyFL,
-                searchFields: ["COUNTYNAME"],
-                displayField: "COUNTYNAME",
-                exactMatch: false,
-                outFields: ["COUNTYNAME"],
-                name: "Counties",
-                placeholder: "Search Counties"
-            },
-            // Colorado Place GNIS
-            {
-                url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer",
-                singleLineFieldName: "SingleLine",
-                outFields: ["*"],
-                name: "Colorado Places",
-                placeholder: "Search Colorado Places"
-            },
-            // Address 
-            {
-                //limit search to Colorado
-                filter: {
-                    geometry: new Extent({
-                        //-12350000 4250000 -11150000 5250000
-                        xmax: -11359101, //-11150000,
-                        xmin: -12140593, //-12350000,
-                        ymax: 5012943, //5250000,
-                        ymin: 443828, //4250000,
-                        spatialReference: {
-                            wkid: 102100
-                        }
-                    })
-                },
-                url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/",
-                singleLineFieldName: "SingleLine",
-                outFields: ["*"],
-                name: "Address",
-                placeholder: "Search Address"
-            }
-            ]
+            sources:sources
         });
 
         searchWidget.goToOverride = function (view, goToParams) {
@@ -234,18 +238,21 @@ function addFindPlace() {
             });
             homeWidget.when(() =>{
                 if (screen.width > 768) {
-                    homeWidget.container.style.position = "relative";
+                    homeWidget.container.style.position = "absolute";
                     homeWidget.container.style.left = "285px";
-                    homeWidget.container.style.top = "-52px";
+                    homeWidget.container.style.top = "38px";//-52px";
                 }else {
-                    homeWidget.container.style.position = "relative";
+                    homeWidget.container.style.position = "absolute";
                     homeWidget.container.style.left = "209px";
-                    homeWidget.container.style.top = "-51px";
+                    homeWidget.container.style.top = "39px";//-51px";
                 }
             });
             
             // adds the home widget to the top left corner of the MapView
             view.ui.add(homeWidget, "top-left");
         });
+
+        // Add Help Widget
+        view.ui.add(helpWidget, "top-left");
     });
 }

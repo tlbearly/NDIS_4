@@ -115,9 +115,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 -->
 <configuration xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/SettingsWidget.xsd">
-	<xy_projection>26913</xy_projection>
-	<use_map_link>true</use_map_link>
-	<use_get_extent>false</use_get_extent>
+	<xy_projection>32613</xy_projection>
+	<!--use_map_link>true</use_map_link>
+	<use_get_extent>false</use_get_extent-->
 	<use_gmus>true</use_gmus>
 	<gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2</gmu_url>
 	<gmu_field>GMUID</gmu_field>
@@ -131,14 +131,24 @@
 	<elevation_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Elevation/MapServer</elevation_url>
 	
 	<tree>
-		<folder label="GMU and Land Management">
+		<folder label="Hunter Resources" pre_title="GMU Unit " title_layer="Big Game GMU Boundaries" title_field="GMUID">
+			<link label="Moon Rise, Sun Rise and Set at click point">https://</link>
+			<link label="Weather at click point">https://</link>
+			<!-- GMU      NOTE: cannot use vis_id with GMU -->
+			<layer label="Big Game GMU Boundaries">
+				<id>2</id>
+	     		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
+	     		<geometry>polygon</geometry>
+		   		<fields>GMUID</fields>
+	     		<displaynames>GMU Number</displaynames>
+	   		</layer>
 			<!-- CPW Properties -->
 			<layer label="CPW Public Access Properties">
 				<id>3</id>
 				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
                 <geometry>polygon</geometry>
-				<fields>PropName</fields>
-				<displaynames>CPW Property Name</displaynames>
+				<fields>PropName,CPW_URL</fields>
+				<displaynames>CPW Property Name,CPW Property Website</displaynames>
 	   		</layer>
 			<!-- WIA Small Game ONLY -->
 			<!--
@@ -168,14 +178,55 @@
 		   		<fields>NAME,MANAGER</fields>
 		   		<displaynames>Property Name,Land Manager</displaynames>
 	   		</layer>
-			<!-- GMU      NOTE: cannot use vis_id with GMU -->
-			<layer label="Big Game GMU Boundaries">
-				<id>2</id>
-	     		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
-	     		<geometry>polygon</geometry>
-		   		<fields>GMUID</fields>
-	     		<displaynames>GMU Number</displaynames>
+			<!-- BLM Field Office with link -->
+			<layer label="BLM Field Office">
+				<id>0</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
+				<geometry>polygon</geometry>
+				<fields>ADMU_NAME,ADMU_ST_UR</fields>
+				<displaynames>BLM Office,BLM Office Website</displaynames>
+			</layer>
+			<!-- US Forest Service Ranger District Boundaries -->
+			<layer label="USFS Ranger District">
+				<id>1</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
+				<geometry>polygon</geometry>
+				<fields>DISTRICTNA,FOR_URL,MVUM_URL</fields>
+				<displaynames>USFS District,USFS District Website,MVUM Website</displaynames>
+			</layer>
+			<!-- Campground  -->
+			<layer label="Campground">
+				<!--buffer>10</buffer--><!-- list campgrounds within 10 miles of click point -->
+	    		<id>6</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer/</url>
+				<geometry>point</geometry>
+				<fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
+				<displaynames>Name,Manager,Property Name,Reservable,Campground Website</displaynames>
 	   		</layer>
+			<!-- License Agent  -->
+			<layer label="License Agent">
+				<!--buffer>10</buffer-->
+				<id>5</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer/</url>
+				<geometry>point</geometry>
+				<fields>Name,Address,City,Phone</fields>
+				<displaynames>Name,Address,City,Phone</displaynames>
+	   		</layer>
+			<!-- Field Office -->
+			<layer label="Field Office">
+				<id>15</id>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/</url>
+				<geometry>point</geometry>
+				<fields>Name,Address,City,Phone</fields>
+				<displaynames>Name,Address,City,Phone</displaynames>
+	   		</layer>
+			<layer label="Contact Info">
+				<id>1</id>
+				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
+				<geometry>polygon</geometry>
+				<fields>CDOW_FOName,COUNTYNAME,CDOW_Area,CDOW_AWM,CDOW_FOAddress,CDOW_FOCity,CDOW_FOPhone,CDOW_District,CDOW_DWM</fields>
+				<displaynames>Office Name,County,CPW Area,Area Manager,Address,City,Phone,CPW District,District Manager</displaynames>
+			</layer>
 		</folder>
 		<!-- Set the IRWIN_to_Inciweb_View feature service here. Used in identify. Use url with id!!! (FeatureServer/0) -->  
 		<folder label="Wildfires">
@@ -188,98 +239,36 @@
 				<displaynames>Incident Name,Updated,Discovery Date,Fire Out Date,Daily Acres,Percent Contained,Final Acres</displaynames>
 			</layer>
 			<layer label="Wildfire Perimeters">
-				<id>0</id>
+				<id>1</id>
 				<url>https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1</url>
 				<geometry>polygon</geometry>
 				<fields>IncidentName,GISAcres</fields>
 				<displaynames>Incident Name,Calculated Acres</displaynames>
 			</layer>
 		</folder>
-		<folder label="Contact Info">
-			<layer label="Contact Info">
-	    	<id>1</id>
-	    	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
-			<geometry>polygon</geometry>
-		    <fields>COUNTYNAME,CDOW_Area,CDOW_AWM,CDOW_FOName,CDOW_FOAddress,CDOW_FOCity,CDOW_FOPhone,CDOW_District,CDOW_DWM</fields>
-	    	<displaynames>County,CPW Area,Area Manager,Office Name,Address,City,Phone,CPW District,District Manager</displaynames>
-	   	</layer>
-	  </folder>
-	   	
-	  <folder label="Hunter Resources">
-			<desc>Hunter resources include: campgrounds, license agents, hospitals and sherrif's offices, field offices, welcome centers, and chamber of commerce.</desc>
-			<!-- Campground  -->
-			<layer label="Campground">
-	    	<id>48</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/</url>
-				<geometry>point</geometry>
-				<fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
-				<displaynames>Name,Manager,Property Name,Reservable,More Information</displaynames>
-	   	</layer>	
-			<!-- Emergency -->
-			<layer label="Emergency">
-				<id>26</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/</url>
-				<geometry>point</geometry>
-				<fields>Name,Address,City,Phone</fields>
-				<displaynames>Name,Address,City,Phone</displaynames>
-	   	</layer>
-			<!-- Field Office -->
-			<layer label="Field Office">
-				<id>15</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/</url>
-				<geometry>point</geometry>
-				<fields>Name,Address,City,Phone</fields>
-				<displaynames>Name,Address,City,Phone</displaynames>
-	   	</layer>
-			<!-- Chamber of Commerce or Welcome Center -->
-			<layer label="Chamber of Commerce or Welcome Center">
-				<id>37</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/</url>
-				<geometry>point</geometry>
-				<fields>Name,Address,City,Phone</fields>
-				<displaynames>Name,Address,City,Phone</displaynames>
-	   	</layer>
-			<!-- License Agent  -->
-			<layer label="License Agent">
-				<id>4</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/</url>
-				<geometry>point</geometry>
-				<fields>Name,Address,City,Phone</fields>
-				<displaynames>Name,Address,City,Phone</displaynames>
-	   	</layer>
-		</folder>
 		
-		<folder label="Field Map Finder">
-			<layer label="Forest Service map">
-				<id>5</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
-				<geometry>polygon</geometry>
-				<fields>MapName,URL</fields>
-				<displaynames>USFS Map Name,USFS Map Link</displaynames>
-	   	</layer>
-			<layer label="USGS Topo Quad">
-	    	<id>6</id>
-	    	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
-				<geometry>polygon</geometry>
-				<fields>QUADNAME</fields>
-				<displaynames>USGS Quad Name</displaynames>
-	   	</layer> 
-			<layer label="BLM/USGS 100K map">
-	    	<id>7</id>
-	    	<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
-				<geometry>polygon</geometry>
-				<fields>QUAD_NAME</fields>
-				<displaynames>BLM or USGS 100K Map Name</displaynames>
-	   	</layer>
-		</folder>
-		<folder label="BLM Roads and Trails">
-			<layer label="BLM Colorado Roads and Trails">
+		<folder label="Roads and Trails" pre_title="Trail " title_layer="Trails" title_field="name">
+			<layer label="Trails">
+				<id>2</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer</url>
+				<geometry>line</geometry>
+				<fields>name,surface,hiking,horse,dogs,motorcycle,snowmobile,ski,snowshoe,length_mi_rounded,oneway,min_elevation,max_elevation</fields>
+				<displaynames>Name,Surface type,Allows hiking,Allows horses,Allows dogs,Allows motorcycles,Allows snowmobiles,Allows skiing,Allows snowshoeing,Trail length in miles,One way,Min Elevation,Max Elevation</displaynames>
+			</layer>
+			<layer label="BLM Roads and Trails">
 				<id>0</id>
 				<url>https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer</url>
 				<geometry>line</geometry>
 				<fields>Planned Allowed Mode of Transportation,Route Primary Name,Route Primary Number</fields>
 				<displaynames>Allowed Mode of Transportation,Route Name,Route Number</displaynames>
 			</layer>
+			<!--layer label="Motor Vehicle Use Map">
+				<id>0</id>
+                <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer</url>
+				<geometry>line</geometry>
+				<fields></fields>
+				<displaynames></displaynames>
+			</layer-->
 		</folder>
 	</tree>
 </configuration>

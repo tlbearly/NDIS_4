@@ -28,16 +28,12 @@
 	// **************************************
 	//   Set the application directory name 
 	// **************************************
-	var app = "HuntingAtlas";
+	var app = "TestAtlas";
 	
 	// Add url name/value pairs
 	var name_value = "?app="+app;
 	name_value += document.location.search[0] === "?" ? "&"+ document.location.search.substr(1) : "";
-	// Dectect if mobile
-	if (detectmob())
-		location.href = "../indexM.html"+name_value;
-	else
-		location.href = "../index.html"+name_value;
+	location.href = "../index.html"+name_value;
 </script>
 </body>
 </html>

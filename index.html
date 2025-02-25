@@ -14,28 +14,26 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9,IE=10,IE=11" />
 
-  <title>Test ArcGIS API for JavaScript 4.30</title>
-
-  <script src="https://js.arcgis.com/4.30/"></script>
+  <script src="https://js.arcgis.com/4.31/"></script>
   <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
  
   
-  <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=18" async="true" />
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=32" async="true" />
   
-  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=31" async="true" />
+  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=32" async="true" />
   
   <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
 
   <script type="text/javascript" src="js/xmlUtils.js?v=1" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js" async="true"></script>
   <script type="text/javascript" src="js/utilFuncs.js?v=21" async="true"></script>
-  <script type="text/javascript" src="js/addMapLayers.js?v=22" async="true"></script>
+  <script type="text/javascript" src="js/addMapLayers.js?v=32" async="true"></script> <!-- read config.xml, add links to help -->
   <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=103" async="true"></script>
-  <script type="text/javascript" src="js/mySearch.js?v=3" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=31" async="true"></script>
-  <script type="text/javascript" src="js/errorBox.js?v=2" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=108" async="true"></script>
+  <script type="text/javascript" src="js/mySearch.js?v=6" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=34" async="true"></script> <!-- read SettingsWidget.xml -->
+  <script type="text/javascript" src="js/errorBox.js?v=3" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=0" async="true"></script>
 
@@ -45,7 +43,10 @@
 
   <script>
     // force rounded corners
-    window.onload = function () {
+    window.onload = (event) => {
+      document.getElementById("errBtn").addEventListener("click",function() {
+		    document.getElementById("errBox").style.display = "none";
+	    });
       // Add rounded corners to layer list
       const tim = setInterval(function () {
         if (!document.querySelector("#layerlist")) return;
@@ -56,6 +57,18 @@
         document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").style.borderRadius = "0.75rem";
         document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").parentNode.parentNode.style.marginRight = "10px";
         document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").parentNode.parentNode.style.marginTop = "10px";
+        
+        // help border radius and position
+        document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.borderRadius = "0.75rem";
+        // mobile
+        if (window.matchMedia("(max-width: 767px)").matches){
+          document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.marginTop = "10px";
+        document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.marginLeft = "0px";
+        }else {
+          document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.marginTop = "90px";
+          document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.marginLeft = "-10px";
+        }
+
         setTimeout(function(){
           // layer list sub-dialogs for each root layer in the map
           for (var i = 0; i < mapLayers.length; i++) {
@@ -70,9 +83,7 @@
         },1000);
       }, 500);
     };
-  </script>
-
-  <script>
+ 
     var app = "huntingatlas";
     var map, view, mapLayers = [];
     var  queryObj = {};
@@ -93,6 +104,8 @@
     var hideGroupSublayers = ["Emergency", "Field Office", "Chamber of Commerce or Welcome Center", "License Agent", "Campgrounds and SWA Facilities", "GMU boundary (Hunting Units)"];
     var radioLayers = null;
     var labelFromURL = false;
+    var helpWidget;
+    var helpContent;
     // Protect against XSS attacks
     // preserve new lines in way point descriptions (For future changes, if we decide to add them like the Mobile version.)
     //var location = document.location.search.replace(/\%0D/g,"newline");
@@ -105,34 +118,22 @@
         if (regexp.test(app)) alert("Illegal characters were removed from the application name. Only letters allowed.","Warning");
         app = app.replace(regexp,""); // clean it
     }
-    require(["esri/config",
+    require([
       // -- map, basemaps layers --
       "esri/Map",
       "esri/views/MapView",
-      "esri/layers/VectorTileLayer",
-      "esri/layers/TileLayer",
-      "esri/layers/MapImageLayer",
-      "esri/layers/FeatureLayer",
       "esri/layers/GraphicsLayer",
-      "esri/layers/GroupLayer",
       "esri/core/reactiveUtils",
       // -- Geomtry --
-      "esri/PopupTemplate",
-      "esri/Graphic",
       "esri/geometry/Extent",
 
 
       // -- widgets --
       "esri/widgets/Expand",
-      "esri/widgets/LayerList",
-      "esri/widgets/Legend",
       "esri/widgets/Locate",
-      "esri/widgets/Search",
       "esri/widgets/ScaleBar",
-      "esri/widgets/Slider",
-
       "esri/widgets/Print"],
-      function (esriConfig, Map, MapView, VectorTileLayer, TileLayer, MapImageLayer, FeatureLayer, GraphicsLayer, GroupLayer, reactiveUtils, PopupTemplate, Graphic, Extent, Expand, LayerList, Legend, Locate, Search, ScaleBar, Slider, Print) {
+      function (Map, MapView, GraphicsLayer, reactiveUtils, Extent, Expand, Locate, ScaleBar, Print) {
 
         //esriConfig.apiKey = "YOUR_API_KEY";
 
@@ -149,7 +150,7 @@
         const graphicsLayer = new GraphicsLayer();
         graphicsLayer.title = "Graphics Layer";
         map.add(graphicsLayer);
-        let initExtent = new Extent({
+        /*let initExtent = new Extent({
           "xmin": -12350000,
           "ymin": 4250000,
           "xmax": -11150000,
@@ -157,12 +158,11 @@
           "spatialReference": {
             "wkid": 102100
           }
-        });
+        });*/
         view = new MapView({
           map: map,
-          extent: initExtent,
+          //extent: initExtent,
           container: "viewDiv", // Div element
-          extent: initExtent,
           highlightOptions: { // for Identify not working!!!!!
             color: [255, 255, 0, 1],
             haloOpacity: 0.9,
@@ -210,23 +210,6 @@
               else {
                 popupOpenCount++;
                 console.log("Popup open"+popupOpenCount);
-
-                // add marker at clickpoint
-                /*require(["esri/Graphic"], function ( Graphic) {
-                    const symbol = {
-                      type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-                      url: "./assets/images/pin.svg",
-                      width: 24,
-                      height: 24,
-                      xoffset: 0,
-                      yoffset: 8
-                    };
-                    let point = new Graphic({
-                      geometry: IdentifyPt,
-                      symbol: symbol
-                    });
-                    view.graphics.add(point);
-                });*/
               }
             }
           );
@@ -235,12 +218,6 @@
           //myMapLayers();
 
           // Add title, logo, and search
-          const cpw_link = document.createElement("a");
-          cpw_link.href="cpw.state.co.us";
-          cpw_link.style.paddingRight="10px";
-          cpw_link.setAttribute("alt","load CPW website");
-          cpw_link.id = "logourl";
-          
           const titlediv=document.createElement("div");
           titlediv.style.padding="5px";
           titlediv.style.borderRadius="12px";
@@ -261,17 +238,40 @@
           const logo = document.createElement("img");
           logo.id = "logo";
           logo.src = "./assets/images/logo.svg";
-          logo.setAttribute("alt", "CPW logo");
+          logo.setAttribute("title", "Help");
           if (screen.width <= 768)
             logo.setAttribute("width","30");
           else
             logo.setAttribute("width","70");
           logo.style.float="left";
           logo.setAttribute("align","middle");
-          cpw_link.appendChild(logo);
-          titlediv.appendChild(cpw_link);
+          logo.addEventListener("click",function(){
+            view.closePopup();
+            helpWidget.open = true;
+          });
+          titlediv.appendChild(logo);
           titlediv.appendChild(title);
           view.ui.add(titlediv,"top-left");
+
+          // add help
+          helpWidget = document.createElement("calcite-dialog");
+          helpWidget.id = "help";
+          helpWidget.className = "help";
+          helpWidget.heading = "Help";
+          helpWidget.label = "Help";
+          helpWidget.placement = "top-start";
+          helpWidget.overlayPositioning = "absolute";
+          helpContent = document.createElement("div");
+          helpContent.style.padding = "10px";
+          helpContent.style.fontSize = "medium";
+          helpContent.id = "helpContent";
+          // help message
+          const call = document.createElement("p");
+          call.style.paddingTop = "0";
+          call.style.marginTop = "0";
+          call.innerText = "If you are having trouble using or reading this map, plesae contact Colorado Parks and Widllife at (call center # maybe?).";
+          helpContent.appendChild(call);
+          helpWidget.appendChild(helpContent);
 
           // + - zoom buttons
           view.ui.move("zoom", "bottom-right");
@@ -307,81 +307,9 @@
             position: "bottom-left"
           });
 
-          readSettingsWidget(); // identify addFindPlace needs elkUrl
+          readSettingsWidget(); // in identify, calls addSearch which needs elkUrl
           
           addMeasure(graphicsLayer);
-
-
-
-
-
-
-         
-
-
-
-          // Old layer list
-          /*layerList2 = new LayerList({
-            view: view,
-            title: "Map Layers",
-            dragEnabled: false, // add drag layers to re-arrange draw order
-            //visibilityAppearance: "checkbox",
-            listItemCreatedFunction: defineActions,
-            visibleElements: {
-              catalogLayerList: true,
-              closeButton: true,
-              //collapseButton: true,
-              errors: true,
-              //filter: true,
-              heading: true,
-              statusIndicators: true
-            }
-          });
-          const layerListExpand2 = new Expand({
-            view,
-            content: layerList2,
-            expandTooltip: "Map Layers2",
-            expandIconClass: "esri-icon-layers"
-          });
-          view.ui.add(layerListExpand2, "top-right");
-          // Event listener that fires each time an action is triggered
-          layerList2.on("trigger-action", (event) => {
-              // The layer visible in the view at the time of the trigger.
-              const layer = event.item.layer;
-      	
-              // Capture the action id.
-              const id = event.action.id;
-      	
-              if (id === "full-extent") {
-                // if the full-extent action is triggered then navigate
-                // to the full extent of the visible layer
-                view.goTo(visibleLayer.fullExtent)
-                .catch((error) => {
-                if (error.name != "AbortError"){
-                  console.error(error);
-                }
-                });
-              } else if (id === "information") {
-                // if the information action is triggered, then
-                // open the item details page of the service layer
-                window.open(layer.url);
-                window.open("/"+app+"/definitions.html");
-              }else if (id === "increase-opacity") {
-                // if the increase-opacity action is triggered, then
-                // increase the opacity of the GroupLayer by 0.25
-                if (layer.opacity < 2) {
-                  layer.opacity += 0.25;
-                }
-              } else if (id === "decrease-opacity") {
-                // if the decrease-opacity action is triggered, then
-                // decrease the opacity of the GroupLayer by 0.25
-                if (layer.opacity > 0) {
-                  layer.opacity -= 0.25;
-                }
-              }
-            });*/
-
-
 
 
           // MARK: -- Location --
@@ -392,470 +320,12 @@
           view.ui.add(locateBtn, "bottom-right");
 
 
-          // MARK: -- Print --    
+          // MARK: -- Print -- 
+          // TODO read in print Disclaimer ***********************************   
           createPrintWidget("prtDisclaimer");
 
           readConfig();
         }); // view.when
-
-
-        // *********************************
-        // Creates actions in the LayerList.
-        // *********************************
-        /*var layerList;
-        var gmuIndex = -1;
-
-        
-        async function defineActions(event) {
-          // The event object contains an item property.
-          // is is a ListItem referencing the associated layer
-          // and other properties. You can control the visibility of the
-          // item, its title, and actions using this object.
-
-          const item = event.item;
-          await item.layer.when();
-
-          if (item.title === "Graphics Layer") {
-            item.hidden = true;
-            return;
-          }
-
-          // hide group sub layers
-          //if (item.title === "Hunter Reference"){
-          item.children.forEach((subLayer) => {
-            // hide children 2 layers deep if found in hideGroupSublayers
-            if (hideGroupSublayers.includes(subLayer.title)) {
-              // hide child layers
-              subLayer.children.forEach((subSubLayer) => {
-                subSubLayer.hidden = true;
-                console.log("hiding " + subSubLayer.title);
-              });
-            }
-            // hide children 3 layers deep if found in hideGroupSublayers
-            subLayer.children.forEach((subSubLayer) => {
-              if (hideGroupSublayers.includes(subSubLayer.title)) {
-                // hide child layers
-                subSubLayer.children.forEach((subSubSubLayer) => {
-                  subSubSubLayer.hidden = true;
-                  console.log("hiding " + subSubSubLayer.title);
-                });
-              }
-            });
-          });
-          //}
-
-
-          // Watch for layer change to visible. For exclusive layers, open selected layer and toggle other layers closed.
-          // V Game Species (visibilityMode = exclusive)
-          //     > Bighorn
-          //     V Elk
-          //     > Moose
-          item.watch("visible", (event) => {
-            if (app.toLowerCase() != "huntingatlas") return;
-            // set gmu species && display GMU layer
-            if (item.title === "Bighorn" && item.visible == true) {
-              gmu = "Bighorn GMU";
-
-              // switch searchWidget GMU layer to Bighorn GMUs
-              // find the index of the Find a Place GMUs
-              if (gmuIndex == -1) {
-                gmuIndex = findGMUIndex();
-              }
-              if (gmuIndex != -1) {
-                var bighornFL = new FeatureLayer({
-                  url: settings.sheepUrl
-                });
-                searchWidget.sources.items[gmuIndex].layer = bighornFL;
-                searchWidget.sources.items[gmuIndex].searchFields = [settings.sheepField];
-                searchWidget.sources.items[gmuIndex].displayField = settings.sheepField;
-                searchWidget.sources.items[gmuIndex].outFields = [settings.sheepField];
-                searchWidget.sources.items[gmuIndex].name = "Bighorn Sheep GMUs";
-                searchWidget.sources.items[gmuIndex].placeholder = "Search Bighorn GMUs";
-              }
-            }
-            else if (item.title === "Mountain Goat" && item.visible == true) {
-              gmu = "Goat GMU";
-              // find the index of the Find a Place GMUs
-              if (gmuIndex == -1) {
-                gmuIndex = findGMUIndex();
-              }
-              if (gmuIndex != -1) {
-                var goatFL = new FeatureLayer({
-                  url: settings.goatUrl
-                });
-                searchWidget.sources.items[gmuIndex].layer = goatFL;
-                searchWidget.sources.items[gmuIndex].searchFields = [settings.goatField];
-                searchWidget.sources.items[gmuIndex].displayField = settings.goatField;
-                searchWidget.sources.items[gmuIndex].outFields = [settings.goatField];
-                searchWidget.sources.items[gmuIndex].name = "Mountain Goat GMUs";
-                searchWidget.sources.items[gmuIndex].placeholder = "Search Goat GMUs";
-              }
-            }
-            else {
-              gmu = "Big Game GMU";
-              // find the index of the Find a Place GMUs
-              if (gmuIndex == -1) {
-                gmuIndex = findGMUIndex();
-              }
-              if (gmuIndex != -1) {
-                var elkFL = new FeatureLayer({
-                  url: settings.elkUrl
-                });
-                searchWidget.sources.items[gmuIndex].layer = elkFL;
-                searchWidget.sources.items[gmuIndex].searchFields = [settings.elkField];
-                searchWidget.sources.items[gmuIndex].displayField = settings.elkField;
-                searchWidget.sources.items[gmuIndex].outFields = [settings.elkField];
-                searchWidget.sources.items[gmuIndex].name = "Big Game GMUs";
-                searchWidget.sources.items[gmuIndex].placeholder = "Search GMUs";
-              }
-            }
-            // Show correct GMU layer, hide others
-            layerList2.operationalItems.every((opLayer) => { //every break on return false
-              if (opLayer.title === "Hunter Reference") {
-                opLayer.children.every((layerView) => {
-                  if (layerView.title === "GMU boundary (Hunting Units)") {
-                    layerView.children.forEach((gmuScale) => {
-                      // Big Game GMU, Bighorn GMU, and Goat GMU
-                      gmuScale.children.forEach((gmuAnimal) => {
-                        switch (gmu) {
-                          case "Big Game GMU":
-                            if (gmuAnimal.title === "Big Game GMU") {
-                              gmuAnimal.visible = true;
-                            }
-                            else {
-                              gmuAnimal.visible = false; // don't show on map
-                            }
-                            break;
-                          case "Bighorn GMU":
-                            if (gmuAnimal.title === "Bighorn GMU") {
-                              gmuAnimal.visible = true;
-                            }
-                            else {
-                              gmuAnimal.visible = false; // don't show on map
-                            }
-                            break;
-                          case "Goat GMU":
-                            if (gmuAnimal.title === "Goat GMU") {
-                              gmuAnimal.visible = true;
-                            }
-                            else {
-                              gmuAnimal.visible = false; // don't show on map
-                            }
-                            break;
-                        }
-                      });
-                    });
-                    return false; // "GMU boundary (Hunting Units)" found, quit loop
-                  }
-                  return true; // "GMU boundary (Hunting Units)" not found yet
-                });
-                return false; // Hunter Reference found, quit loop
-              }
-              return true; // Hunter Reference not found yet
-            });
-
-            // open the selected radio button layers and close other radio buttons
-            layerList2.operationalItems.forEach((opLayer) => {
-              opLayer.children.forEach((layerView) => {
-                if ((item.parent && item.parent.title === layerView.parent.title) && (item.parent.visibilityMode === "exclusive")) {
-                  if (layerView.layer.id != item.layer.id) {
-                    layerView.open = false;
-                  } else {
-                    layerView.open = true;
-                  }
-                }
-              });
-            });
-          });
-
-          // open the layer if specified in config.xml
-          if (openTOCgroups.includes(item.title))
-            item.open = true;
-
-          // Adds a slider for updating a top level group or individual layer's opacity
-          for (var i = 0; i < item.children.items.length; i++) {
-            //if(item.children.length == 0 && item.parent) { // || item.parent === null ){
-            const slider = new Slider({
-              min: 0,
-              max: 1,
-              precision: 2,
-              //values: [ item.layer.opacity ],
-              values: [item.children.items[i].layer.opacity],
-              visibleElements: {
-                labels: true,
-                rangeLabels: true
-              },
-              index: i // tlb save the child index children.items[index]
-            });
-
-            item.children.items[i].panel = {
-              content: slider,
-              className: "esri-icon-sliders-horizontal",
-              title: "Change layer opacity"
-            };
-
-            slider.on("thumb-drag", (event) => {
-              const { value } = event;
-              item.children.items[slider.key.index].layer.opacity = value;
-            });
-          }
-
-
-
-          // An array of objects defining actions to place in the LayerList.
-          // By making this array two-dimensional, you can separate similar
-          // actions into separate groups with a breaking line.
-
-          // Add Information icon to top layers
-          if (item.parent === null) {
-            item.actionsSections = [
-              [
-                {
-                  title: "Layer information",
-                  className: "esri-icon-description",
-                  id: "information"
-                }
-              ]
-            ];
-          }
-
-          // show legend  
-          if (item.layer.type != "group") {
-            //if (item.parent == null){
-            // don't show legend twice
-            item.panel = {
-              content: "legend",
-              open: false,
-              title: "Legend"
-            };
-          }
-        }*/
-
-
-
-        //**********************
-        //   Add Search Widget
-        //**********************
-        /*function addFindPlace() {
-          // Find a Place Widget ESRI default
-          //define layers for boundaries
-          var countyFL = new FeatureLayer({
-            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1",
-            popupTemplate: {
-              // autocasts as new PopupTemplate()
-              title: "{COUNTYNAME} County",
-              overwriteActions: true
-            }
-          });
-          var propertyFL = new FeatureLayer({
-            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3"
-          });
-          // global variable used in myLayerList.js
-          gmuFL = new FeatureLayer({
-            url: settings.elkUrl //"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2"
-          });
-          var forestFL = new FeatureLayer({
-            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5"
-          });
-          var wildernessFL = new FeatureLayer({
-            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/4"
-          });
-
-          searchWidget = new Search({
-            view: view,
-            includeDefaultSources: false, // include ESRI geocode service "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer"
-            searchAllEnabled: true, // if true has drop down list of sources includeing ESRI's
-            popupEnabled: false,
-            locationEnabled: false, // Adds option to go to current location
-            resultGraphicEnabled: false, // Disable ESRI's graphic symbol, we will handle this below
-            maxResults: 6,
-            maxSuggestions: 50,
-            suggestionsEnabled: true,
-            minSuggestCharacters: 2,
-            allPlaceholder: "Search",
-            sources: [
-              {
-                layer: propertyFL,
-                searchFields: ["PropName"],
-                displayField: "PropName",
-                exactMatch: false,
-                maxSuggestions: 1000,
-                outFields: ["PropName"],
-                name: "CPW Properties (STL, SWA, SFU, or WWA)",
-                placeholder: "Search CPW Properties"
-              },
-              {
-                layer: gmuFL,
-                searchFields: [settings.elkField],
-                displayField: settings.elkField,
-                exactMatch: false,
-                maxResults: 6,
-                maxSuggestions: 100,
-                minSuggestCharacters: 1,
-                outFields: [settings.elkField],
-                name: "Big Game GMUs",
-                placeholder: "Search GMUs"
-              },
-              {
-                layer: forestFL,
-                searchFields: ["MapName"],
-                displayField: "MapName",
-                exactMatch: false,
-                outFields: ["MapName"],
-                name: "Forests or Grasslands",
-                placeholder: "Search Forests/Grasslands"
-              },
-              {
-                layer: wildernessFL,
-                searchFields: ["NAME"],
-                displayField: "NAME",
-                exactMatch: false,
-                outFields: ["NAME"],
-                name: "Wildernesses",
-                placeholder: "Search Wildernesses"
-              },
-              {
-                layer: countyFL,
-                searchFields: ["COUNTYNAME"],
-                displayField: "COUNTYNAME",
-                exactMatch: false,
-                outFields: ["COUNTYNAME"],
-                name: "Counties",
-                placeholder: "Search Counties"
-              },
-              // Colorado Place GNIS
-              {
-                url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer",
-                singleLineFieldName: "SingleLine",
-                outFields: ["*"],
-                name: "Colorado Places",
-                placeholder: "Search Colorado Places"
-              },
-              // Address limit search to Colorado
-              {
-                filter: {
-                  geometry: new Extent({
-                    //-12350000 4250000 -11150000 5250000
-                    xmax: -11150000,
-                    xmin: -12350000,
-                    ymax: 5250000,
-                    ymin: 4250000,
-                    spatialReference: {
-                      wkid: 102100
-                    }
-                  })
-                },
-                url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/",
-                singleLineFieldName: "SingleLine",
-                outFields: ["*"],
-                name: "Address",
-                placeholder: "Search Address"
-              }
-            ]
-          });
-
-          searchWidget.goToOverride = function (view, goToParams) {
-            // Don't zoom in, we will handle it below
-            return null;
-          };
-
-          searchWidget.on("search-complete", function (event) {
-            // The results are stored in the event Object[]
-            // Highlight and label the result for 10 seconds
-            // Find which source layer matches name exactly or up to the comma. eg. Fort Collins, Larimer
-            var index = 0;
-            for (var i = 0; i < event.results.length; i++) {
-              if (event.results[i].results.length == 0) continue;
-              var name = event.results[i].results[0].name.toLowerCase();
-              if (event.searchTerm.toLowerCase() === name.substring(0, name.indexOf(",")) ||
-                event.searchTerm.toLowerCase() === name) {
-                index = i;
-                break;
-              }
-            }
-            const obj = event.results[index];
-            var newExtent = obj.results[0].extent;
-            var pt;
-            var fontsize = 11;
-            for (i = 0; i < obj.results.length; i++) {
-              if (obj.results[i].feature.geometry.type === "point") {
-                require(["esri/geometry/Point"], function (Point) {
-                  pt = new Point(obj.results[i].feature.geometry.x, obj.results[i].feature.geometry.y, obj.results[i].feature.geometry.spatialReference);
-                  addTempPoint(pt, true);
-                  if (labelFromURL) {
-                    addTempLabel(pt, queryObj.get("label"), fontsize, true);
-                    labelFromURL = false;
-                  }
-                  else addTempLabel(pt, obj.results[i].name, fontsize, true);
-                });
-              }
-              else if (obj.results[i].feature.geometry.type === "polygon") {
-                addTempPolygon(obj.results[i].feature, true);
-                if (labelFromURL) {
-                  addTempLabel(obj.results[i].feature, queryObj.get("label"), fontsize, true);
-                  labelFromURL = false;
-                }
-                else if (obj.results[i].feature.sourceLayer.title.indexOf("GMU") > -1)
-                  addTempLabel(obj.results[i].feature, "GMU " + obj.results[i].name, fontsize, true); // label each GMU polygon
-                else if (obj.results[i].feature.sourceLayer.title.indexOf("County") > -1) {
-                  var label = obj.results[i].name.toLowerCase();
-                  var ch = label.substring(0, 1).toUpperCase();
-                  label = ch + label.substring(1) + " County";
-                  addTempLabel(obj.results[i].feature, label, fontsize, true); // label each county polygon
-                }
-                else addTempLabel(obj.results[i].feature, obj.results[i].name, fontsize, true); // label each polygon
-                var thisExtent = obj.results[i].feature.geometry.extent;
-                // making a union of the polygon extents  
-                newExtent = newExtent.union(thisExtent);
-              }
-            }
-            this.clear();
-            if (obj.results[0].feature.geometry.type === "point")
-              view.goTo({
-                target: pt,
-                scale: 24000
-              });
-            else
-              view.extent = newExtent;
-          });
-          
-         
-          // Center in title div
-          searchWidget.when(()=>{
-            // if identify is showing close it when click on search widget
-            searchWidget.container.addEventListener("click", function(event) {
-              view.closePopup();
-            });
-
-            // change filter icon from down arrow to filter
-            searchWidget.container.children[0].querySelector(".esri-icon-down-arrow").className = "esri-icon-filter";
-            // change tool tip for filter button
-            searchWidget.container.children[0].querySelector(".esri-icon-filter").parentNode.title = "Filter search";
-            // change tool tip of submit button
-            searchWidget.container.children[0].querySelector(".esri-icon-search").parentNode.title = "Submit search";
-            // change tool tip for search input box
-            searchWidget.container.children[0].querySelector("input").title = "Search for a Colorado place or address";
-
-            if (screen.width > 768) {
-              searchWidget.container.style.left = "85px";
-              searchWidget.container.style.position = "relative";
-              searchWidget.container.style.top = "-2px";
-            }
-            else {
-              searchWidget.container.style.left = "30px";
-              searchWidget.container.style.marginRight = "auto";
-              searchWidget.container.style.marginLeft = "auto";
-
-            }
-          });
-          // Adds the search widget below other elements in
-          // the top left corner of the view
-          view.ui.add(searchWidget, {
-            position: "top-left",
-            index: 2
-          });
-        }*/
-
 
         function createPrintWidget(prtDisclaimer) {
           const print = new Print({

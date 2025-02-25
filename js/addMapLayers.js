@@ -1,5 +1,6 @@
 var xmlDoc; // config.xml document json
 var ext;
+var initExtent;
 openTOCgroups=[];
 var tries={}; // number of times we have tried to load each map layer
 var loadedFromCfg; // true when the layer has loaded and set the visiblelayers when setting layers from URL
@@ -514,7 +515,7 @@ function addMapLayers(){
                 return groupLayer;
             }
             if (layerNames != null){
-                layerNames = layerNames.reverse();
+                //layerNames = layerNames.reverse();
                 if (layerVis.length != layerNames.length){
                     alert("Error in "+app+"/config.xml operationallayers. In layer group "+groupName+", list of layerIds, layerVis, and layerNames must have the same number of elements.");
                     return groupLayer;
@@ -1094,7 +1095,8 @@ function readURLParmeters(){
         if (queryObjParams.get("prj") && isNaN(queryObjParams.get("prj"))) {
             queryObj.prj = 102100;
             alert("Problem reading map projection from the URL, defaulting to WGS84. addMapLayers.js/readURLParmeters","Warning");
-        }
+        }else if (queryObjParams.get("prj"))
+            queryObj.prj = queryObjParams.get("prj");
 
         // Extent
         if (queryObjParams.get("extent")){
@@ -1162,7 +1164,7 @@ function readConfig(){
                         document.title = title;
                         //document.getElementById("subtitle").innerHTML = xmlDoc.getElementsByTagName("subtitle")[0].firstChild.nodeValue;
                         document.getElementById("logo").src = xmlDoc.getElementsByTagName("logo")[0].firstChild.nodeValue;
-                        document.getElementById("logourl").href = xmlDoc.getElementsByTagName("logourl")[0].firstChild.nodeValue;
+                        //document.getElementById("logourl").href = xmlDoc.getElementsByTagName("logourl")[0].firstChild.nodeValue;
                     } catch (e) {
                         alert("Warning: Missing title, subtitle, logo, or logurl tag in " + app + "/config.xml file. " + e.message, "Data Error");
                     }
@@ -1199,9 +1201,42 @@ function readConfig(){
                     } catch (e) {
                         alert("Warning: Missing tag attributes initalextent or wkid for the map tag in " + app + "/config.xml file. " + e.message, "Data Error");
                     }
-                    
+                    // Add Links to Help
+                    var helplink = [];
+                    if (!xmlDoc.getElementsByTagName("links")[0])
+                        alert("Fatal Error: Missing links tag in config.xml file.","Data Error");
+                    if (xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("helplink"))
+                        helplink = xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("helplink");
+                    var size = "30px";
+                    if (xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("iconsize"))
+                        size = xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("iconsize")[0].innerHTML;
+                    var linkStr = "";
+                    for (var i = 0; i < helplink.length; i++) {
+                        linkStr += '<p><a href="' + helplink[i].getAttribute("url").replace("%3F", "?").replace("%26", "&");
+                        linkStr += '" target="_new"><img src="' + helplink[i].getAttribute("icon") + '" aria-hidden="true" style="width:'+size+';vertical-align:middle;margin-right:10px;"/><span>' + helplink[i].getAttribute("label") + '</span></a> ';
+                        if (helplink[i].getAttribute("text"))
+                            linkStr += '<span>'+helplink[i].getAttribute("text")+'</span>';
+                        linkStr += '</p>';
+                    }
+                    linkStr += '<h3 style="border-bottom:1px solid lightgray;">Links</h3>';
+                    var link = xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("link");
+                    for (var i = 0; i < link.length; i++) {
+                        // link that goes to current map extent
+                        if (link[i].getAttribute("extent")){
+                            linkStr += '<p><a class="link" onclick="javascript:linkWithExtent(\''+link[i].getAttribute("url").replace("%3F", "?").replace("%26", "&") + "')";
+                        }
+                        else linkStr += '<p><a href="'+link[i].getAttribute("url").replace("%3F", "?").replace("%26", "&");
+                        linkStr += '" target="_new"><img src="' + link[i].getAttribute("icon") + '" aria-hidden="true" style="width:'+size+';vertical-align:middle;margin-right:10px;"/><span>' + link[i].getAttribute("label") + '</span></a> ';
+                        if (link[i].getAttribute("text"))
+                            linkStr += '<span>'+link[i].getAttribute("text")+'</span>';
+                        linkStr += '</p>';
+                    }
+                    const linkDiv = document.createElement("div");
+                    linkDiv.innerHTML = linkStr;
+                    // add links to help
+                    helpContent.appendChild(linkDiv);
+
                     readURLParmeters(); // calls addMapLayers
-                    
                 } 
                 // if missing file
                 else if (xmlhttp.status === 404) {
@@ -1220,8 +1255,15 @@ function readConfig(){
     });
 }
 
+function linkWithExtent(url){
+    // Add current extent to the url and open in a new tab
+    url +=  "&extent="+view.extent.xmin+","+view.extent.ymin+","+view.extent.xmax+","+view.extent.ymax+"&prj=102100";
+    window.open(url,"_blank");
+}
+
 function zoomToQueryParams(){
-    require(["esri/geometry/Extent"],function(Extent){
+    require(["esri/geometry/Extent","esri/geometry/SpatialReference","esri/rest/support/ProjectParameters", "esri/rest/geometryService"],
+        function(Extent,SpatialReference,ProjectParameters,GeometryService){
         // Zoom to extent on startup if specified on url
         if (queryObj.extent && queryObj.extent != "") {
             var extArr = [];
@@ -1240,7 +1282,7 @@ function zoomToQueryParams(){
                 } else
                     prj = 26913;
             }
-            ext = new Extent({
+            const myExtent = new Extent({
                     "xmin": parseFloat(extArr[0]),
                     "ymin": parseFloat(extArr[1]),
                     "xmax": parseFloat(extArr[2]),
@@ -1249,18 +1291,17 @@ function zoomToQueryParams(){
                         "wkid": parseInt(prj)
                     }
             });
-            require([ "esri/geometry/SpatialReference","esri/rest/support/ProjectParameters", "esri/rest/geometryService"],function(SpatialReference,ProjectParameters,GeometryService){
-                var params = new ProjectParameters();
-                params.geometries = [ext];
-                params.outSpatialReference = new SpatialReference(wkid);
-                GeometryService.project(geometryService,params).then((newExt) => {
-                    initExtent = newExt[0];
-                    view.extent = initExtent;
-                }).catch ( (error) => {
-                    let msg = "There was a problem converting the extent read from the URL to Web Mercator projection. extent=" + extArr[0] + ", " + extArr[1] + ", " + extArr[2] + ", " + extArr[3] + "  prj=" + prj + "  " + error.message;
-                    alert(msg, "URL Extent Error", error);
-                });
+            var params = new ProjectParameters();
+            params.geometries = [myExtent];
+            params.outSpatialReference = new SpatialReference(wkid);
+            GeometryService.project(geometryService,params).then((newExt) => {
+                initExtent = newExt[0];
+                view.extent = initExtent;
+            }).catch ( (error) => {
+                let msg = "There was a problem converting the extent read from the URL to Web Mercator projection. extent=" + extArr[0] + ", " + extArr[1] + ", " + extArr[2] + ", " + extArr[3] + "  prj=" + prj + "  " + error.message;
+                alert(msg, "URL Extent Error", error,"Data Error");
             });
+            
         // Use initextent read from config.xml file
         } else {
             initExtent = new Extent({

@@ -20,10 +20,11 @@
 }
 
 /* link colors */
-a:-webkit-any-link {
+a:-webkit-any-link, .link {
     color: var(--press)!important;
+    text-decoration: underline;
 }
-a:-webkit-any-link:hover {
+a:-webkit-any-link:hover, .link:hover {
     color: var(--hover)!important;
     font-weight: 450;
 }

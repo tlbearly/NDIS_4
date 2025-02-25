@@ -129,12 +129,14 @@ function readSettingsWidget() {
                     } else {
                         settings.useGMUs = false;
                     }
-                    addFindPlace();
+
+                    addSearch(); // adds help, search, and home button. Adds links to help.
+
                     driving_directions = xmlDoc.getElementsByTagName("driving_directions")[0] && xmlDoc.getElementsByTagName("driving_directions")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
-                    if (driving_directions) {
+                    /*if (driving_directions) {
                         // Add a link into the InfoWindow Actions panel
                         // Get Directions
-                        /* view.popup.actions = [
+                         view.popup.actions = [
                             {
                                 id: "directions",
                                 className: "esri-icon-directions2",
@@ -147,8 +149,8 @@ function readSettingsWidget() {
                                 className: "esri-icon-map-pin",
                                 title: "Input Area"
                             }
-                        ];*/
-                    }
+                        ];
+                    }*/
 
                     if (xmlDoc.getElementsByTagName("elevation")[0] && xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue)
                         show_elevation = xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue == "true" ? 1 : 0;
@@ -435,6 +437,7 @@ function readSettingsWidget() {
 }*/
 // 6-11/24 userd to be doIdentify2
 function doIdentify(evt){
+    helpWidget.open = false;
     showLoading();
     view.graphics.removeAll();//(view.graphics.items[view.graphics.items.length-1]); // remove last marker symbol
         

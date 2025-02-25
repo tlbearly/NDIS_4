@@ -18,7 +18,6 @@
     <app>fishingatlas</app>
     <!-- logo in header bar-->
     <logo>assets/images/logo.svg</logo>
-    <logourl>//cpw.state.co.us</logourl>
 	<httpproxy>/proxy/DotNet/proxy.ashx</httpproxy>
 
     <!-- Application logo at bottom right corner -->
@@ -57,13 +56,14 @@
             		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Base_Map/MapServer"/>
 			<layer label="Fishing Info" open="true" opensublayer="Recommended opportunties" type="dynamic" visible="true" alpha="0.9"
             		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Main_Map/MapServer"/>
-			<layer label="Motor Vehicle Use Map" open="true" type="dynamic" visible="false" alpha="1"
+			<layer group="Transportation" open="false" visible="true" alpha="1" radio="false"/>
+                <layer  parentGroup="Transportation" label="Motor Vehicle Use Map" visible="false" alpha="1"
 					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
-            <layer label="BLM Roads and Trails" open="false" type="dynamic" visible="false" alpha="1"
+                <layer  parentGroup="Transportation" label="BLM Roads and Trails" visible="false" alpha="1"
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />
             <layer group="Wildfire" label="Wildfire" open="true" type="dynamic" visible="true" alpha="0.8"/>
-			<layer parentGroup="Wildfire" label="Wildfire Perimeters" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
-			<layer parentGroup="Wildfire" label="Wildfire Incidents" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
+			    <layer parentGroup="Wildfire" label="Wildfire Perimeters" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
+			    <layer parentGroup="Wildfire" label="Wildfire Incidents" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
             <!--layer label="Wildfire Perimeters" open="false" type="dynamic" visible="false" alpha="0.8"
 					url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0"/-->
        </operationallayers>
@@ -71,42 +71,24 @@
 		<hideGroupSublayers>Fishing License Agent,Family friendly,More remote fly fishing,Ice fishing,Special Fishing Regulations,Fishing Information Point,Stocked with catchables (~10 inches),Emergency,Field Office,Chamber of Commerce or Welcome Center,Campgrounds and SWA Facilities</hideGroupSublayers>
 		<radiolayers>Recommended opportunties</radiolayers>
     </map>
-    
-    <widgetcontainer>
-         <!-- preload can be set to "open" or "minimized" -->
-		 <!-- video is a link to a help video. This link will be in the help modal window --> 
-         <widget label="Map Layers &amp; Legend"
-         	preload="open"
-			height="346"
-            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
-		<widget label="Feature Search"
-            preload="open"
-            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
-		<!-- Widget label must contain the word "Report"-->
-		<widget label="Fishing Resource Report"
-            preload="minimized"
-            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
-         <widget label="Address"
-            preload="minimized"
-            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
-         <widget label="Draw, Label, &amp; Measure"
-            preload="minimized"
-            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
-         <widget label="Bookmark"
-            preload="minimized"
-            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
-          <widget label="Settings"
-            preload="minimized"
-            video="https://ndismaps.nrel.colostate.edu/huntingatlas/Videos.html"/>
-    </widgetcontainer>
 
     <links>
-    <!-- Note the icons and labels must all be different.  This is how it looks up the url. -->
-	<!-- In the URL encode space as %20, '?' as %3F, '&' as %26 --> 
-		<!-- url gets replaced in readConfig.js to preserve url parameters -->
-		<link label="Go Mobile"
-    		url=""
-			icon="assets/images/i_mobile.png"/>
+        <iconsize>30px</iconsize>
+        <helplink label="Use case #1"
+            text="Video showing how to..."
+            url = "https://"
+            icon="./assets/images/star.png"/>
+        <helplink label="Getting Started"
+            text="A video highlighting the features of our map atlas"
+            url="https://"
+            icon="./assets/images/compass3.png"/>
+        <link label="CPW Website"
+            url="https://cpw.state.co.us"
+            icon="./assets/images/logo.svg"/>
+        <link label="HuntingAtlas"
+            url="./index.html?app=HuntingAtlas"
+            icon="./assets/images/logo.svg"
+            extent="true"/>
 		<link label="Buy License!"
     		url="https://cpw.state.co.us/BuyApply/pages/fishing.aspx"
     		icon="assets/images/i_buylicense.png"/>
