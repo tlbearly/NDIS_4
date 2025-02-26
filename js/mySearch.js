@@ -38,7 +38,7 @@ function addSearch() {
                 placeholder: "Search GMUs"
             });
         }
-        var forestFL = new FeatureLayer({
+        /*var forestFL = new FeatureLayer({
             url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5"
         });
         sources.push({
@@ -61,9 +61,9 @@ function addSearch() {
             outFields: ["NAME"],
             name: "Wilderness",
             placeholder: "Search Wildernesses"
-        });
+        });*/
         // County
-        var countyFL = new FeatureLayer({
+        /*var countyFL = new FeatureLayer({
             url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1",
             popupTemplate: {
             // autocasts as new PopupTemplate()
@@ -79,7 +79,7 @@ function addSearch() {
             outFields: ["COUNTYNAME"],
             name: "Counties",
             placeholder: "Search Counties"
-        });
+        });*/
          // Colorado Place GNIS
         sources.push({
             url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer",

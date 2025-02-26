@@ -124,15 +124,17 @@ function myLayerList() {
         // Set value when clicked
         onOffBtn.addEventListener("calciteSwitchChange", event => {
             event.target.layer.visible = event.target.checked;
-            // Set switch on popup dialog Visibility
+            
             if (document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog")){
+                // Set switch on popup dialog Visibility
                 document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog").querySelectorAll("calcite-block")[1].querySelector("calcite-switch").checked = event.target.checked;
+            
+                // Set opacity of layer list in sub dialog
+                if (event.target.checked)
+                    document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog").querySelector("calcite-list").style.opacity=1.0;
+                else
+                    document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog").querySelector("calcite-list").style.opacity=0.4;
             }
-            // Set opacity of layer list in sub dialog
-            if (event.target.checked)
-                document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog").querySelector("calcite-list").style.opacity=1.0;
-            else
-                document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog").querySelector("calcite-list").style.opacity=0.4;
         });
         listItem.appendChild(onOffBtn);
         list.appendChild(listItem);
@@ -233,6 +235,8 @@ function addToLayerListIfAllLoaded(layer){
                     for(var j=0; j<items2.length; j++) {
                         if(!items2[j].loaded) {
                             loaded=false;
+                            console.log("Layer, "+items2[j].title+", not loaded. Status: "+items2[j].loadStatus);
+                            if (items2[j].loadError && items2[j].loadError.details && items2[j].loadError.details.messages) console.log(" Error message: "+items2[j].loadError.details.messages);
                             i = items.length;// break out of both loops
                             break;
                         }
@@ -250,7 +254,7 @@ function addToLayerListIfAllLoaded(layer){
         // wait 1/2 a second and try again
         setTimeout(function(myLayer){
             layerListAddSublayerDialogs(null,myLayer);
-            console.log("Try loading layer into layer list again: "+myLayer.title);
+            console.log("Try loading "+myLayer.title+ " again.");
         },1000,layer);
         return false;
     }
@@ -260,7 +264,7 @@ var goatFL=null,bighornFL=null;
 function setGMU(item){
     // change the search widget GMU layer to ELK Bighorn or Mountain Goat
     // display the gmu layer on the map
-    if (app.toLowerCase() != "huntingatlas" && app.toLowerCase() != "testatlas") return;
+    if (app.toLowerCase() != "huntingatlas") return;
     // set gmu species && display GMU layer
     var gmuIndex = findGMUIndex();
     if (item.title === "Bighorn Sheep") {
@@ -363,7 +367,7 @@ function layerListAddSublayerDialogs(event,theLayer){
     require(["esri/core/reactiveUtils"],function(reactiveUtils){
         var listFontSize = "1rem";
         var hLevel = 3;
-        var layer;
+        let layer;
         var subLayeronOffBtn;
         if (event)
             layer = event.layerView.layer; // rootLayers
@@ -508,7 +512,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                     radioGroup.parentNode.open = false;
                     // Update layer description
                     iframe1.src = "layer-desc/" + selectedItem + ".html";
-                    setGMU(species); // update search widget and map
+                    if (layer.title === "Game Species")
+                        setGMU(species); // update search widget and map
                     // Update opacity is whole block is visible or not
                     if (document.getElementById(selectedItem).parentNode.querySelector("calcite-switch").checked){
                         document.getElementById(selectedItem).style.opacity = 1.0;
@@ -693,9 +698,6 @@ function layerListAddSublayerDialogs(event,theLayer){
 
                 var notice = document.createElement("calcite-notice");
                 notice.open = true;
-                //notice.style.overflowY = "auto";
-                //notice.style.height = "auto";
-                //notice.style.maxHeight = "300px";
                 notice.style.padding="0";
                 notice.description = layer.title;
                 block.appendChild(notice);

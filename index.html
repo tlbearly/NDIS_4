@@ -19,7 +19,7 @@
  
   
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=32" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=33" async="true" />
   
   <link rel="stylesheet" href="./assets/css/custom-theme.css?v=32" async="true" />
   
@@ -27,11 +27,11 @@
 
   <script type="text/javascript" src="js/xmlUtils.js?v=1" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js" async="true"></script>
-  <script type="text/javascript" src="js/utilFuncs.js?v=21" async="true"></script>
+  <script type="text/javascript" src="js/utilFuncs.js?v=22" async="true"></script>
   <script type="text/javascript" src="js/addMapLayers.js?v=32" async="true"></script> <!-- read config.xml, add links to help -->
   <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=108" async="true"></script>
-  <script type="text/javascript" src="js/mySearch.js?v=6" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=111" async="true"></script>
+  <script type="text/javascript" src="js/mySearch.js?v=7" async="true"></script>
   <script type="text/javascript" src="js/identify.js?v=34" async="true"></script> <!-- read SettingsWidget.xml -->
   <script type="text/javascript" src="js/errorBox.js?v=3" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
@@ -44,6 +44,22 @@
   <script>
     // force rounded corners
     window.onload = (event) => {
+      // Watch for map scale change
+      // Providing `initial: true` in ReactiveWatchOptions
+      // checks immediately after initialization
+      // Equivalent to watchUtils.init()
+      require(["esri/core/reactiveUtils"],function(reactiveUtils){
+        reactiveUtils.watch(
+          () => view.zoom,
+          () => {
+            showMapScale(parseInt(view.scale));
+            console.log(`zoom ${view.zoom} scale ${view.scale}`);
+          },
+          {
+            initial: true
+        });
+      });
+      // close error box
       document.getElementById("errBtn").addEventListener("click",function() {
 		    document.getElementById("errBox").style.display = "none";
 	    });
@@ -196,7 +212,6 @@
           doIdentify(event);
         });
 
-
         var popupOpenCount = 0;
         view.when(() => {
           // Hide graphic pin when identify closes
@@ -304,6 +319,31 @@
           });
           // Add widget to the bottom left corner of the view
           view.ui.add(scaleBar, {
+            position: "bottom-left"
+          });
+
+          // add scale 1:24000
+          let mapScale = document.createElement("div");
+          mapScale.style.position = "relative";
+          mapScale.style.bottom = "-5px";
+          mapScale.id="mapscale";
+          let mapScaleTitle = document.createElement("span");
+          mapScaleTitle.innerHTML="Map scale 1:";
+          mapScale.appendChild(mapScaleTitle);
+          let mapScaleList = document.createElement("select");
+          mapScaleList.id = "mapscaleList";
+          mapScaleList.setAttribute("onchange","setMapScale()");
+          mapScale.appendChild(mapScaleList);
+          let scales = ["9M","4M","2M","1M","500k","250k","100k","50k","24k","10k","2k","1k"];
+          let values = ["9244649","4622324","2311162","1155581","577791","288895","144448","72224","36112","9028","2257","1128"];
+          //<span id="mapscale" style="display:block; z-index: 3; position:relative; float:left; width: 200px; color:#FFF; text-shadow: 0 0 .1em #000; text-shadow: -.1em -.1em .2em #000; text-shadow: .1em .1em .1em #000;">Map Scale 1: 
+          for (var i=0;i<scales.length;i++){
+            let option = document.createElement("option");
+            option.innerHTML=scales[i];
+            option.value=values[i];
+            mapScaleList.appendChild(option);
+          }
+          view.ui.add(mapScale, {
             position: "bottom-left"
           });
 

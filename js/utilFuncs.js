@@ -608,6 +608,30 @@ function addTempLabel(point, label, fontSize, shouldFade) {
     });
 }
 
+//************
+	// Map Scale
+	//************
+	function showMapScale(scale) {
+		const list = document.getElementById("mapscaleList");
+    if(!list)return;
+		var done = false;
+		for (var i=0; i<list.length-2;i++){
+			if (list[i+1].value < scale) {
+				list.selectedIndex = i;
+				done = true;
+				break;
+			} 
+		}
+		if(!done) list.selectedIndex = list.length-1;
+	}
+	function setMapScale() {
+    const list = document.getElementById("mapscaleList");
+    if(!list)return;
+		view.scale = list[list.selectedIndex].value;
+		if (typeof ga === 'function')ga('send', 'event', "mapscale", "click", "Map Scale", "1");
+		if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Map Scale'});
+	}
+
 //**************
 	// Coordinates 
 	//**************
