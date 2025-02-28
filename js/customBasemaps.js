@@ -9,9 +9,10 @@ function myCustomBasemaps() {
         tileGroup.setAttribute("label","Select the basemap");
         tileGroup.setAttribute("layout","horizontal");
         tileGroup.setAttribute("alignment","center");
-        tileGroup.setAttribute("selection-mode","single-persist");
+        tileGroup.setAttribute("selection-mode","single");
         tileGroup.setAttribute("selection-appearance","border");
         tileGroup.setAttribute("scale","s");
+        tileGroup.style.width = "290px";
         bmGallery.appendChild(tileGroup);
 
         setupBasemapLayers();
@@ -171,7 +172,7 @@ function myCustomBasemaps() {
             basemap.setAttribute("heading",title);
             basemap.setAttribute("title",title);
             basemap.setAttribute("label",title);
-            basemap.setAttribute("selection-mode","single-persist");
+            basemap.setAttribute("selection-mode","single");
             basemap.setAttribute("selection-appearance","border");
             basemap.setAttribute("alignment","center");
             basemap.id=id;
@@ -201,6 +202,19 @@ function myCustomBasemaps() {
 }
 function myToggleBasemap(event){
     const name = event.target.id;
+    // unselect all tiles
+    var nodes;
+    if (event.target.tagName === "CALCITE-TILE")
+        nodes = event.target.parentNode.childNodes; // calcite-tiles
+    else // clicked on image
+        nodes = event.target.parentNode.parentNode.childNodes; // calcite-tiles
+    for(var i=0;i<nodes.length;i++){
+        nodes[i].setAttribute("selected",false);
+    }
+    if (event.target.tagName === "CALCITE-TILE") // clicked on tile
+        event.target.setAttribute("selected",true);
+    else // clicked on image
+        event.target.parentNode.setAttribute("selected",true);
     //document.getElementsByClassName("bmSelected")[0].className = "bmUnselected";
     //document.getElementById(name).className = "bmSelected";
     map.basemap = window[name]; // get variable

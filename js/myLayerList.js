@@ -41,45 +41,54 @@ function myLayerList() {
     // Layer List Tab
     //----------------
     const tab1 = document.createElement("calcite-tab");
-    tab1.select = true;
+    tab1.selected = true;
     // LIST of Root Layers
-    const list = document.createElement("calcite-list");
-    list.id = "customLayerList";
-    //list.selectionMode = "single";
+    const list = document.createElement("table");
+    list.style.backgroundColor = "white";
+    list.style.width = "100%";
+    list.style.borderCollapse = "collapse";
+    list.label = "Map Layers";
     tab1.appendChild(list);
-
-    //const nonLayers = ["Graphics Layer", "World Hillshade", "World Imagery", "USGSTopo", "USA Topo Maps", "USGSImageryTopo","", "World Topo Map", "World Basemap", "World Basemap v2"];
+    list.id = "customLayerList";
 
     // Add each root layer to layer list
     for (var i = 0; i < mapLayers.length; i++) {
         if (mapLayers[i].listMode === "hide") continue;
         const rootlayer = mapLayers[i]; // rootLayers
-        const listItem = document.createElement("calcite-list-item");
+        
+        const listItem = document.createElement("tr");
+        listItem.style.borderBottom = "1px solid #efefef";
         try {
             // layers that should not be included in the layer list
             //if (nonLayers.includes(layer.title) ) return;
 
             // LISTITEM of each Root Layer (click shows popup dialog)
             // Image
-            const listImg = document.createElement("img");
-            listImg.src = "assets/images/"+rootlayer.title+".jpg";
-            listImg.width = "60";
-            listImg.style.borderRadius = "15px";
-            listImg.style.padding = "10px 5px";
-            listImg.slot = "actions-start";
+            const listImg = document.createElement("td");
+            const img = document.createElement("img");
+            img.src = "assets/images/"+rootlayer.title+".jpg";
+            img.width = "60";
+            img.height = "45";
+            img.label = rootlayer.title+" image";
+            img.style.borderRadius = "15px";
+            img.style.padding = "10px 5px";
+            //listImg.slot = "content";
+            listImg.appendChild(img);
             listItem.appendChild(listImg);
             
             // Clickable root layer name
-            const listHeader = document.createElement("h3");
+            const listHeader = document.createElement("td");
             listHeader.style.fontWeight = "normal";
             listHeader.style.fontSize = listFontSize;
             listHeader.style.padding = "20px 5px";
             listHeader.style.margin = "0";
             listHeader.innerHTML = rootlayer.title; // title displayed
+            listHeader.label = rootlayer.title;
             listHeader.id = rootlayer.title.replace(/ /g, "_") + "_listItem";
-            listHeader.slot = "content";//actions-start";
+            //listHeader.slot = "content";//actions-start";
             listItem.appendChild(listHeader);
-            listItem.value = rootlayer.title;
+            //listItem.value = rootlayer.title;
+            listItem.label = rootlayer.title;
             // Open sub-dialog on click
             listHeader.addEventListener("click", () => {
                 if(document.getElementById(rootlayer.title.replace(/ /g, "_") + "_dialog")){
@@ -98,11 +107,14 @@ function myLayerList() {
             
         // Status
         try {
-            const listStatus = document.createElement("calcite-icon");
-            listStatus.slot = "actions-end";
-            listStatus.icon = "offline";
-            listStatus.style.marginRight = "5px";
-            listStatus.className = "waitingForConnection";
+            const listStatus = document.createElement("td");
+            const icon = document.createElement("calcite-icon");
+            //icon.slot = "actions-end";
+            icon.icon = "offline";
+            icon.style.marginRight = "5px";
+            icon.className = "waitingForConnection";
+            icon.label = rootlayer.title + " loading status";
+            listStatus.appendChild(icon)
             listItem.appendChild(listStatus);
             // Open sub-dialog on click
             listStatus.addEventListener("click", () => {
@@ -115,11 +127,14 @@ function myLayerList() {
         }
 
         // Add Switch to actions-end of list Item
+        const listVisibility = document.createElement("td");
         const onOffBtn = document.createElement("calcite-switch");
         onOffBtn.slot = "actions-end";
         onOffBtn.layer = rootlayer;
         onOffBtn.style.paddingRight = "4px";
         onOffBtn.setAttribute("scale", "l"); // large
+        onOffBtn.label = rootlayer.title + " visibility";
+        listVisibility.appendChild(onOffBtn);
         if (rootlayer.visible) onOffBtn.checked = true;
         // Set value when clicked
         onOffBtn.addEventListener("calciteSwitchChange", event => {
@@ -131,15 +146,14 @@ function myLayerList() {
             
                 // Set opacity of layer list in sub dialog
                 if (event.target.checked)
-                    document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog").querySelector("calcite-list").style.opacity=1.0;
+                    document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog").querySelector("table").style.opacity=1.0;
                 else
-                    document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog").querySelector("calcite-list").style.opacity=0.4;
+                    document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog").querySelector("table").style.opacity=0.4;
             }
         });
-        listItem.appendChild(onOffBtn);
-        list.appendChild(listItem);
+        listItem.appendChild(listVisibility);
+        list.appendChild(listItem);  
     }
-
     tabs.appendChild(tab1);
 
 
@@ -233,6 +247,7 @@ function addToLayerListIfAllLoaded(layer){
                 // layers in the group (eg Elk Winter Range)
                 if (items2){
                     for(var j=0; j<items2.length; j++) {
+                        if (items2[j].title === "Status")continue; // skip MVUM Status
                         if(!items2[j].loaded) {
                             loaded=false;
                             console.log("Layer, "+items2[j].title+", not loaded. Status: "+items2[j].loadStatus);
@@ -254,7 +269,7 @@ function addToLayerListIfAllLoaded(layer){
         // wait 1/2 a second and try again
         setTimeout(function(myLayer){
             layerListAddSublayerDialogs(null,myLayer);
-            console.log("Try loading "+myLayer.title+ " again.");
+            console.log("Waiting for "+myLayer.title+ " to load.");
         },1000,layer);
         return false;
     }
@@ -323,7 +338,7 @@ function setGMU(item){
     }
     // Show correct GMU layer, hide others
     var landLayer = document.getElementById("Land and Access".replace(/ /g, "_") + "_dialog");
-    var gmuLayer = landLayer.querySelector("calcite-list").querySelectorAll("calcite-switch");
+    var gmuLayer = landLayer.querySelector("tr").querySelectorAll("calcite-switch");
     for (var i=0; i< gmuLayer.length; i++){
         if (gmuLayer[i].layer.title === "GMU boundary (Hunting Units)"){
             gmuLayer[i].layer.sublayers.items.forEach((gmuScale) => {
@@ -379,7 +394,7 @@ function layerListAddSublayerDialogs(event,theLayer){
         if (!addToLayerListIfAllLoaded(layer)) return;
 
         // Wait for the layer to load, then create sub-layer dialogs
-        //console.log("creating layer dialog for: "+layer.title);
+        console.log("creating layer dialog for: "+layer.title);
 
         // Remove loading status icon
         // search for listItem
@@ -387,10 +402,10 @@ function layerListAddSublayerDialogs(event,theLayer){
         if (list) {
             const listItems = list.children;
             for (var i = 0; i < listItems.length; i++) {
-                if (listItems[i].value === layer.title) {
+                if (listItems[i].label === layer.title) {
                     // children: picture, title, status, switch
-                    listItems[i].children[2].icon = "chevron-right"; //.removeChild(listItems[i].children[2]);
-                    listItems[i].children[2].className=""; // remove loading fading
+                    listItems[i].children[2].children[0].icon = "chevron-right"; //.removeChild(listItems[i].children[2]);
+                    listItems[i].children[2].children[0].className=""; // remove loading fading
                     break;
                 }
             }
@@ -545,15 +560,15 @@ function layerListAddSublayerDialogs(event,theLayer){
             iframe1.style.margin = "0";
             iframe1.title = "Description of " + selectedItem + " map layer(s)";
             // Add magnify button
-            var printBtn = document.createElement("calcite-icon");
-            printBtn.icon = "search";
-            printBtn.style.padding = "0";
-            printBtn.slot = "title";
-            printBtn.scale = "m";
-            printBtn.addEventListener("click", function (event) {
+            var openBtn = document.createElement("calcite-icon");
+            openBtn.icon = "search";
+            openBtn.style.padding = "0";
+            openBtn.slot = "title";
+            openBtn.scale = "m";
+            openBtn.addEventListener("click", function (event) {
                 window.open("layer-desc/" + selectedItem + ".html", "_blank");
             });
-            notice.appendChild(printBtn);
+            notice.appendChild(openBtn);
             notice.appendChild(iframe1);
             block.appendChild(notice);
             sublayerDialog.appendChild(block);
@@ -586,10 +601,10 @@ function layerListAddSublayerDialogs(event,theLayer){
                     document.getElementById(selectedItem).style.opacity = 0.4;
                 }
                 // Set switch on parent dialog Visibility
-                if (document.getElementById("layerlist")){
-                    var switches = document.getElementById("layerlist").querySelectorAll("calcite-list-item");
+                if (document.getElementById("customLayerList")){
+                    var switches = document.getElementById("customLayerList").querySelectorAll("tr");
                     switches.forEach(mySwitch => {
-                        if (mySwitch.querySelector("h3").innerHTML === event.target.layer.title){
+                        if (mySwitch.children[1].innerHTML === event.target.layer.title){
                             mySwitch.querySelector("calcite-switch").checked = event.target.checked;
                         }
                     });
@@ -602,7 +617,10 @@ function layerListAddSublayerDialogs(event,theLayer){
             if (radioArr) {
                 radioArr.forEach(element => {
                     // Visible List
-                    var subLayerList = document.createElement("calcite-list");
+                    var subLayerList = document.createElement("table");
+                    subLayerList.style.backgroundColor = "white";
+                    subLayerList.style.width = "100%";
+                    subLayerList.style.borderCollapse = "collapse";
                     // set the opacity of the layer list. Gray out if switch is off.
                     if (!layer.visible) subLayerList.style.opacity = 0.4;
                     subLayerList.id = element.title;
@@ -627,8 +645,9 @@ function layerListAddSublayerDialogs(event,theLayer){
                         let item = speciesSubArr.items;
                         //speciesSubArr.items.forEach(item => {
                         for (var i=item.length-1; i>-1; i--) {
-                            subLayerListItem = document.createElement("calcite-list-item");
-                            subLayerListHeader = document.createElement("h3");
+                            subLayerListItem = document.createElement("tr");
+                            subLayerListItem.style.borderBottom = "1px solid #efefef";
+                            subLayerListHeader = document.createElement("td");
                             subLayerListItem.style.fontSize=listFontSize;
                             // set opacity visible at scale?
                             if((view.scale <= item[i].minScale || item[i].minScale == 0) && 
@@ -654,19 +673,22 @@ function layerListAddSublayerDialogs(event,theLayer){
                             subLayerListHeader.style.fontSize = listFontSize;
                             subLayerListHeader.style.margin = "0";
                             subLayerListHeader.innerHTML = item[i].title.replace("CPWSpeciesData -",""); // title displayed
-                            subLayerListHeader.slot = "content";
-                            subLayerListItem.value = item[i].title.replace("CPWSpeciesData -","");
-                            subLayerListItem.heading = item[i].title.replace("CPWSpeciesData -","");
+                            //subLayerListHeader.slot = "content";
+                            subLayerListItem.label = item[i].title.replace("CPWSpeciesData -","");
+                            //subLayerListItem.heading = item[i].title.replace("CPWSpeciesData -","");
                             subLayerListItem.appendChild(subLayerListHeader);
 
                             // Add legend to icon slot
-                            var subLayerIcon = document.createElement("img");
+                            var subLayerIcon = document.createElement("td");
+                            var img = document.createElement("img");
+                            subLayerIcon.appendChild(img);
                             // TODO add picture of legend ??????? Maybe **********************
 
 
 
 
                             // Add Switch to actions-end of list Item
+                            subLayerVisibility = document.createElement("td");
                             subLayeronOffBtn = document.createElement("calcite-switch");
                             subLayeronOffBtn.slot = "actions-end";
                             subLayeronOffBtn.layer = item[i];
@@ -677,7 +699,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                             subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                                 event.target.layer.visible = event.target.checked;
                             });
-                            subLayerListItem.appendChild(subLayeronOffBtn);
+                            subLayerVisibility.appendChild(subLayeronOffBtn);
+                            subLayerListItem.appendChild(subLayerVisibility);
                             subLayerList.appendChild(subLayerListItem);
                         }
                     }
@@ -702,7 +725,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 notice.description = layer.title;
                 block.appendChild(notice);
 
-                // html description
+                // Description File <layer.title>.html
                 var iframe1 = document.createElement("iframe");
                 iframe1.style.height = "300px"; 
                 iframe1.style.width = "100%";
@@ -713,16 +736,16 @@ function layerListAddSublayerDialogs(event,theLayer){
                 iframe1.style.margin = "0";
                 iframe1.title = "Description of " + layer.title + " map layer(s)";
                 
-                // Add open in new window button
-                var printBtn = document.createElement("calcite-icon");
-                printBtn.icon = "search";
-                printBtn.style.padding = "0";
-                printBtn.slot = "title";
-                printBtn.scale = "m";
-                printBtn.addEventListener("click", function (event) {
+                // Add open layer description in new window button
+                var openBtn = document.createElement("calcite-icon");
+                openBtn.icon = "search";
+                openBtn.style.padding = "0";
+                openBtn.slot = "title";
+                openBtn.scale = "m";
+                openBtn.addEventListener("click", function (event) {
                     window.open("layer-desc/" + layer.title + ".html", "_blank");
                 });
-                notice.appendChild(printBtn);
+                notice.appendChild(openBtn);
                 notice.appendChild(iframe1);
                 block.appendChild(notice);
                 sublayerDialog.appendChild(block);
@@ -734,7 +757,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 block.setAttribute("collapsible", false);
                 block.setAttribute("open",true);
 
-                // Add Switch to actions-end of list Item
+                // Add on/off switch to end of Visibility
                 subLayeronOffBtn = document.createElement("calcite-switch");
                 subLayeronOffBtn.slot = "actions-end";
                 subLayeronOffBtn.layer = layer;
@@ -746,8 +769,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                 else {
                     subLayeronOffBtn.checked = false;
                 }
-                let subLayerList = document.createElement("calcite-list");
-                // Set value when clicked
+
+                // Set visibility when clicked on on/off switch
                 subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                     event.target.layer.visible = event.target.checked;
                     // gray out options if not visible
@@ -756,17 +779,23 @@ function layerListAddSublayerDialogs(event,theLayer){
                     }else {
                         subLayerList.style.opacity = "0.4";
                     }
-                    // Set switch on parent dialog Visibility
-                    if (document.getElementById("layerlist")){
-                        var switches = document.getElementById("layerlist").querySelectorAll("calcite-list-item");
+                    // Set switch on parent dialog visibility
+                    if (document.getElementById("customLayerList")){
+                        var switches = document.getElementById("customLayerList").querySelectorAll("tr");
                         switches.forEach(mySwitch => {
-                            if (mySwitch.querySelector("h3").innerHTML === event.target.layer.title){
+                            if (mySwitch.children[1].innerHTML === event.target.layer.title){
                                 mySwitch.querySelector("calcite-switch").checked = event.target.checked;
                             }
                         });
                     }
                 });
                 block.appendChild(subLayeronOffBtn);
+
+                // List of layers
+                let subLayerList = document.createElement("table");
+                subLayerList.style.backgroundColor = "white";
+                subLayerList.style.width = "100%";
+                subLayerList.style.borderCollapse = "collapse";
 
                 // set the opacity of the layer list. Gray out if switch is off.
                 if (!layer.visible) subLayerList.style.opacity = 0.4;
@@ -777,13 +806,20 @@ function layerListAddSublayerDialogs(event,theLayer){
                 if (layer.sublayers) sublayerArr = layer.sublayers;
                 else if (layer.layers) sublayerArr = layer.layers;       
                 if (sublayerArr && sublayerArr.items) {
+                    // 1st level group layers
                     let element = sublayerArr.items;
                     for (var i=element.length-1; i>-1; i--) {
                         console.log("-->"+element[i].title);
                         if (element[i].listMode === "show") {
-                            // 1st level group layer
+                            // 2nd level group
+                            // calcite-block
+                            //  <p (subLayerListItem2)><span (subLayerListHeader2)>layer title</span><calcite-switch (subLayeronOffBtn)></p>
                             // if it has sublayers make it an expandable block
                             if (hideGroupSublayers.indexOf(element[i].title) == -1 && (element[i].layers || element[i].sublayers)){
+                                let blockRow = document.createElement("tr");
+                                let blockCol = document.createElement("td");
+                                blockCol.colSpan = "2";
+                                blockRow.appendChild(blockCol);
                                 let subLayerGroup = document.createElement("calcite-block");
                                 subLayerGroup.heading = element[i].title;
                                 subLayerGroup.value = element[i].title;
@@ -791,6 +827,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 subLayerGroup.style.fontWeight = "normal";
                                 subLayerGroup.setAttribute("collapsible", true);
                                 subLayerGroup.setAttribute("open",false);
+                                subLayerGroup.style.marginLeft = "-12px";
+                                blockCol.appendChild(subLayerGroup);
 
                                 // if all of it's children are out of scale gray out
                                 // event listener for scale change
@@ -827,7 +865,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 if (visibleItems) subLayerGroup.style.opacity="1";
                                 else subLayerGroup.style.opacity="0.3";
 
-                                subLayerList.appendChild(subLayerGroup);
+                                subLayerList.appendChild(blockRow);//subLayerGroup);
                                 // Add Switch to actions-end of list Item
                                 let subLayeronOffBtn = document.createElement("calcite-switch");
                                 subLayeronOffBtn.slot = "actions-end";
@@ -848,12 +886,19 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 else if (element[i].layers) subSublayerArr = element[i].layers;
                                 if (subSublayerArr && subSublayerArr.items) {
                                     const item = subSublayerArr.items;
-                                    //subSublayerArr.items.forEach(item => {
                                     for (var j=item.length-1; j>-1; j--) {
                                         console.log("--> -->"+item[j].title);
+
+                                        // Don't include MVUS Status
+                                        if ((element[i].title === "Motor Vehical Use Map" || element[i].title === "MVUM") &&(item[j].title === "Status")){
+                                            item[j].listMode = "hide";
+                                            item[j].legendEnabled = false;
+                                        }
                                         if (item[j].listMode === "show") {
-                                            var subLayerListItem2 = document.createElement("calcite-list-item");
-                                            let subLayerListHeader2 = document.createElement("h3");
+                                            var subLayerListItem2 = document.createElement("p");
+                                            //subLayerListItem2.style.borderBottom = "1px solid #efefef";
+                                            subLayerListItem2.style.marginTop = "-5px";
+                                            let subLayerListHeader2 = document.createElement("span");
                                             subLayerListHeader2.style.fontSize=listFontSize;
                                             // if out of scale range, gray out.
                                             if((view.scale <= item[j].minScale || item[j].minScale == 0) && 
@@ -878,18 +923,20 @@ function layerListAddSublayerDialogs(event,theLayer){
                                             
                                             subLayerListHeader2.innerHTML = item[j].title; // title displayed
                                             subLayerListHeader2.style.fontWeight = "normal";
-                                            subLayerListHeader2.style.margin = "0 0 0 40px";
-                                            subLayerListHeader2.slot = "content";
-                                            subLayerListItem2.value = item[j].title;
-                                            subLayerListItem2.heading = item[j].title;
+                                            subLayerListHeader2.style.padding = "0 0 0 30px";
+                                            subLayerListHeader2.style.float = "left";
+                                            //subLayerListHeader2.slot = "content";
+                                            subLayerListItem2.label = item[j].title;
+                                            //subLayerListItem2.heading = item[j].title;
                                             subLayerListItem2.appendChild(subLayerListHeader2);
 
                                             // Add Switch to actions-end of list Item
                                             let subLayeronOffBtn = document.createElement("calcite-switch");
-                                            subLayeronOffBtn.slot = "actions-end";
+                                            //subLayeronOffBtn.slot = "actions-end";
                                             subLayeronOffBtn.layer = item[j];
-                                            subLayeronOffBtn.style.paddingRight = "4px";
-                                            subLayeronOffBtn.style.paddingTop = "5px";
+                                            subLayeronOffBtn.style.float = "right";
+                                            subLayeronOffBtn.style.paddingLeft = "4px";
+                                            subLayeronOffBtn.style.marginRight = "-12px";
                                             subLayeronOffBtn.setAttribute("scale", "l"); // large
                                             if (item[j].visible) subLayeronOffBtn.checked = true;
                                             else subLayeronOffBtn.checked = false;
@@ -899,17 +946,18 @@ function layerListAddSublayerDialogs(event,theLayer){
                                             });
                                             subLayerListItem2.appendChild(subLayeronOffBtn);
                                             subLayerGroup.appendChild(subLayerListItem2); // Append to the calcite-block
-                                            
                                         }
                                     }
                                 }
                             }
                             // 1st level list item
+                            // <tr (subLayerListItem)><td (subLayerListHeader)>layer title</td><td (subLayerVisibility)><calcite-switch (subLayerVisibility)></td></tr>
                             else {  
-                                subLayerListItem = document.createElement("calcite-list-item");
+                                subLayerListItem = document.createElement("tr");
+                                subLayerListItem.style.borderBottom = "1px solid #efefef";
                                 subLayerListItem.style.fontSize=listFontSize;
                                 subLayerListItem.style.margin="0";
-                                let subLayerListHeader = document.createElement("h3");
+                                let subLayerListHeader = document.createElement("td");
                                 subLayerListHeader.style.fontSize=listFontSize;
                                 // gray out if not at scale
                                 if (element[i].minScale != 0 || element[i].maxScale != 0){
@@ -936,11 +984,13 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 subLayerListHeader.style.fontWeight = "normal";
                                 subLayerListHeader.style.margin = "0";
                                 subLayerListHeader.innerHTML = element[i].title; // title displayed
-                                subLayerListHeader.slot = "content";
+                                //subLayerListHeader.slot = "content";
                                 subLayerListItem.appendChild(subLayerListHeader);
                                 subLayerList.appendChild(subLayerListItem);
                             
                                 // Add Switch to actions-end of list Item
+                                let subLayerVisibility = document.createElement("td");
+                                subLayerVisibility.style.float = "right";
                                 let subLayeronOffBtn = document.createElement("calcite-switch");
                                 subLayeronOffBtn.slot = "actions-end";
                                 subLayeronOffBtn.layer = element[i];
@@ -952,7 +1002,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                                     event.target.layer.visible = event.target.checked;
                                 });
-                                subLayerListItem.appendChild(subLayeronOffBtn);
+                                subLayerVisibility.appendChild(subLayeronOffBtn);
+                                subLayerListItem.appendChild(subLayerVisibility);
                             }
                         }
                     }
@@ -977,13 +1028,6 @@ function layerListAddSublayerDialogs(event,theLayer){
         view.ui.add(sublayerDialog,"top-right");
         
         // set font size for drop down blocks
-        /*(async () => {     // it is always null!!!!!!!
-            await customElements.whenDefined("calcite-block");
-            await document.querySelector("calcite-block").componentOnReady();
-            if (document.querySelector("calcite-block").shadowRoot.querySelector("h3"))
-                document.querySelector("calcite-block").shadowRoot.querySelector("h3").style.fontSize = listFontSize;
-        })();*/
-       
         const tim = setInterval(function () {
             var blocks = document.querySelectorAll("calcite-block");
             if (!blocks[0]) return;

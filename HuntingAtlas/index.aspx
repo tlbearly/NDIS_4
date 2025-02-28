@@ -28,7 +28,7 @@
 	// **************************************
 	//   Set the application directory name 
 	// **************************************
-	var app = "TestAtlas";
+	var app = "HuntingAtlas";
 	
 	// Add url name/value pairs
 	var name_value = "?app="+app;

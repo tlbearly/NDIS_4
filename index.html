@@ -28,9 +28,9 @@
   <script type="text/javascript" src="js/xmlUtils.js?v=1" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js" async="true"></script>
   <script type="text/javascript" src="js/utilFuncs.js?v=22" async="true"></script>
-  <script type="text/javascript" src="js/addMapLayers.js?v=32" async="true"></script> <!-- read config.xml, add links to help -->
-  <script type="text/javascript" src="js/customBasemaps.js?v=17" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=111" async="true"></script>
+  <script type="text/javascript" src="js/addMapLayers.js?v=34" async="true"></script> <!-- read config.xml, add links to help -->
+  <script type="text/javascript" src="js/customBasemaps.js?v=18" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=118" async="true"></script>
   <script type="text/javascript" src="js/mySearch.js?v=7" async="true"></script>
   <script type="text/javascript" src="js/identify.js?v=34" async="true"></script> <!-- read SettingsWidget.xml -->
   <script type="text/javascript" src="js/errorBox.js?v=3" async="true"></script>
@@ -53,7 +53,7 @@
           () => view.zoom,
           () => {
             showMapScale(parseInt(view.scale));
-            console.log(`zoom ${view.zoom} scale ${view.scale}`);
+            //console.log(`zoom ${view.zoom} scale ${view.scale}`);
           },
           {
             initial: true
@@ -219,12 +219,10 @@
             () => view.popup.visible,
             (visible) => {
               if (!visible){
-                console.log("Popup closed"+popupOpenCount);
                 view.graphics.removeAll();
               }
               else {
                 popupOpenCount++;
-                console.log("Popup open"+popupOpenCount);
               }
             }
           );

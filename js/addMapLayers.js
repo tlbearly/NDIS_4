@@ -317,7 +317,7 @@ function addMapLayers(){
         }
 
         async function layerLoadHandler(event){
-            //console.log(event.layer.id +" loaded in layerLoadHandler.");
+            console.log(event.layer.id +" loaded in layerLoadHandler.");
             
             // Set the arcade context for Wildfire Incidents to print at correct size
             // the input feature's geometry is expected
@@ -358,6 +358,12 @@ function addMapLayers(){
             }*/
             //*******************end wildfire *****************************/
 
+            // remove MVUM Status
+            if (event.layer.title === "Motor Vehicle Use Map" || event.layer.title === "MVUM"){
+                event.layer.sublayers.items[0].visible = false;
+                event.layer.sublayers.items[0].listMode = "hide";
+                event.layer.sublayers.items[0].legendEnabled = false;
+            }
             // reorder layers (top layers and top groups) if it failed
             if (tries[event.layer.id] && tries[event.layer.id] > 1){
                 var j;
