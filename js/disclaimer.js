@@ -1,6 +1,6 @@
 function loadDisclaimer(title) {
 	// If the app does not have a disclaimer remove the SplashWidget.xml file.
-	return;
+	
 	try {
 		// Read the SplashWidget.xml file to get layers to add
 		var xmlhttp = createXMLhttpRequest();
@@ -11,8 +11,9 @@ function loadDisclaimer(title) {
 				if (!xmlDoc) return; // no SplashWidget.xml file = do not show disclaimer
 				if (xmlDoc.getElementsByTagName("disable")[0] && xmlDoc.getElementsByTagName("disable")[0].childNodes[0].nodeValue=="yes") return;
 				var myDialog = document.getElementById("disclaimer");
-				myDialog.children[0].innerHTML=title;
-				var theContent = myDialog.children[1].children[0];
+				var disclaimerTitle = document.getElementById("disclaimerTitle").innerHTML=title+'<button style="margin:8px;border:1px solid #ccc;float:right;" aria-busy="false" aria-label="Close" aria-pressed="false" class="button esri-widget--button esri-component" onclick="javascript:closeDisclaimer()">X</button>';
+				var content = document.getElementById("disclaimerContent");
+				
 				var cont=null;
 				
 				if (xmlDoc.getElementsByTagName("content")[0]) {
@@ -24,8 +25,7 @@ function loadDisclaimer(title) {
 				if (cont) {
 					// add cookie notice
 					cont += "<br/>This site uses cookies. By using this site you agree to our cookie policy which is that cookies are only used to save user preferences. No personal information is collected or stored.<br/>";
-					theContent.innerHTML = cont;
-					show("disclaimer");
+					content.innerHTML = cont;
 				}
 				else alert("Error: Missing content tag in "+app+"/SplashWidget.xml file.","Data Error");
 			}
@@ -42,4 +42,7 @@ function loadDisclaimer(title) {
 	catch(e) {
 		alert("Error in javascript/disclaimer.js reading "+app+"/SplashWidget.xml file. Error message: "+e.message+".","Code Error",e);
 	}
+}
+function closeDisclaimer(){
+	document.getElementById("disclaimer").style.display = "none";
 }

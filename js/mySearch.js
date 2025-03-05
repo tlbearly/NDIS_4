@@ -4,10 +4,11 @@
 function addSearch() {
     // Find a Place Widget ESRI default
     //define layers for boundaries
-    require(["esri/layers/FeatureLayer","esri/widgets/Search","esri/geometry/Extent"],function(FeatureLayer,Search,Extent){
+    require(["esri/layers/FeatureLayer","esri/widgets/Search","esri/geometry/Extent","esri/geometry/Point","esri/geometry/SpatialReference"],
+        function(FeatureLayer,Search,Extent,Point,SpatialReference){
         var sources = [];
         
-        var propertyFL = new FeatureLayer({
+        /*var propertyFL = new FeatureLayer({
             url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3"
         });
         sources.push({
@@ -19,7 +20,7 @@ function addSearch() {
             outFields: ["PropName"],
             name: "CPW Properties (STL, SWA, SFU, or WWA)",
             placeholder: "Search CPW Properties"
-        });
+        });*/
         // global variable used in myLayerList.js
         if (settings.elkUrl){
             gmuFL = new FeatureLayer({
@@ -133,52 +134,88 @@ function addSearch() {
         searchWidget.on("search-complete", function (event) {
             // The results are stored in the event Object[]
             // Highlight and label the result for 10 seconds
+            
+            // Zoom to point
+            const regexp = /^-?\d*\.?\d*, *-?\d*\.?\d*$/;
+            if (event.searchTerm.match(regexp)){
+                const xy = event.searchTerm.split(",");
+                var pt;
+                // if decimal degrees Latitude, Longitude
+                var lat, long;
+                if (((xy[1] >= -110 && xy[1] <= -100) || (xy[1] >= 100 && xy[1] <= 110)) && (xy[0] >= 35 && xy[0] <= 42)) {
+                    if (xy[1] > 0) xy[1] = -1 * xy[1];
+                    pt = new Point(xy[1],xy[0]);
+                }
+                else if (((xy[0] >= -110 && xy[0] <= -100) || (xy[0] >= 100 && xy[0] <= 110)) && (xy[1] >= 35 && xy[1] <= 42)) {
+                    if (xy[0] > 0) xy[0] = -1 * xy[0];
+                    pt = new Point(xy[0],xy[1]);
+                }
+                else if ((xy[0] < 770000 && xy[0] > 130000) && (xy[1] > 4100000 && xy[1] < 4600000)) {
+                    pt = new Point(xy[0],xy[1],new SpatialReference({wkid:32613}));
+                }
+                else if ((xy[1] < 770000 && xy[1] > 130000) && (xy[0] > 4100000 && xy[0] < 4600000)) {
+                    pt = new Point(xy[1],xy[0],new SpatialReference({wkid:32613}));
+                }
+                document.getElementsByClassName("esri-search__warning-menu")[0].style.visibility="hidden";
+                this.clear();
+                if (pt){
+                    addTempPoint(pt, true);
+                    view.goTo({
+                        target: pt,
+                        scale: 24000
+                    });
+                } else alert("Point is not in know projection. Must be lat, long decimal degrees or WSG84 UTM Zone 13.");
+                return;
+            }
+
+            // zoom to place or address
             // Find which source layer matches name exactly or up to the comma. eg. Fort Collins, Larimer
             var index = 0;
             for (var i = 0; i < event.results.length; i++) {
-            if (event.results[i].results.length == 0) continue;
-            var name = event.results[i].results[0].name.toLowerCase();
-            if (event.searchTerm.toLowerCase() === name.substring(0, name.indexOf(",")) ||
-                event.searchTerm.toLowerCase() === name) {
-                index = i;
-                break;
-            }
+                if (event.results[i].results.length == 0) continue;
+                var name = event.results[i].results[0].name.toLowerCase();
+                if (event.searchTerm.toLowerCase() === name.substring(0, name.indexOf(",")) ||
+                    event.searchTerm.toLowerCase() === name) {
+                    index = i;
+                    break;
+                }
             }
             const obj = event.results[index];
             var newExtent = obj.results[0].extent;
             var pt;
             var fontsize = 11;
             for (i = 0; i < obj.results.length; i++) {
-            if (obj.results[i].feature.geometry.type === "point") {
-                require(["esri/geometry/Point"], function (Point) {
-                    pt = new Point(obj.results[i].feature.geometry.x, obj.results[i].feature.geometry.y, obj.results[i].feature.geometry.spatialReference);
-                    addTempPoint(pt, true);
+                if (obj.results[i].feature.geometry.type === "point") {
+                    require(["esri/geometry/Point"], function (Point) {
+                        pt = new Point(obj.results[i].feature.geometry.x, obj.results[i].feature.geometry.y, obj.results[i].feature.geometry.spatialReference);
+                        addTempPoint(pt, true);
+                        if (labelFromURL) {
+                            addTempLabel(pt, queryObj.get("label"), fontsize, true);
+                            labelFromURL = false;
+                        }
+                        else addTempLabel(pt, obj.results[i].name, fontsize, true);
+                    });
+                    break;
+                }
+                else if (obj.results[i].feature.geometry.type === "polygon") {
+                    addTempPolygon(obj.results[i].feature, true);
                     if (labelFromURL) {
-                        addTempLabel(pt, queryObj.get("label"), fontsize, true);
-                        labelFromURL = false;
+                    addTempLabel(obj.results[i].feature, queryObj.get("label"), fontsize, true);
+                    labelFromURL = false;
                     }
-                    else addTempLabel(pt, obj.results[i].name, fontsize, true);
-                });
-            }
-            else if (obj.results[i].feature.geometry.type === "polygon") {
-                addTempPolygon(obj.results[i].feature, true);
-                if (labelFromURL) {
-                addTempLabel(obj.results[i].feature, queryObj.get("label"), fontsize, true);
-                labelFromURL = false;
+                    else if (obj.results[i].feature.sourceLayer.title.indexOf("GMU") > -1)
+                    addTempLabel(obj.results[i].feature, "GMU " + obj.results[i].name, fontsize, true); // label each GMU polygon
+                    else if (obj.results[i].feature.sourceLayer.title.indexOf("County") > -1) {
+                    var label = obj.results[i].name.toLowerCase();
+                    var ch = label.substring(0, 1).toUpperCase();
+                    label = ch + label.substring(1) + " County";
+                    addTempLabel(obj.results[i].feature, label, fontsize, true); // label each county polygon
+                    }
+                    else addTempLabel(obj.results[i].feature, obj.results[i].name, fontsize, true); // label each polygon
+                    var thisExtent = obj.results[i].feature.geometry.extent;
+                    // making a union of the polygon extents  
+                    newExtent = newExtent.union(thisExtent);
                 }
-                else if (obj.results[i].feature.sourceLayer.title.indexOf("GMU") > -1)
-                addTempLabel(obj.results[i].feature, "GMU " + obj.results[i].name, fontsize, true); // label each GMU polygon
-                else if (obj.results[i].feature.sourceLayer.title.indexOf("County") > -1) {
-                var label = obj.results[i].name.toLowerCase();
-                var ch = label.substring(0, 1).toUpperCase();
-                label = ch + label.substring(1) + " County";
-                addTempLabel(obj.results[i].feature, label, fontsize, true); // label each county polygon
-                }
-                else addTempLabel(obj.results[i].feature, obj.results[i].name, fontsize, true); // label each polygon
-                var thisExtent = obj.results[i].feature.geometry.extent;
-                // making a union of the polygon extents  
-                newExtent = newExtent.union(thisExtent);
-            }
             }
             this.clear();
             if (obj.results[0].feature.geometry.type === "point")
@@ -232,7 +269,35 @@ function addSearch() {
         });
 
         // Home button
-        require(["esri/widgets/Home"], (Home) => { 
+        // esri/widgets/Home is deprecated!!!
+        let homeWidget = document.createElement("button");
+        homeWidget.setAttribute("aria-busy","false");
+        homeWidget.setAttribute("aria-label","Home");
+        homeWidget.setAttribute("aria-live","polite");
+        homeWidget.className="esri-widget--button";
+        homeWidget.style.border="1px solid #6e6e6e77";
+        homeWidget.type="button";
+        if (screen.width > 768) {
+            homeWidget.style.position = "absolute";
+            homeWidget.style.left = "285px";
+            homeWidget.style.top = "38px";//-52px";
+        }else {
+            homeWidget.style.position = "absolute";
+            homeWidget.style.left = "209px";
+            homeWidget.style.top = "39px";//-51px";
+        }
+        let homeIcon = document.createElement("calcite-icon");
+        homeIcon.className="icon,icon--start";
+        homeIcon.setAttribute("aria-hidden","true");
+        homeIcon.scale="s";
+        homeIcon.icon="home";
+        homeWidget.appendChild(homeIcon);
+        homeWidget.addEventListener("click",function(){
+            view.goTo(initExtent);
+        });
+        view.ui.add(homeWidget, "top-left");
+        
+        /*require(["esri/widgets/Home"], (Home) => { 
             let homeWidget = new Home({
                 view: view
             });
@@ -250,7 +315,7 @@ function addSearch() {
             
             // adds the home widget to the top left corner of the MapView
             view.ui.add(homeWidget, "top-left");
-        });
+        });*/
 
         // Add Help Widget
         view.ui.add(helpWidget, "top-left");

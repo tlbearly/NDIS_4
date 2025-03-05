@@ -2,7 +2,7 @@
 var natgeo,streets,aerial,topo,fsTopo,imagery_topo,topo2,high_contrast_light,high_contrast_dark;
 // array of basemap layer ids
 const basemapLayers = ["natgeo","streets","aerial","topo","fsTopo","imagery_topo","topo2","high_contrast_light","high_contrast_dark"];
-function myCustomBasemaps() {
+function myBasemaps() {
     try {
         const bmGallery = document.createElement("div"); // needed so that we can pass back innerHTML
         const tileGroup =  document.createElement("calcite-tile-group");
@@ -17,16 +17,14 @@ function myCustomBasemaps() {
 
         setupBasemapLayers();
         // add basemap layers
-        add(tileGroup, "streets","Streets","assets/images/streets.jpg",true); //https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg",true)
-        add(tileGroup, "topo","USGS Scanned Topo","assets/images/USA_topo.png",false);
-        add(tileGroup, "high_contrast_light","High Contrast 1","https://www.arcgis.com/sharing/rest/content/items/084291b0ecad4588b8c8853898d72445/info/thumbnail/thumbnail1655848049464.png?f=json",false);
-        add(tileGroup, "high_contrast_dark","High Contrast 2","https://www.arcgis.com/sharing/rest/content/items/3e23478909194c54992eaaee78b5f754/info/thumbnail/thumbnail1655848922604.png?f=json",false);
-        add(tileGroup, "natgeo","USGS Topo","assets/images/natgeothumb.jpg",false);
-        add(tileGroup, "aerial","Aerial Photo","assets/images/aerial_thumb.jpg",false);
-        add(tileGroup, "imagery_topo","Aerial Photo2","assets/images/aerial_topo.png",false);
-        add(tileGroup, "topo2","ESRI Digital Topo","assets/images/topo2_thumb.jpg",false);
-
-        
+        add(tileGroup, "streets","Streets","assets/images/basemaps_streets.jpg",true); //https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg",true)
+        add(tileGroup, "topo","USGS Scanned Topo","assets/images/basemaps_USGS_scanned_topo.jpg",false);
+        add(tileGroup, "natgeo","USGS Topo","assets/images/basemaps_USGS_digital_topo.jpg",false);//assets/images/basemaps_natgeothumb.jpg",false);
+        add(tileGroup, "topo2","ESRI Digital Topo","assets/images/basemaps_esri_digital_topo.jpg",false);
+        add(tileGroup, "aerial","Aerial Photo","assets/images/basemaps_aerial_photo.jpg",false);
+        add(tileGroup, "imagery_topo","Aerial Topo","assets/images/basemaps_aerial_topo.jpg",false);
+        add(tileGroup, "high_contrast_light","High Contrast Light","assets/images/basemaps_high_constrast_light.jpg",false);//"https://www.arcgis.com/sharing/rest/content/items/084291b0ecad4588b8c8853898d72445/info/thumbnail/thumbnail1655848049464.png?f=json",false);
+        add(tileGroup, "high_contrast_dark","High Contrast Dark","assets/images/basemaps_high_constrast_dark.jpg",false);//"https://www.arcgis.com/sharing/rest/content/items/3e23478909194c54992eaaee78b5f754/info/thumbnail/thumbnail1655848922604.png?f=json",false);
         return bmGallery.innerHTML;
     }catch (e) {
             alert("Error in myBasemapGallery. "+e.getMessage, "Error");
@@ -148,10 +146,10 @@ function myCustomBasemaps() {
                   });
                   
                   high_contrast_dark = new Basemap({
-                    //portalItem: {
-                    //    id: "3e23478909194c54992eaaee78b5f754",
-                    //},
-                    url: "https://cdn.arcgis.com/sharing/rest/content/items/3e23478909194c54992eaaee78b5f754", //"https://www.arcgis.com/home/item.html?id=3e23478909194c54992eaaee78b5f754", //"https://hub.arcgis.com/maps/3e23478909194c54992eaaee78b5f754",
+                    portalItem: {
+                        id: "3e23478909194c54992eaaee78b5f754",
+                    },
+                    //url: "https://cdn.arcgis.com/sharing/rest/content/items/3e23478909194c54992eaaee78b5f754", //"https://www.arcgis.com/home/item.html?id=3e23478909194c54992eaaee78b5f754", //"https://hub.arcgis.com/maps/3e23478909194c54992eaaee78b5f754",
                     title: "High contrast dark theme",
                     id: "high_contrast_dark",
                     thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/588f0e0acc514c11bc7c898fed9fc651/info/thumbnail/topo_thumb_b2wm.jpg"

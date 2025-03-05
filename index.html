@@ -19,20 +19,20 @@
  
   
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=33" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=34" async="true" />
   
   <link rel="stylesheet" href="./assets/css/custom-theme.css?v=32" async="true" />
   
   <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
 
   <script type="text/javascript" src="js/xmlUtils.js?v=1" async="true"></script>
-  <script type="text/javascript" src="js/disclaimer.js" async="true"></script>
+  <script type="text/javascript" src="js/disclaimer.js?v=1" async="true"></script>
   <script type="text/javascript" src="js/utilFuncs.js?v=22" async="true"></script>
   <script type="text/javascript" src="js/addMapLayers.js?v=34" async="true"></script> <!-- read config.xml, add links to help -->
-  <script type="text/javascript" src="js/customBasemaps.js?v=18" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=118" async="true"></script>
+  <script type="text/javascript" src="js/myBasemaps.js?v=22" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=120" async="true"></script>
   <script type="text/javascript" src="js/mySearch.js?v=7" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=34" async="true"></script> <!-- read SettingsWidget.xml -->
+  <script type="text/javascript" src="js/identify.js?v=35" async="true"></script> <!-- read SettingsWidget.xml -->
   <script type="text/javascript" src="js/errorBox.js?v=3" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=0" async="true"></script>
@@ -400,6 +400,10 @@
     <div id="errTitle" class="errortitle"></div>
     <div id="errMsg" class="errormsg"></div>
     <button id="errBtn" class="errorbtn">OK</button>
+  </div>
+  <div id="disclaimer" class="errorbox" style="margin: auto;width:570px;border-radius:12px;top:20px;height:calc(100vh - 40px);overflow: auto;padding-bottom: 10px;">
+    <h1 id="disclaimerTitle" style="border-bottom: 1px solid #ddd;text-align:center;margin:0;padding:0;"></h1>
+    <div id="disclaimerContent" style="padding:10px;"></div>
   </div>
   <div id="viewDiv"></div>
     <!-- XY Coordinate Format Dialog ***** MOVE TO IDENTIFY??? ******-->

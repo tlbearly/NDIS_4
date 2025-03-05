@@ -12,11 +12,11 @@
 	<disable>no</disable>
 	<content>
 		<![CDATA[<p align='center'>
-			<img src='assets/images/cpwlogo_48x48.png' alt='CPW logo' width='48' height='48' />
+			<img src='assets/images/logo.svg' alt='CPW logo' width='70' height='70' />
 		</p>
 		<p align='center' style="font-size:large;font-weight:bold;">
 			Welcome to the Colorado Hunting Atlas</p>
-		<p style="font-size:small;">You must AGREE to the disclaimer below to enter the site.<br/><br/>
+		<p style="font-size:medium;">You must AGREE to the disclaimer below to enter the site.<br/><br/>
 		This mapping application is provided to big game hunters as a virtual 
 		scouting tool.  Please remember wildlife and conditions on the ground are 
 		constantly changing.  There is no substitute for physically scouting your unit.  For

@@ -194,6 +194,13 @@ calcite-panel,
 /*.esri-component{
     border-radius: 12px!important;
   }*/
+  /* button
+  padding: 9px;
+    border-radius: 12px;
+    border: 1px solid #bbb;
+    background-color: white;
+    box-shadow: 2px 2px 2px #ccc;
+    */
 .esri-widget--button {
   width: 40px;
   height: 40px;
@@ -253,7 +260,6 @@ calcite-panel,
   --calcite-corner-radius-round: 12px !important;
   --calcite-corner-radius: 12px;
   --calcite-border-radius: var(--calcite-border-radius-round, 12px);
-
 }
 
 /*.esri-layer-list__item-content {

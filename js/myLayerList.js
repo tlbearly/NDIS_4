@@ -165,7 +165,7 @@ function myLayerList() {
     tab2Content.style.textAlign = "center";
     tab2Content.id = "bmGallery2";
     tab2Content.style.overflowY = "auto";
-    tab2Content.innerHTML = myCustomBasemaps();
+    tab2Content.innerHTML = myBasemaps();
     tab2.appendChild(tab2Content);
     tabs.appendChild(tab2);
 
@@ -899,6 +899,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                                             //subLayerListItem2.style.borderBottom = "1px solid #efefef";
                                             subLayerListItem2.style.marginTop = "-5px";
                                             let subLayerListHeader2 = document.createElement("span");
+                                            subLayerListHeader2.style.maxWidth = "220px";
                                             subLayerListHeader2.style.fontSize=listFontSize;
                                             // if out of scale range, gray out.
                                             if((view.scale <= item[j].minScale || item[j].minScale == 0) && 

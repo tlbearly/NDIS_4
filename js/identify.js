@@ -1420,7 +1420,7 @@ function customStuff(theContent){
             //const xyValue=["mercator","dd","dms","dm","32612","32613","26912","26913","26712","26713"];
             //const xyDisplay=["WGS84 Web Mercator","Decimal Degrees","Degrees, Minutes, Seconds","Degrees, Minutes","WGS84 UTM Zone 12N","WGS84 UTM Zone 13N","NAD83 UTM Zone 12N","NAD83 UTM Zone 13N","NAD27 UTM Zone 12N","NAD27 UTM Zone 13N"];
             const xyValue=["dd","32613"];
-            const xyDisplay=["Decimal Degrees","WGS 84/UTM zone 13"];
+            const xyDisplay=["Decimal Degrees","WGS 84/UTM zone 13N"];
 
             for (j=0; j<xyValue.length;j++){
                 content += '        <option value="'+xyValue[j]+'"';
