@@ -55,10 +55,10 @@ require(["esri/rest/identify"
     lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 10]), 1);*/
 });
 
-function readSettingsWidget() {
-    // Read the SettingsWidget.xml file
+function readIdentifyWidget() {
+    // Read the IdentifyWidget.xml file
     var xmlhttp = createXMLhttpRequest();
-    var settingsFile = app + "/SettingsWidget.xml?v=" + Date.now();
+    var settingsFile = app + "/IdentifyWidget.xml?v=" + Date.now();
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             try {
@@ -572,6 +572,8 @@ function displayContent() {
                         //deferreds.push(query.executeQueryJSON(item.url, params).then(identifySuccess).catch(handleQueryError));
                         continue;
                     }
+
+                    // buffer the point NOT WORKING
                     if (item.buffer){
                         let params = new Query({
                             returnGeometry: true,
@@ -1007,14 +1009,20 @@ function handleQueryResults(results) {
                                                                 r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== " " &&
                                                                 r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== "Null" &&
                                                                 r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== "")) {
-                                                                if ((typeof r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] === "string") &&
+                                                            // link
+                                                            if ((typeof r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] === "string") &&
                                                                     (r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].substring(0, 4) == "http"))
                                                                 tmpStr += "<a href='" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][r.layerName].displaynames[i] + "</a>";
                                                             else {
                                                                 if ((r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].substring(0, 7) == "<a href") && (r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].indexOf("target") == -1))
                                                                     tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ":</span><span class='idSubValue'> " + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].replace(">", " target='_blank'>")+"</span>";
-                                                                else
-                                                                    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ":</span><span class='idSubValue'> " + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]]+"</span>";
+                                                                else{
+                                                                    // format numbers to 1 decimal place TODO *******************
+                                                                    //if(!isNaN(r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]])){
+                                                                    //    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ":</span><span class='idSubValue'> " + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].toFixed(1)+"</span>";
+                                                                    //} else
+                                                                        tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ":</span><span class='idSubValue'> " + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]]+"</span>";
+                                                                }
                                                             }
                                                             tmpStr += "<br/>";
                                                         }
@@ -1138,8 +1146,13 @@ function handleQueryResults(results) {
                                         if ((typeof r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] === "string") &&
                                             (r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].substring(0, 4) == "http"))
                                             tmpStr += "<a href='" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][r.layerName].displaynames[i] + "</a>";
-                                        else
-                                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": </span><span class='idSubValue'>" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]]+"</span>";
+                                        else{
+                                            // format numbers to 1 decimal place TODO ************************
+                                            //if(!isNaN(r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]])){
+                                            //    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": </span><span class='idSubValue'>" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].toFixed(1)+"</span>";
+                                            //} else
+                                                tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": </span><span class='idSubValue'>" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]]+"</span>";
+                                        }
                                     }
                                 }
                                 // don't add it twice, but add it to the features geometry array
@@ -1185,7 +1198,7 @@ function handleQueryResults(results) {
             });
             // highlight first feature if none were specified by pre_title title title_field in SettingsWidget.xml file
             if (numHighlightFeatures == 0){
-                highlightFeature(0,true);
+                highlightFeature(0,false);
                 highlightID = 0;
             }
             accumulateContent(str);
@@ -1198,7 +1211,7 @@ function handleQueryResults(results) {
 
 var numHighlightFeatures=0;
 function highlightFeature(id,fade) {
-    // highlight geometry on mouse over, no fade = true
+    // highlight geometry, fade: true will fade, false will not fade
     if (features[id] && features[id].geometry && (features[id].geometry != undefined && features[id].geometry.type)) {
         //if (features[id].geometry.type === undefined || !features[id].geometry.type) return;
         if (features[id].geometry.type === "point" ) {
@@ -1215,9 +1228,14 @@ function highlightFeature(id,fade) {
 
     // add marker pin at clickpoint
     require(["esri/Graphic"], function ( Graphic) {
+        var pinImg;
+        if (document.getElementsByTagName("body")[0].className.indexOf("green")>-1) pinImg = "green-pin.png";
+        else if (document.getElementsByTagName("body")[0].className.indexOf("blue")>-1) pinImg = "blue-pin.png";
+        else if (document.getElementsByTagName("body")[0].className.indexOf("orange")>-1) pinImg = "orange-pin.png";
+        else alert("Missing picture marker symbol assets/images/color-pin.png where color is the color-theme specified in the body tag of index.html.","Error");
         const symbol = {
             type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-            url: "./assets/images/pin.svg",
+            url: "./assets/images/"+pinImg, // SVG does not work on FireFox!!!!!!
             width: 24,
             height: 24,
             xoffset: 0,

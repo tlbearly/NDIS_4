@@ -1,7 +1,10 @@
+/* When you create a new color theme you must also create a color-pin.png file in assets/images/ where color is the theme color.
+   Then edit identify.js and utilFuncs.js and add this color pin to the if checks. Search for color-pin.png. */
+
 .green-theme {
-  --brand: #d4dbbe; /*#79835b;*/
+  --brand: #d4dbbe;
   --hover: #aaaf99;
-  --press:  #4e5d2d; /*  #778743;*/
+  --press:  #4e5d2d;
   --underline: #aaaf9966;
   --lightBackground: #eff3e1;
   --background: #d4dbbe;
@@ -25,8 +28,7 @@ a:-webkit-any-link, .link {
     text-decoration: underline;
 }
 a:-webkit-any-link:hover, .link:hover {
-    color: var(--hover)!important;
-    font-weight: 450;
+    color: #758b45!important;
 }
 /* identify marker symbol color */
 .markerColor {

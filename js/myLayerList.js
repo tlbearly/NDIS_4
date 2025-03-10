@@ -204,6 +204,8 @@ function myLayerList() {
     layerListExpand.scale = "m";
     layerListExpand.style.marginRight = "0px";
     layerListExpand.style.marginTop = "-10px";
+    layerListExpand.setAttribute("aria-label","Open the layer list dialog box to set visibility of map layers, set basemap, or show legend.");
+    layerListExpand.setAttribute("aria-selected","false");
     if (screen.width > 768){
         const layerListLabel = document.createElement("span");
         layerListLabel.innerHTML = "Map Layers";

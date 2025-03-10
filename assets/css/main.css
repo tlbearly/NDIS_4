@@ -194,13 +194,39 @@ calcite-panel,
 /*.esri-component{
     border-radius: 12px!important;
   }*/
-  /* button
+.myButton {
   padding: 9px;
     border-radius: 12px;
-    border: 1px solid #bbb;
+    border: 1px solid var(--hover);
     background-color: white;
     box-shadow: 2px 2px 2px #ccc;
-    */
+    margin:10px;
+}
+.myButton:hover {
+  background-color: #f3f3f3;
+}
+input[type="checkbox"] {
+  width:1.75em;
+  height:1.75em;
+  vertical-align: middle;
+}
+input[type="checkbox"]:checked {
+  accent-color: var(--background);
+}
+.help_button{
+  position: absolute;
+  left: 20px;
+  top: 80px;
+  border: none;
+  background-color: #ffffff55;
+  border-radius: 4px;
+}
+@media screen and (max-width: 768px) {
+  .help_button{
+    left:225px;
+    top:10px;
+  }
+}
 .esri-widget--button {
   width: 40px;
   height: 40px;

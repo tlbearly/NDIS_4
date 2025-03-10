@@ -2,20 +2,10 @@
 <!--
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Settings
-//
-// Copyright © 2008 ESRI
-//
-// All rights reserved under the copyright laws of the United States.
-// You may freely redistribute and use this software, with or
-// without modification, provided you include the original copyright
-// and use restrictions.  See use restrictions in the file:
-// <install location>/FlexViewer/License.txt
+// Idenify Settings
 //
 // This file is read by identify.js on startup to set the default
-// values for the layers to identify. If the user has changed the settings
-// it will read from their shared object (super cookie) to set the selected
-// values.
+// values for the layers to identify.
 //
 // TAGS:
 // xy_projection = the default projection number (such as 26913) for
@@ -196,7 +186,7 @@
 			</layer>
 			<!-- Campground  -->
 			<layer label="Campground">
-				<!--buffer>10</buffer--><!-- list campgrounds within 10 miles of click point -->
+				<!--buffer>10</buffer--><!-- list campgrounds within 10 miles of click point? hold off -->
 	    		<id>6</id>
 				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer/</url>
 				<geometry>point</geometry>
@@ -205,7 +195,6 @@
 	   		</layer>
 			<!-- License Agent  -->
 			<layer label="License Agent">
-				<!--buffer>10</buffer-->
 				<id>5</id>
 				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer/</url>
 				<geometry>point</geometry>

@@ -428,9 +428,14 @@ function addTempLabel(point, label, fontSize, shouldFade) {
     // add point and remove it in 10 seconds
     // if noFade is passed in do not fade
     require(["esri/symbols/PictureMarkerSymbol", "esri/Graphic"], function (PictureMarkerSymbol, Graphic) {
+      var pinImg;
+      if (document.getElementsByTagName("body")[0].className.indexOf("green")>-1) pinImg = "green-pin.png";
+      else if (document.getElementsByTagName("body")[0].className.indexOf("blue")>-1) pinImg = "blue-pin.png";
+      else if (document.getElementsByTagName("body")[0].className.indexOf("orange")>-1) pinImg = "orange-pin.png";
+      else alert("Missing picture marker symbol assets/images/color-pin.png where color is the color-theme specified in the body tag of index.html.","Error");
       const symbol = {
         type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-        url: "./assets/images/pin.svg", //,i_flag.png", // color is hard coded in pin.svg!!!!!! Can't get it to set color here??????
+        url: "./assets/images/"+pinImg, // svg does not work in FireFox!!!!!
         size: 24,
         width: 24,
         height: 24,

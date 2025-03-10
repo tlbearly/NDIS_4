@@ -8,19 +8,19 @@ function addSearch() {
         function(FeatureLayer,Search,Extent,Point,SpatialReference){
         var sources = [];
         
-        /*var propertyFL = new FeatureLayer({
+        var propertyFL = new FeatureLayer({
             url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3"
         });
         sources.push({
             layer: propertyFL,
             searchFields: ["PropName"],
             displayField: "PropName",
-            exactMatch: false,
-            maxSuggestions: 1000,
-            outFields: ["PropName"],
+            //exactMatch: false,
+            //maxSuggestions: 1000,
+            //outFields: ["PropName"],
             name: "CPW Properties (STL, SWA, SFU, or WWA)",
             placeholder: "Search CPW Properties"
-        });*/
+        });
         // global variable used in myLayerList.js
         if (settings.elkUrl){
             gmuFL = new FeatureLayer({
@@ -30,11 +30,11 @@ function addSearch() {
                 layer: gmuFL,
                 searchFields: [settings.elkField],
                 displayField: settings.elkField,
-                exactMatch: false,
-                maxResults: 6,
-                maxSuggestions: 100,
+                //exactMatch: false,
+                //maxResults: 6,
+                //maxSuggestions: 100,
                 minSuggestCharacters: 1,
-                outFields: [settings.elkField],
+                //outFields: [settings.elkField],
                 name: "Big Game GMUs",
                 placeholder: "Search GMUs"
             });
@@ -162,7 +162,7 @@ function addSearch() {
                     addTempPoint(pt, true);
                     view.goTo({
                         target: pt,
-                        scale: 24000
+                        scale: 100000
                     });
                 } else alert("Point is not in know projection. Must be lat, long decimal degrees or WSG84 UTM Zone 13.");
                 return;
@@ -221,10 +221,10 @@ function addSearch() {
             if (obj.results[0].feature.geometry.type === "point")
             view.goTo({
                 target: pt,
-                scale: 24000
+                scale: 100000
             });
             else
-            view.extent = newExtent;
+                view.extent = newExtent;
         });
         
         
@@ -251,13 +251,14 @@ function addSearch() {
             if (screen.width > 768) {
                 searchWidget.container.style.left = "85px";
                 searchWidget.container.style.position = "relative";
-                searchWidget.container.style.top = "-2px";
+                searchWidget.container.style.top = "-20px";
                 searchWidget.container.style.width = "195px";
             }
             else {
                 searchWidget.container.style.left = "30px";
                 searchWidget.container.style.marginRight = "30px";
                 searchWidget.container.style.marginLeft = "7px";
+                searchWidget.container.style.top = "-20px";
                 searchWidget.container.style.width = "195px";
             }
         });

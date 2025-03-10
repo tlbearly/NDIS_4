@@ -62,7 +62,7 @@
             tag: layer
             attributes:
                 group: group name
-                open: true or false, is this group open?
+                open: true or false, is this group open? Top level are never open.
                 visible: true or false
                 alpha: opacity 0.8
                 radio: true or false, use radio buttons for children (only one visible at a time). Default is false if not specified.
@@ -117,6 +117,8 @@
             <layer group="Transportation" visible="true" alpha="1" radio="false"/>
                 <layer  parentGroup="Transportation" label="Motor Vehicle Use Map" open="true" visible="true" alpha="1"
 					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
+                <layer  parentGroup="Transportation" label="Motor Vehicle Use Maps: Roads" visible="true" alpha="1"
+					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1"/>
                 <layer  parentGroup="Transportation" label="BLM Roads and Trails" open="true" visible="true" alpha="1"
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />
                 <layer parentGroup="Transportation" label="RoadsTrails" open="true" visible="true" alpha="1.0"
@@ -169,8 +171,10 @@
                     layerVis="false,true,true,true,true,false,true,false"/>
 
             <layer group="Wildfire" open="false" visible="false" alpha="1" radio="false"/>
-                <layer parentGroup="Wildfire" label="Wildfire Incidents" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
-                <layer parentGroup="Wildfire" label="Wildfire Perimeters" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
+                <layer parentGroup="Wildfire" label="Wildfire Incidents" type="dynamic" visible="true" alpha="0.8" 
+                    url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
+                <layer parentGroup="Wildfire" label="Wildfire Perimeters" type="dynamic" visible="true" alpha="0.8"
+                    url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
         </operationallayers>
 		
 		<hideGroupSublayers>Status,Emergency,Field Office,Chamber of Commerce or Welcome Center,License Agent,Campgrounds and SWA Facilities,GMU boundary (Hunting Units)</hideGroupSublayers>

@@ -1132,7 +1132,6 @@ function readConfig(){
         try{
             var xmlhttp = createXMLhttpRequest();
             var configFile = app + "/config.xml?v=" + Date.now(); //+ ndisVer;
-            var calledFlag = false; // 3-21-22 call readSettingsWidget in Identify and addGraphicsAndLabels only once
             xmlhttp.onreadystatechange = function () {
                 if (xmlhttp.readyState == 4 && xmlhttp.status === 200) {
                     xmlDoc = createXMLdoc(xmlhttp);
