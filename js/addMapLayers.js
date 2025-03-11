@@ -317,7 +317,10 @@ function addMapLayers(){
         }
 
         async function layerLoadHandler(event){
-            console.log(event.layer.id +" loaded in layerLoadHandler.");
+            if (!isNaN(event.layer.id[0]))
+                console.log(event.layer.title +" loaded in layerLoadHandler.");
+            else
+                console.log(event.layer.id +" loaded in layerLoadHandler.");
             
             // Set the arcade context for Wildfire Incidents to print at correct size
             // the input feature's geometry is expected

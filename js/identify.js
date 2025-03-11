@@ -567,7 +567,9 @@ function displayContent() {
                                 else
                                     identifySuccess(response);
                             })
-                            .catch(handleQueryError);
+                            .catch((e) => {
+                                myhandleQueryError(e);
+                            });
                         }));
                         //deferreds.push(query.executeQueryJSON(item.url, params).then(identifySuccess).catch(handleQueryError));
                         continue;
@@ -594,7 +596,9 @@ function displayContent() {
                                     else
                                         identifySuccess(response);
                                 })
-                                .catch(handleQueryError);
+                                .catch((e) => {
+                                    myhandleQueryError(e);
+                                });
                             }));
                         }
                         continue;
@@ -666,6 +670,11 @@ function displayContent() {
                     }
                     if (identifyParams.layerIds.length == 0) skip = true;
                     if (!skip){
+
+                        //debug
+                        //var e = {details: {url: url},
+                        //    message:"Failed to fetch"};
+                        //myhandleQueryError(e);
                         deferreds.push(new Promise((identifySuccess, handleQueryError) => {
                             Identify.identify(url,identifyParams)
                             .then((response) => {
@@ -674,7 +683,9 @@ function displayContent() {
                                 else
                                     identifySuccess(response);
                             })
-                            .catch(handleQueryError);
+                            .catch((e) => {
+                                myhandleQueryError(e);
+                            });
                         }));
                         //deferreds.push(Identify.identify(url,identifyParams).then(identifySuccess).catch(handleQueryError)); // new 6-13-24
                     }     
@@ -700,7 +711,9 @@ function displayContent() {
                             else
                                 identifySuccess(response);
                         })
-                        .catch(handleQueryError);
+                        .catch((e) => {
+                            myhandleQueryError(e);
+                        });
                     }));
                     //deferreds.push(Identify.identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
                 } else if (gmu == "Goat GMU") {
@@ -721,7 +734,9 @@ function displayContent() {
                             else
                                 identifySuccess(response);
                         })
-                        .catch(handleQueryError);
+                        .catch((e) => {
+                            myhandleQueryError(e);
+                        });
                     }));
                     //deferreds.push(Identify.identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
                 }
@@ -755,17 +770,22 @@ function identifySuccess(response) {
     else return response; // for wildfire
 }*/
 
-// not used???????????????????
-function handleQueryError(e) {
+function myhandleQueryError(e) {
+    //document.getElementById("errMsg").innerHTML = "";
     if (e.message.indexOf("Too many requests") > -1) {
         tooManyRequests = true;
         return;
     }
-    if (e.details)
-        alert("Error in identify.js/doIdentify.  " + e.details + " " + e.message + " Check " + app + "/SettingsWidget.xml urls.", "Data Error");
+    if (e.message === "Failed to fetch"){
+        alert("Data not loaded: " +e.details.url, "Data Error");
+        accumulateContent("");
+    }
+    else if (e.details)
+        alert("Error in identify.js/doIdentify.  " + e.details + " " + e.message + " Check " + app + "/IdentifyWidget.xml urls.", "Data Error");
     else
-        alert("Error in identify.js/doIdentify.  " + e.message + " Check " + app + "/SettingsWidget.xml urls.", "Data Error");
+        alert("Error in identify.js/doIdentify.  " + e.message + " Check " + app + "/IdentifyWidget.xml urls.", "Data Error");
     hideLoading();
+    return;
 }
 function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -1134,6 +1154,8 @@ function handleQueryResults(results) {
                                 }
                                 view.popup.title = theTitle[identifyGroup];
 
+                                var minElev = -1;
+                                var maxElev = -1;
                                 for (i = 0; i < identifyLayers[identifyGroup][r.layerName].displaynames.length; i++) {
                                     if ((r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] &&
                                             r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== " " &&
@@ -1147,14 +1169,30 @@ function handleQueryResults(results) {
                                             (r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].substring(0, 4) == "http"))
                                             tmpStr += "<a href='" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][r.layerName].displaynames[i] + "</a>";
                                         else{
-                                            // format numbers to 1 decimal place TODO ************************
-                                            //if(!isNaN(r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]])){
+                                            // Convert Min & Max Elevation display name values to ft and display only 1 decimal place
+                                            if (identifyLayers[identifyGroup][r.layerName].displaynames[i] === "Min Elevation"){
+                                                minElev =  r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] *3.2808;
+                                                tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": </span><span class='idSubValue'>" + minElev.toFixed(1)+" ft.</span>";
+                                            }
+                                            else if (identifyLayers[identifyGroup][r.layerName].displaynames[i] === "Max Elevation"){
+                                                maxElev =  r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] *3.2808;
+                                                tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": </span><span class='idSubValue'>" + maxElev.toFixed(1)+" ft.</span>";
+                                            }
+                                            // format numbers to 1 decimal place TODO? ************************
+                                            //if(r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== "" &&
+                                            //   r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== " " && 
+                                            //   !isNaN(r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]])){
                                             //    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": </span><span class='idSubValue'>" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].toFixed(1)+"</span>";
-                                            //} else
+                                            //}
+                                            else
                                                 tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": </span><span class='idSubValue'>" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]]+"</span>";
                                         }
                                     }
                                 }
+                                if (minElev !== -1 && maxElev !== -1) {
+                                    tmpStr += "<br><span class='idSubTitle'>Elevation Gain: </span><span class='idSubValue'>" + (maxElev - minElev).toFixed(1)+" ft.</span>";
+                                }
+
                                 // don't add it twice, but add it to the features geometry array
                                 if (str.indexOf(tmpStr) == -1) {
                                     // highlight polygon/point on mouse over, hide highlight on mouse out

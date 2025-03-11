@@ -1,7 +1,7 @@
 // -- Measure --
 function addMeasure(graphicsLayer){
-    require(["esri/widgets/Sketch","esri/widgets/Expand",
-        "esri/geometry/geometryEngine"], function (Sketch,Expand,geometryEngine) {
+    require(["esri/widgets/Sketch","esri/widgets/Expand","esri/Graphic",
+        "esri/geometry/geometryEngine"], function (Sketch,Expand,Graphic,geometryEngine) {
         const sketch = new Sketch({
             view,
             title: "Measure",
@@ -31,7 +31,7 @@ function addMeasure(graphicsLayer){
             expandTooltip: "Measure",
             expandIconClass: "esri-icon-measure"
         });
-        view.ui.add(sketchExpand, "bottom-right");
+        //view.ui.add(sketchExpand, "bottom-right");
         const measurements = document.createElement("div");
         measurements.id = "measurements";
         measurements.innerHTML = "Measurement Results";
@@ -53,12 +53,12 @@ function addMeasure(graphicsLayer){
             //const planarArea = geometryEngine.planarArea(polygon, "square-kilometers");
             measurements.innerHTML =
             "<b>Area</b>:  " + geodesicArea.toFixed(2) + " mi\xB2";
-            /*textSymbol.text = geodesicArea.toFixed(2) + " mi\xB2";
+            textSymbol.text = geodesicArea.toFixed(2) + " mi\xB2";
             var g = new Graphic({
                 geometry: polygon,
                 symbol: textSymbol
             });
-            graphicsLayer.graphics.add(g);*/
+            graphicsLayer.graphics.add(g);
         }
 
         function getLength(line) {
@@ -67,12 +67,12 @@ function addMeasure(graphicsLayer){
             //const planarLength = geometryEngine.planarLength(line, "kilometers");
             measurements.innerHTML =
             "<b>Length</b>:  " + geodesicLength.toFixed(2) + " miles";
-            /*textSymbol.text = geodesicLength.toFixed(2) + " mi";
+            textSymbol.text = geodesicLength.toFixed(2) + " mi";
             var g = new Graphic({
                 geometry: line,
                 symbol: textSymbol
             });
-            graphicsLayer.graphics.add(g);*/
+            graphicsLayer.graphics.add(g);
         }
 
 
@@ -172,7 +172,7 @@ function addMeasure(graphicsLayer){
 
             if (e.state === "complete") {
             // remove label
-            //graphicsLayer.remove(graphicsLayer.graphics.getItemAt(1));
+            graphicsLayer.remove(graphicsLayer.graphics.getItemAt(1));
             graphicsLayer.remove(graphicsLayer.graphics.getItemAt(0));
             measurements.innerHTML = null;
             }

@@ -18,13 +18,13 @@ function myBasemaps() {
         setupBasemapLayers();
         // add basemap layers
         add(tileGroup, "streets","Streets","assets/images/basemaps_streets.jpg",true); //https://www.arcgis.com/sharing/rest/content/items/2ea9c9cf54cb494187b03a5057d1a830/info/thumbnail/Jhbrid_thumb_b2.jpg",true)
+        add(tileGroup, "aerial","Aerial Photo","assets/images/basemaps_aerial_photo.jpg",false);
         add(tileGroup, "topo2","ESRI Digital Topo","assets/images/basemaps_esri_digital_topo.jpg",false);
         add(tileGroup, "natgeo","USGS Digital Topo","assets/images/basemaps_USGS_digital_topo.jpg",false);//assets/images/basemaps_natgeothumb.jpg",false);
-        add(tileGroup, "topo","USGS Scanned Topo","assets/images/basemaps_USGS_scanned_topo.jpg",false);
-        add(tileGroup, "aerial","Aerial Photo","assets/images/basemaps_aerial_photo.jpg",false);
         //add(tileGroup, "imagery_topo","Aerial Topo","assets/images/basemaps_aerial_topo.jpg",false);
         add(tileGroup, "high_contrast_light","High Contrast Light","assets/images/basemaps_high_constrast_light.jpg",false);//"https://www.arcgis.com/sharing/rest/content/items/084291b0ecad4588b8c8853898d72445/info/thumbnail/thumbnail1655848049464.png?f=json",false);
         add(tileGroup, "high_contrast_dark","High Contrast Dark","assets/images/basemaps_high_constrast_dark.jpg",false);//"https://www.arcgis.com/sharing/rest/content/items/3e23478909194c54992eaaee78b5f754/info/thumbnail/thumbnail1655848922604.png?f=json",false);
+        add(tileGroup, "topo","USGS Scanned Topo","assets/images/basemaps_USGS_scanned_topo.jpg",false);
         return bmGallery.innerHTML;
     }catch (e) {
             alert("Error in myBasemapGallery. "+e.getMessage, "Error");

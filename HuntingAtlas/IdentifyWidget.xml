@@ -255,8 +255,9 @@
 				<id>1</id>
                 <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer</url>
 				<geometry>line</geometry>
-				<fields>NAME,SEG_LENGTH,MVUM_SYMBOL_NAME,SURFACETYPE,SEASONAL,ROUTESTATUS,PASSENGERVEHICLE,HIGHCLEARANCEVEHICLE,HIGHCLEARANCEVEHICLE_DATESOPEN,MOTORCYCLE_DATESOPEN</fields>
-				<displaynames>Name,Length in miles,MVUM_SYMBOL_NAME,Surface Type,Seasonal,Status,Passenger Vehicle,High Clearance Vehicle,High Clearance Vehicle Dates Open,Motorcycle Dates Open</displaynames>
+				<!--SURFACETYPE -->
+				<fields>NAME,SEG_LENGTH,HIGHCLEARANCEVEHICLE_DATESOPEN,TRACKED_OHV_GT50_DATESOPEN,OTHER_OHV_GT50_DATESOPEN,ATV_DATESOPEN,OTHERWHEELED_OHV_DATESOPEN,TRACKED_OHV_LT50_DATESOPEN,OTHER_OHV_LT50_DATESOPEN,MOTORCYCLE_DATESOPEN,SBS_SYMBOL_NAME</fields>
+				<displaynames>Name,Length in miles,High Clearance Vehicle Dates Open,Tracked OHV &gt; 50 Dates Open,Other OHV &gt; 50 Dates Open,ATV Dates Open,Other Wheeled OHV Dates Open,Tracked OHV &lt; 50 Dates Open,Other OHV &lt; 50 Dates Open,Motorcycle Dates Open,Maintained</displaynames>
 			</layer>
 		</folder>
 	</tree>
