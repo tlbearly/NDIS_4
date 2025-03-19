@@ -92,7 +92,7 @@ function addMapLayers(){
             // layer could be the operational layer read from config.xml as an xml document (need to use getAttribute)
             // or event.layer (need to use layer.element)
             //console.log("Creating layer: ");
-            var id,url,alpha,visible,listMode,legendEnabled;
+            var id,url,alpha,visible,listMode,legendEnabled,minScale=null,maxScale=null;
             if (layer.id){
                 id = layer.id;
                 url = layer.url;
@@ -100,11 +100,17 @@ function addMapLayers(){
                 visible = layer.visible;
                 listMode = layer.listMode;
                 legendEnabled = layer.legendEnabled;
+                minScale = layer.minScale;
+                maxScale = layer.maxScale;
             }else if (layer.getAttribute){
                 id = layer.getAttribute("label");
                 url = layer.getAttribute("url");
                 alpha = layer.getAttribute("alpha");
                 visible = layer.getAttribute("visible");
+                if (layer.getAttribute("minScale") !== null)
+                    minScale = layer.getAttribute("minScale");
+                if (layer.getAttribute("maxScale") !== null)
+                    maxScale = layer.getAttribute("maxScale");
                 listMode = layer.getAttribute("listMode");
                 if (listMode === null) listMode = "show";
                 legendEnabled = layer.getAttribute("legendEnabled");
@@ -236,6 +242,59 @@ function addMapLayers(){
                     return;
                 }
             }
+            // set min and max scale if it was set in config.xml
+            if (minScale !== null) myLayer.minScale = minScale;
+            if (maxScale !== null) myLayer.maxScale = maxScale;
+
+            // set Symbols
+            // TODO: testing adding symbols
+            if (myLayer.url.indexOf("CPWAdminData")>0 && id == 15){
+                myLayer.renderer = {
+                        type: "simple",
+                        symbol: {
+                            color: {a: 1,
+                                r: 80,
+                                g: 255,
+                                b: 80
+                            },
+                            join: "round",
+                            miterLimit: 2,
+                            style: "dash",
+                            type: "simple-line",
+                            width: 2
+                        },
+                    };
+            }
+            // label trailheads
+            if (myLayer.url.indexOf("CPWAdminData")>0 && id==14){ 
+                const labelClass = {
+                    // autocasts as new LabelClass()
+                    symbol: {
+                      type: "text", // autocasts as new TextSymbol()
+                      color: "black",
+                      haloColor: [255,255,153,1.0],
+                      haloSize: "2px",
+                      xoffset: -23,
+                      yoffset: -30,
+                      horizontalAlignment: "center",
+                      verticalAlignment: "baseline",
+                      font: {
+                        //autocasts as new Font()
+                        family: "Arial",
+                        size: 10
+                      }
+                    },
+                    labelPlacement: "always-horizontal", //below-center for points
+                    text: label,
+                    labelExpressionInfo: {
+                        expression: "$feature.name"
+                    }
+                };
+                // TODO needs to be featureservice to add labels!!!!
+                myLayer.labelingInfo=[labelClass];
+            }
+            // end set Symbols
+
             // Add MapService or FeatureLayer to mapLayers if it was not added already. mapLayers is definded in index.html
             var found = false;
             for (var i=0; i<mapLayers.length; i++){
@@ -468,7 +527,7 @@ function addMapLayers(){
             ids = ids.reverse();
             return ids;
         }
-        function addGroupLayer(groupName, vis, opacity, radio, featureservice, portal, layerIds, layerVis, layerNames, listMode, legendEnabled, popupFields,popupLabels){
+        function addGroupLayer(groupName, vis, opacity, radio, featureservice, portal, minScale, maxScale, layerIds, layerVis, layerNames, listMode, legendEnabled, popupFields,popupLabels){
             // Creates a group and adds feature service layers in layerVis. Returns the GroupLayer
             // groupName: string, name of this group
             // vis: boolean, is this group visible?
@@ -524,7 +583,7 @@ function addMapLayers(){
                 return groupLayer;
             }
             if (layerNames != null){
-                //layerNames = layerNames.reverse();
+                layerNames = layerNames.reverse();
                 if (layerVis.length != layerNames.length){
                     alert("Error in "+app+"/config.xml operationallayers. In layer group "+groupName+", list of layerIds, layerVis, and layerNames must have the same number of elements.");
                     return groupLayer;
@@ -538,11 +597,11 @@ function addMapLayers(){
                 tries[groupLayer.title+ids[i]]=0;
                 // use layer names from config.xml 
                 if (layerNames != null){
-                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],layerNames[i],listMode,legendEnabled,popupFields,popupLabels);
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],minScale,maxScale,layerNames[i],listMode,legendEnabled,popupFields,popupLabels);
                 } 
                 // Use feature service layer names 
                 else {
-                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],null,listMode,legendEnabled,popupFields,popupLabels);
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],minScale,maxScale,null,listMode,legendEnabled,popupFields,popupLabels);
                 }
             }
             return groupLayer;
@@ -581,15 +640,15 @@ function addMapLayers(){
                 /* layer.id is not a number!!!!! not working
                 if (layer.id == 1900) {
                 tries[layer.parent.title+"19"]=1;
-                //createSubGroupLayer(layer.parent,layer.url,layer.visible,19,layer.title,listMode,legendEnabled,popupFields,popupLabels);
+                //createSubGroupLayer(layer.parent,layer.url,layer.visible,19,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels);
                 }*/
-                createSubGroupLayer(layer.parent,layer.url,layer.visible,layer.id,layer.title,listMode,legendEnabled,popupFields,popupLabels);
+                createSubGroupLayer(layer.parent,layer.url,layer.visible,layer.id,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels);
                 layer.parent.remove(layer);
             },30000);
             
         }
 
-        function createSubGroupLayer(groupLayer,url,visible,id,title,listMode,legendEnabled,popupFields,popupLabels){		
+        function createSubGroupLayer(groupLayer,url,visible,id,minScale,maxScale,title,listMode,legendEnabled,popupFields,popupLabels){		
             var fsUrl;
             if (url[url.length-1]==="/")
                 fsUrl = url + id;
@@ -609,7 +668,7 @@ function addMapLayers(){
                         id: id,
                         listMode: listMode,
                         legendEnabled: legendEnabled,
-                        visible: visible 
+                        visible: visible
                     });
                 }else{
                     subGroupLayer = new FeatureLayer({
@@ -617,9 +676,8 @@ function addMapLayers(){
                         visible: visible,
                         title: title,
                         listMode: listMode,
-                        legendEnabled: legendEnabled,
+                        legendEnabled: legendEnabled
                         //id: id, // do not use id, let it create this on it's own
-                        legendEnabled: true
                     });
                 }   
                 // identify popup template
@@ -637,7 +695,7 @@ function addMapLayers(){
                         id: id,
                         listMode: listMode,
                         legendEnabled: legendEnabled,
-                        visible: visible 
+                        visible: visible
                     });
                 }else {
                     subGroupLayer = new FeatureLayer({
@@ -657,7 +715,7 @@ function addMapLayers(){
                     // remove the feature service name from the title (eg. CPWSpeciesData - )
                     if (fsName.indexOf(" - ") == -1)
                         fsName += " - ";
-                    var title = layer.title.substr(fsName.length);
+                    var title = layer.title.substring(fsName.length);
                     layer.title = title;
                     // identify popup template
                     if (popupFields && popupLabels){
@@ -717,6 +775,62 @@ function addMapLayers(){
                     //console.log("reorder group layer "+layer.title);
                 });
             }
+
+            // Add min and max Scale from config.xml
+            if (minScale > 0 || maxScale > 0){
+                subGroupLayer.minScale = minScale;
+                subGroupLayer.maxScale = maxScale;
+            }
+
+            // TODO: testing adding definition expression (filter) and symbols. Hard coded for testing. Eventually read from config.xml
+            if (fsUrl.indexOf("CPWAdminData")>0 && id == 15){
+                subGroupLayer.definitionExpression = "type <> 'Road'";
+                
+                /*    subGroupLayer.renderer = {
+                        type: "simple",
+                        symbol: {
+                            color: {a: 1,
+                                r: 80,
+                                g: 255,
+                                b: 80
+                            },
+                            join: "round",
+                            miterLimit: 2,
+                            style: "dash",
+                            type: "simple-line",
+                            width: 2
+                        },
+                    };*/
+
+            }
+            // label trailheads
+            /*if (fsUrl.indexOf("CPWAdminData")>0 && id==14){ 
+                const labelClass = {
+                    // autocasts as new LabelClass()
+                    symbol: {
+                      type: "text", // autocasts as new TextSymbol()
+                      color: "black",
+                      haloColor: [255,255,153,1.0],
+                      haloSize: "2px",
+                      xoffset: -23,
+                      yoffset: -30,
+                      horizontalAlignment: "center",
+                      verticalAlignment: "baseline",
+                      font: {
+                        //autocasts as new Font()
+                        family: "Arial",
+                        size: 10
+                      }
+                    },
+                    labelPlacement: "always-horizontal", //below-center for points
+                    text: label,
+                    labelExpressionInfo: {
+                        expression: "$feature.name"
+                    }
+                };
+                // TODO needs to be featureservice to add labels!!!!
+                subGroupLayer.labelingInfo=[labelClass];
+            }*/
             groupLayer.add(subGroupLayer);
         }
 
@@ -827,13 +941,21 @@ function addMapLayers(){
 
         var groupLayers = [];
         var groupName;
+        var maxScale; // The maximum scale (most zoomed in) at which the layer is visible in the view.
+        var minScale; // The minimum scale (most zoomed out) at which the layer is visible in the view.
         var regexp = /([^a-zA-Z0-9 \-,\._\/:])/g;
         var popupFields = [];
         var popupLabels = [];
         var listMode = "show";
         var legendEnabled = true;
-        for (i = 0; i < layer.length; i++) {	
-            var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null,portal=null;				
+        for (i = 0; i < layer.length; i++) {
+            minScale=0;
+            maxScale=0;
+            var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null,portal=null;	
+            if (layer[i].getAttribute("maxScale"))
+                maxScale = layer[i].getAttribute("maxScale").replace(regexp,"");
+            if (layer[i].getAttribute("minScale"))
+                minScale = layer[i].getAttribute("minScale").replace(regexp,"");			
             // group layer with or without sub layers
             if (layer[i].getAttribute("group") && layer[i].getAttribute("group") != ""){
                 //console.log("loading group "+layer[i].getAttribute("group")+" i="+i);
@@ -877,8 +999,8 @@ function addMapLayers(){
                             alert("Missing layerVis tag in layer group, "+groupName+", in "+app+"/config.xml file.", "Data Error");
                             continue;
                         }
-                        if (layer[i].getAttribute("layerName"))
-                            layerNames = layer[i].getAttribute("layerNames").replace(regexp,"");
+                        if (layer[i].getAttribute("layerNames"))
+                            layerNames = layer[i].getAttribute("layerNames").replace(regexp,"").split(",");
                         if (layer[i].getAttribute("popup_fields"))
                             popupFields = layer[i].getAttribute("popup_fields").split(",");
                         if (layer[i].getAttribute("popup_labels"))
@@ -894,7 +1016,7 @@ function addMapLayers(){
                     }
                     
                     // returns a GroupLayer with feature layers added to to it. Use for group layer Elk and feature layers species data for elk.
-                    groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,radio,url,portal,layerIds,layerVis,layerNames,listMode,legendEnabled,popupFields,popupLabels)};
+                    groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,radio,url,portal,minScale,maxScale,layerIds,layerVis,layerNames,listMode,legendEnabled,popupFields,popupLabels)};
                     if (parentGroupName != null && parentGroupName != "")
                         groupLayers[parentGroupName].layer.add(groupLayers[groupName].layer);
                     else{
@@ -960,7 +1082,61 @@ function addMapLayers(){
                         id: label
                     });
                 }
+                if (minScale > 0 || maxScale > 0){
+                    fsLayer.minScale = minScale;
+                    fsLayer.maxScale = maxScale;
+                }
             
+                
+                // set Symbols
+                // TODO: testing adding symbols
+                if (fsLayer.url.indexOf("CPWAdminData")>-1 && url.indexOf(15) > -1){
+                    fsLayer.renderer = {
+                            type: "simple",
+                            symbol: {
+                                color: {a: 1,
+                                    r: 80,
+                                    g: 255,
+                                    b: 80
+                                },
+                                join: "round",
+                                miterLimit: 2,
+                                style: "dash",
+                                type: "simple-line",
+                                width: 2
+                            },
+                        };
+                }
+                // label trailheads
+                if (fsLayer.url.indexOf("CPWAdminData")>-1 && url.indexOf(14) > -1){ 
+                    const labelClass = {
+                        // autocasts as new LabelClass()
+                        symbol: {
+                        type: "text", // autocasts as new TextSymbol()
+                        color: "black",
+                        haloColor: [255,255,153,1.0],
+                        haloSize: "2px",
+                        xoffset: -23,
+                        yoffset: -30,
+                        horizontalAlignment: "center",
+                        verticalAlignment: "baseline",
+                        font: {
+                            //autocasts as new Font()
+                            family: "Arial",
+                            size: 10
+                        }
+                        },
+                        labelPlacement: "always-horizontal", //below-center for points
+                        text: label,
+                        labelExpressionInfo: {
+                            expression: "$feature.name"
+                        }
+                    };
+                    // TODO needs to be featureservice to add labels!!!!
+                    fsLayer.labelingInfo=[labelClass];
+                }
+                // end set Symbols
+
                 // identify popup template
                 if (popupFields && popupLabels){
                     const template = addPopupTemplate(label,popupFields,popupLabels);

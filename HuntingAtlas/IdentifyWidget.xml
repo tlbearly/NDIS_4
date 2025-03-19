@@ -236,14 +236,21 @@
 			</layer>
 		</folder>
 		
-		<folder label="Roads and Trails" pre_title="Trail " title_layer="Trails" title_field="name">
+		<folder label="Roads and Trails">
 			<layer label="Trails">
+				<id>15</id>
+				<url>https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/15</url>
+				<geometry>line</geometry>
+				<fields>name,type,surface,hiking,horse,dogs,motorcycle,snowmobile,ski,snowshoe,length_mi_,oneway,min_elevat,max_elevat</fields>
+				<displaynames>Name,Type,Surface type,Allows hiking,Allows horses,Allows dogs,Allows motorcycles,Allows snowmobiles,Allows skiing,Allows snowshoeing,Trail length in miles,One way,Min Elevation,Max Elevation</displaynames>
+			</layer>
+			<!--layer label="Trails Ours">
 				<id>2</id>
 				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer</url>
 				<geometry>line</geometry>
 				<fields>name,surface,hiking,horse,dogs,motorcycle,snowmobile,ski,snowshoe,length_mi_rounded,oneway,min_elevation,max_elevation</fields>
 				<displaynames>Name,Surface type,Allows hiking,Allows horses,Allows dogs,Allows motorcycles,Allows snowmobiles,Allows skiing,Allows snowshoeing,Trail length in miles,One way,Min Elevation,Max Elevation</displaynames>
-			</layer>
+			</layer-->
 			<layer label="BLM Colorado Routes">
 				<id>5</id>
 				<url>https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer</url>

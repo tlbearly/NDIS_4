@@ -53,6 +53,7 @@ function myLayerList() {
 
     // Add each root layer to layer list
     for (var i = 0; i < mapLayers.length; i++) {
+    //for (var i=mapLayers.length-1; i>-1; i--) {
         if (mapLayers[i].listMode === "hide") continue;
         const rootlayer = mapLayers[i]; // rootLayers
         
@@ -974,6 +975,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                                                     }
                                             });
                                             
+                                            if (item[j].title.indexOf("CPWAdminData - ")>-1)
+                                                item[j].title = item[j].title.substring(15);
                                             subLayerListHeader2.innerHTML = item[j].title; // title displayed
                                             subLayerListHeader2.style.fontWeight = "normal";
                                             subLayerListHeader2.style.padding = "0 0 0 30px";
@@ -1094,7 +1097,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 }else
                     getLegendInfo(layer);*/
             }catch(err){
-                alert("Problem adding layer, "+layer.title+" to layer list  in myLayerList.js/layerListAddSublayerDialogs."+err);
+                alert("Problem adding layer, "+layer.title+", to LayerList widget in myLayerList.js, layerListAddSublayerDialogs. "+err);
             }
         }
         view.ui.add(sublayerDialog,"top-right");

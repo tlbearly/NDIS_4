@@ -518,7 +518,6 @@ function displayContent() {
             var skip = -1; // if id_vis_only and the top layer is hidden this will be true
 
             var deferreds = [];
-            var showIncidents = false;
             for (var i = 0; i < identifyLayerIds[identifyGroup].length; i++) {
                 var item = identifyLayerIds[identifyGroup][i];
                 if (item) {
@@ -530,8 +529,86 @@ function displayContent() {
                     identifyParams.width = view.width;
                     identifyParams.height = view.height;
 
+                    // Query FeatureServer - Identify does not work
+                    if (item.url.toLowerCase().indexOf("featureserver") > -1){
+                        for (var j=0; j<item.labels.length; j++){ 
+                            let params = new Query({
+                                returnGeometry: true,
+                                geometry: clickPoint,
+                                spatialRelationship: "intersects",
+                                outSpatialReference: map.spatialReference
+                            });
+                            if (item.geometry === "line"){
+                                // 10k
+                                if (view.scale <= 9028)
+                                    params.distance = 5;
+                                // 24k
+                                else if (view.scale <= 36112)
+                                    params.distance = 10;
+                                // 50k
+                                else if (view.scale <= 72224)
+                                    params.distance = 30;
+                                // 100k
+                                else if (view.scale <= 144448)
+                                    params.distance = 50;
+                                // > 100k
+                                else 
+                                    params.distance = 100;
+                                params.units = "meters";
+                            } else if (item.geometry === "point"){
+                                // 24k
+                                if (view.scale <= 36112)
+                                    params.distance = 0.1;
+                                // 50k
+                                else if (view.scale <= 72224)
+                                    params.distance = 0.25;
+                                // 100k
+                                else if (view.scale <= 144448)
+                                    params.distance = 0.5;
+                                // 500k
+                                else if (view.scale <= 577791)
+                                    params.distance = 1;
+                                // 2m
+                                else if (view.scale <= 2311162)
+                                    params.distance = 4;
+                                else
+                                    params.distance = 10;
+                                params.units = "miles";
+                            } else {
+                                params.distance = 1;
+                                params.units = "meters";
+                            }
+                            if (item.url.indexOf("CPWAdminData")>0 && item.url.indexOf(15)>-1){
+                                params.where = "type<>'Road'";
+                            }
+
+                            const theLayerName = item.labels[j];
+                            params.outFields = identifyLayers[identifyGroup][item.labels[j]].fields;
+                            skip = true;
+                            deferreds.push(new Promise((identifySuccess, handleQueryError) => {
+                                query.executeQueryJSON(item.url, params) //.then(identifySuccess).catch(handleQueryError);
+                                .then((response) => {
+                                    if (response.results) {
+                                        response.results.layerName = theLayerName;
+                                        identifySuccess(response.results);
+                                    }
+                                    else{
+                                        response.layerName = theLayerName;
+                                        identifySuccess(response);
+                                    }
+                                })
+                                .catch((e) => {
+                                    myhandleQueryError(e);
+                                });
+                            }));
+                            //deferreds.push(query.executeQueryJSON(item.url, params).then(identifySuccess).catch(handleQueryError));
+                        }
+                        continue;
+                    }
+
+
                     // 10-19-20 Add identify Wildfires
-                    if (item.url.indexOf("Wildfire")>-1 || item.url.indexOf("WFIGS")>-1){
+                    /*if (item.url.indexOf("Wildfire")>-1 || item.url.indexOf("WFIGS")>-1){
                         let params = new Query({
                             returnGeometry: true,
                             geometry: clickPoint,
@@ -573,7 +650,7 @@ function displayContent() {
                         }));
                         //deferreds.push(query.executeQueryJSON(item.url, params).then(identifySuccess).catch(handleQueryError));
                         continue;
-                    }
+                    }*/
 
                     // buffer the point NOT WORKING
                     if (item.buffer){
@@ -605,7 +682,7 @@ function displayContent() {
                     }
                                         
                     identifyParams.layerIds = item.ids.slice(); // make a copy of this array since we change it for bighorn or goat gmu
-                    if (item.geometry != "polygon") {
+                    if (item.geometry === "point") {
                         // Used to be 15,10,5
                         if (view.scale <= 36112)
                             identifyParams.tolerance = 25;
@@ -613,6 +690,14 @@ function displayContent() {
                             identifyParams.tolerance = 20;
                         else
                             identifyParams.tolerance = 10;
+                    } else if (item.geometry === "line") {
+                        // Used to be 15,10,5
+                        if (view.scale <= 36112)
+                            identifyParams.tolerance = 5;
+                        else if (view.scale <= 288895)
+                            identifyParams.tolerance = 3;
+                        else
+                            identifyParams.tolerance = 1;
                     } else
                         identifyParams.tolerance = 1;
 
@@ -780,8 +865,8 @@ function myhandleQueryError(e) {
         alert("Data not loaded: " +e.details.url, "Data Error");
         accumulateContent("");
     }
-    else if (e.details)
-        alert("Error in identify.js/doIdentify.  " + e.details + " " + e.message + " Check " + app + "/IdentifyWidget.xml urls.", "Data Error");
+    else if (e.details && e.details.messages && e.details.messages[0] && e.details.url)
+        alert("Error in identify.js/doIdentify.  " + e.details.messages[0] + " for url="+e.details.url+". Check " + app + "/IdentifyWidget.xml urls.", "Data Error");
     else
         alert("Error in identify.js/doIdentify.  " + e.message + " Check " + app + "/IdentifyWidget.xml urls.", "Data Error");
     hideLoading();
@@ -983,227 +1068,9 @@ function handleQueryResults(results) {
                 countResults++; // to get result layerName for buffered points
                 if (result.length > 0) {
                     result.forEach(function(r) {
-                        var feature = r.feature;
-                        feature.attributes.layerName = r.layerName;
-
-                        if (typeof identifyLayers[identifyGroup][r.layerName] != 'undefined') {
-                            // Layer with database call
-                            if (typeof identifyLayers[identifyGroup][r.layerName].database != 'undefined') {
-                                try {
-                                    createMultiXMLhttpRequest();
-                                    var url = app + "/" + identifyLayers[identifyGroup][r.layerName].database + "?v=" + ndisVer + "&key=" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
-                                    XMLHttpRequestObjects[index].open("GET", url, true); // configure object (method, url, async)
-                                    // register a function to run when the state changes, if the request
-                                    // has finished and the stats code is 200 (OK) write result
-                                    XMLHttpRequestObjects[index].onreadystatechange = function(arrIndex) {
-                                        return function() {
-                                            if (XMLHttpRequestObjects[arrIndex].readyState == 4) {
-                                                if (XMLHttpRequestObjects[arrIndex].status == 200) {
-                                                    tmpStr = "<span class='idTitle'>"+r.layerName + "</span><div style='padding-left: 10px;'>";
-
-                                                    features.push(r.feature);
-                                                    var xmlDoc = createXMLdoc(XMLHttpRequestObjects[arrIndex]);
-                                                    
-                                                    // set header with the layer specified in SettingsWidget.xml file or use first field value
-                                                    if (theTitle[identifyGroup] == identifyGroup){
-                                                        if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
-                                                            if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
-                                                                theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
-                                                                highlightFeature(features.length-1,false);
-                                                                highlightID = features.length-1;
-                                                            }
-                                                            // handle Bighorn and Goat GMU
-                                                            else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU Unit "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
-                                                        }else {
-                                                            theTitle[identifyGroup] = r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
-                                                        }
-                                                    }
-                                                    view.popup.title = theTitle[identifyGroup];
-                                                    // set the popup title
-                                                    //if (r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
-                                                    //else theTitle[identifyGroup] = r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
-                                                    //view.popup.title = theTitle[identifyGroup];
-                                                    
-                                                    for (i = 0; i < identifyLayers[identifyGroup][r.layerName].displaynames.length; i++) {
-                                                        if ((i > 0 && r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] &&
-                                                                r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== " " &&
-                                                                r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== "Null" &&
-                                                                r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== "")) {
-                                                            // link
-                                                            if ((typeof r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] === "string") &&
-                                                                    (r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].substring(0, 4) == "http"))
-                                                                tmpStr += "<a href='" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][r.layerName].displaynames[i] + "</a>";
-                                                            else {
-                                                                if ((r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].substring(0, 7) == "<a href") && (r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].indexOf("target") == -1))
-                                                                    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ":</span><span class='idSubValue'> " + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].replace(">", " target='_blank'>")+"</span>";
-                                                                else{
-                                                                    // format numbers to 1 decimal place TODO *******************
-                                                                    //if(!isNaN(r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]])){
-                                                                    //    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ":</span><span class='idSubValue'> " + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].toFixed(1)+"</span>";
-                                                                    //} else
-                                                                        tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ":</span><span class='idSubValue'> " + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]]+"</span>";
-                                                                }
-                                                            }
-                                                            tmpStr += "<br/>";
-                                                        }
-                                                        // add the database info at position specified
-                                                        if (identifyLayers[identifyGroup][r.layerName].position == i) {
-                                                            //features.push(r.feature);
-                                                            // one2one_display: one2one_fields values
-                                                            if (typeof identifyLayers[identifyGroup][r.layerName].one2one_fields != "undefined") {
-                                                                for (j = 0; j < identifyLayers[identifyGroup][r.layerName].one2one_fields.length; j++) {
-                                                                    if (xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][r.layerName].one2one_fields[j]).length > 0) {
-                                                                        var one2one_field = xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][r.layerName].one2one_fields[j])[0];
-                                                                        if ((one2one_field.getElementsByTagName("linkname").length > 0) && (one2one_field.getElementsByTagName("linkurl").length > 0)) {
-                                                                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].one2one_display[j] + ": </span>";
-                                                                            tmpStr += "<a href='" + one2one_field.getElementsByTagName("linkurl")[0].firstChild.nodeValue + "' class='idSubValue'>" + one2one_field.getElementsByTagName("linkname")[0].firstChild.nodeValue + "</a>";
-                                                                            tmpStr += "<br/>";
-                                                                        } else if (one2one_field.childNodes.length > 0) {
-                                                                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].one2one_display[j] + ": </span>";
-                                                                            tmpStr += "<span class='idSubValue'>"+one2one_field.childNodes[0].nodeValue+"</span>";
-                                                                            tmpStr += "<br/>";
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                            // one2many bulleted list
-                                                            if (typeof identifyLayers[identifyGroup][r.layerName].one2many_fields != "undefined") {
-                                                                for (j = 0; j < identifyLayers[identifyGroup][r.layerName].one2many_fields.length; j++) {
-                                                                    var one2many = xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][r.layerName].one2many_fields[j]);
-                                                                    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[0] + ":</span><ul style='margin-top: 0px; margin-bottom: 0px;'>";
-                                                                    for (var h = 0; h < one2many.length; h++) {
-                                                                        //if (typeof one2many[h].children[0] != "undefined" && one2many[h].children[0].nodeName == "linkname" && one2many[h].children[1].nodeName == "linkurl") {
-                                                                        if ((one2many[h].getElementsByTagName("linkname").length > 0) && (one2many[h].getElementsByTagName("linkurl").length > 0)) {
-                                                                            tmpStr += "<li><a href='" + one2many[h].getElementsByTagName("linkurl")[0].firstChild.nodeValue + "' class='idSubValue' target='_blank'>" + one2many[h].getElementsByTagName("linkname")[0].firstChild.nodeValue + "</a></li>";
-                                                                        }
-                                                                        // No html links, linkname and linkurl tags not used in returned XML
-                                                                        else {
-                                                                            tmpStr += "<li class='idSubValue'>" + one2many[h].childNodes[0].nodeValue + "</li>";
-                                                                        }
-                                                                    }
-                                                                    tmpStr += "</ul style='margin-bottom: 0px; margin-top: 0px;'>";
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    processedDatabaseCalls++;
-                                                    // don't add it twice, but add it to the features geometry array
-                                                    if (str.indexOf(tmpStr) == -1) {
-                                                        // highlight polygon/point on mouse over, hide highlight on mouse out
-                                                        //str += "<div onMouseOver='javascript:highlightFeature(\""+(features.length-1)+"\",true)' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div></div><br/>";
-                                                        str += tmpStr+"</div><br/>";
-                                                        //groupContent[identifyGroup] = str; // cache content
-                                                    }
-                                                    //features.push(r.feature);
-                                                }
-                                                // if failed
-                                                else {
-                                                    if (XMLHttpRequestObjects[arrIndex].status == 404) {
-                                                        alert("Identify failed. File not found: " + url, "Data Error");
-                                                        processedDatabaseCalls = numDatabaseCalls;
-                                                        accumulateContent(str);
-                                                    } else {
-                                                        alert("Identify failed for call to " + url + ". Make sure it exists and does not have errors. Must be in the same directory as index.html or a lower directory. XMLHttpRequestObjects[" + arrIndex + "].status was " + XMLHttpRequestObjects[arrIndex].status, "Data Error");
-                                                        processedDatabaseCalls = numDatabaseCalls;
-                                                        accumulateContent(str);
-                                                    }
-                                                }
-                                                // Check if all have finished
-                                                var isAllComplete = true;
-                                                for (var i = 0; i < numDatabaseCalls; i++) {
-                                                    if ((!XMLHttpRequestObjects[i]) || (XMLHttpRequestObjects[i].readyState !== 4)) {
-                                                        isAllComplete = false;
-                                                        break;
-                                                    }
-                                                }
-                                                if (isAllComplete) {
-                                                    accumulateContent(str);
-                                                    // highlight first feature if none were specified by pre_title title title_field in SettingsWidget.xml file
-                                                    //if (numHighlightFeatures == 0){
-                                                    //    highlightFeature(0,true);
-                                                    //}
-                                                }
-                                            }
-                                        };
-                                    }(index);
-                                    XMLHttpRequestObjects[index].send();
-                                } catch (error) {
-                                    alert("Identify on " + r.layerName + " failed with error: " + error.message + " in javascript/identify.js handleQueryResults().", "Data Error");
-                                    console.log(error.message);
-                                    hideLoading();
-                                }
-                            }
-                            // Layer without database call
-                            else {
-                                features.push(r.feature);
-                                tmpStr = "<span class='idTitle'>"+ r.layerName + "</span><div style='padding-left: 10px;'>";
-                                var first = true;
-                                // set header with the layer specified in SettingsWidget.xml file or use first field value
-                                if (theTitle[identifyGroup] == identifyGroup){
-                                    if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
-                                        if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
-                                            theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
-                                            highlightFeature(features.length-1,false);
-                                            highlightID = features.length-1;
-                                        }
-                                        // handle Bighorn and Goat GMU
-                                        else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && r.layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU Unit "+r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
-                                    }else {
-                                        theTitle[identifyGroup] = r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[0]];
-                                    }
-                                }
-                                view.popup.title = theTitle[identifyGroup];
-
-                                var minElev = -1;
-                                var maxElev = -1;
-                                for (i = 0; i < identifyLayers[identifyGroup][r.layerName].displaynames.length; i++) {
-                                    if ((r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] &&
-                                            r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== " " &&
-                                            r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== "Null" &&
-                                            r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== "")) {
-                                        // the first line does not need a carriage return
-                                        if (first) first = false;
-                                        else tmpStr += "<br/>";
-                                        // can't do substring on a number!
-                                        if ((typeof r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] === "string") &&
-                                            (r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].substring(0, 4) == "http"))
-                                            tmpStr += "<a href='" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][r.layerName].displaynames[i] + "</a>";
-                                        else{
-                                            // Convert Min & Max Elevation display name values to ft and display only 1 decimal place
-                                            if (identifyLayers[identifyGroup][r.layerName].displaynames[i] === "Min Elevation"){
-                                                minElev =  r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] *3.2808;
-                                                tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": </span><span class='idSubValue'>" + minElev.toFixed(1)+" ft.</span>";
-                                            }
-                                            else if (identifyLayers[identifyGroup][r.layerName].displaynames[i] === "Max Elevation"){
-                                                maxElev =  r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] *3.2808;
-                                                tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": </span><span class='idSubValue'>" + maxElev.toFixed(1)+" ft.</span>";
-                                            }
-                                            // format numbers to 1 decimal place TODO? ************************
-                                            //if(r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== "" &&
-                                            //   r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]] !== " " && 
-                                            //   !isNaN(r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]])){
-                                            //    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": </span><span class='idSubValue'>" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]].toFixed(1)+"</span>";
-                                            //}
-                                            else
-                                                tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][r.layerName].displaynames[i] + ": </span><span class='idSubValue'>" + r.feature.attributes[identifyLayers[identifyGroup][r.layerName].fields[i]]+"</span>";
-                                        }
-                                    }
-                                }
-                                if (minElev !== -1 && maxElev !== -1) {
-                                    tmpStr += "<br><span class='idSubTitle'>Elevation Gain: </span><span class='idSubValue'>" + (maxElev - minElev).toFixed(1)+" ft.</span>";
-                                }
-
-                                // don't add it twice, but add it to the features geometry array
-                                if (str.indexOf(tmpStr) == -1) {
-                                    // highlight polygon/point on mouse over, hide highlight on mouse out
-                                    // str += "<div onMouseOver='javascript:highlightFeature(\""+(features.length-1)+"\",true)' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div></div><br/>";
-                                    // needed if not using highlight
-                                    str += tmpStr+"</div><br/>";
-                                    //groupContent[identifyGroup] = str; // cache content
-                                }
-                                //features.push(r.feature);
-                            }
-                        }
+                        var tmpStr = writeFeatureContent(r.feature,r.layerName);
+                        if (str.indexOf(tmpStr) == -1) 
+                            str += tmpStr;
                     });
                     groupObj.push({
                         identifyGroup: identifyGroup,
@@ -1213,10 +1080,24 @@ function handleQueryResults(results) {
                         features: features
                     });
                 }
-                // buffered point Query not Identify
+                // Feature Server uses Query not Identify
                 else if (result.features && result.features.length > 0) {
                     noData = false;
+                    const theLayerName = result.layerName;
                     result.features.forEach(function(feature){
+                        var tmpStr = writeFeatureContent(feature,theLayerName);
+                        if (str.indexOf(tmpStr) == -1) 
+                            str += tmpStr;
+                    });
+                    
+                    groupObj.push({
+                        identifyGroup: identifyGroup,
+                        title: theTitle[identifyGroup],
+                        content: str,
+                        highlightID: highlightID,
+                        features: features
+                    });
+                    /*result.features.forEach(function(feature){
                         // Get distance from click point to feature
                         require(["esri/geometry/Point","esri/geometry/support/geodesicUtils"],
                             function (Point, geodesicUtils){
@@ -1231,7 +1112,7 @@ function handleQueryResults(results) {
                             console.log("Campground: "+feature.attributes['name']+" Distance: ", distance, ", Direction: ", azimuth);
                         });  
                         
-                    });
+                    });*/
                 }
             });
             // highlight first feature if none were specified by pre_title title title_field in SettingsWidget.xml file
@@ -1247,6 +1128,230 @@ function handleQueryResults(results) {
     //});
 }
 
+function writeFeatureContent(feature,layerName){
+
+    var str = "";
+    var tmpStr = "";
+    feature.attributes.layerName = layerName;
+
+    if (typeof identifyLayers[identifyGroup][layerName] != 'undefined') {
+        // Layer with database call
+        if (typeof identifyLayers[identifyGroup][layerName].database != 'undefined') {
+            try {
+                createMultiXMLhttpRequest();
+                var url = app + "/" + identifyLayers[identifyGroup][layerName].database + "?v=" + ndisVer + "&key=" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                XMLHttpRequestObjects[index].open("GET", url, true); // configure object (method, url, async)
+                // register a function to run when the state changes, if the request
+                // has finished and the stats code is 200 (OK) write result
+                XMLHttpRequestObjects[index].onreadystatechange = function(arrIndex) {
+                    return function() {
+                        if (XMLHttpRequestObjects[arrIndex].readyState == 4) {
+                            if (XMLHttpRequestObjects[arrIndex].status == 200) {
+                                tmpStr = "<span class='idTitle'>"+layerName + "</span><div style='padding-left: 10px;'>";
+
+                                features.push(feature);
+                                var xmlDoc = createXMLdoc(XMLHttpRequestObjects[arrIndex]);
+                                
+                                // set header with the layer specified in SettingsWidget.xml file or use first field value
+                                if (theTitle[identifyGroup] == identifyGroup){
+                                    if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
+                                        if(layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
+                                            theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+feature.attributes[identifyLayers[identifyGroup].titleField];
+                                            highlightFeature(features.length-1,false);
+                                            highlightID = features.length-1;
+                                        }
+                                        // handle Bighorn and Goat GMU
+                                        else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU Unit "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                                    }else {
+                                        theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                                    }
+                                }
+                                view.popup.title = theTitle[identifyGroup];
+                                // set the popup title
+                                //if (layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                                //else theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                                //view.popup.title = theTitle[identifyGroup];
+                                
+                                for (i = 0; i < identifyLayers[identifyGroup][layerName].displaynames.length; i++) {
+                                    if ((i > 0 && feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] &&
+                                            feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== " " &&
+                                            feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "Null" &&
+                                            feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "")) {
+                                        // link
+                                        if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
+                                                (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) == "http"))
+                                            tmpStr += "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a>";
+                                        else {
+                                            if ((feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 7) == "<a href") && (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].indexOf("target") == -1))
+                                                tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ":</span><span class='idSubValue'> " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].replace(">", " target='_blank'>")+"</span>";
+                                            else{
+                                                // format numbers to 1 decimal place TODO *******************
+                                                //if(!isNaN(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]])){
+                                                //    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ":</span><span class='idSubValue'> " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(1)+"</span>";
+                                                //} else
+                                                    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ":</span><span class='idSubValue'> " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]+"</span>";
+                                            }
+                                        }
+                                        tmpStr += "<br/>";
+                                    }
+                                    // add the database info at position specified
+                                    if (identifyLayers[identifyGroup][layerName].position == i) {
+                                        //features.push(feature);
+                                        // one2one_display: one2one_fields values
+                                        if (typeof identifyLayers[identifyGroup][layerName].one2one_fields != "undefined") {
+                                            for (j = 0; j < identifyLayers[identifyGroup][layerName].one2one_fields.length; j++) {
+                                                if (xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2one_fields[j]).length > 0) {
+                                                    var one2one_field = xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2one_fields[j])[0];
+                                                    if ((one2one_field.getElementsByTagName("linkname").length > 0) && (one2one_field.getElementsByTagName("linkurl").length > 0)) {
+                                                        tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].one2one_display[j] + ": </span>";
+                                                        tmpStr += "<a href='" + one2one_field.getElementsByTagName("linkurl")[0].firstChild.nodeValue + "' class='idSubValue'>" + one2one_field.getElementsByTagName("linkname")[0].firstChild.nodeValue + "</a>";
+                                                        tmpStr += "<br/>";
+                                                    } else if (one2one_field.childNodes.length > 0) {
+                                                        tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].one2one_display[j] + ": </span>";
+                                                        tmpStr += "<span class='idSubValue'>"+one2one_field.childNodes[0].nodeValue+"</span>";
+                                                        tmpStr += "<br/>";
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        // one2many bulleted list
+                                        if (typeof identifyLayers[identifyGroup][layerName].one2many_fields != "undefined") {
+                                            for (j = 0; j < identifyLayers[identifyGroup][layerName].one2many_fields.length; j++) {
+                                                var one2many = xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2many_fields[j]);
+                                                tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[0] + ":</span><ul style='margin-top: 0px; margin-bottom: 0px;'>";
+                                                for (var h = 0; h < one2many.length; h++) {
+                                                    //if (typeof one2many[h].children[0] != "undefined" && one2many[h].children[0].nodeName == "linkname" && one2many[h].children[1].nodeName == "linkurl") {
+                                                    if ((one2many[h].getElementsByTagName("linkname").length > 0) && (one2many[h].getElementsByTagName("linkurl").length > 0)) {
+                                                        tmpStr += "<li><a href='" + one2many[h].getElementsByTagName("linkurl")[0].firstChild.nodeValue + "' class='idSubValue' target='_blank'>" + one2many[h].getElementsByTagName("linkname")[0].firstChild.nodeValue + "</a></li>";
+                                                    }
+                                                    // No html links, linkname and linkurl tags not used in returned XML
+                                                    else {
+                                                        tmpStr += "<li class='idSubValue'>" + one2many[h].childNodes[0].nodeValue + "</li>";
+                                                    }
+                                                }
+                                                tmpStr += "</ul style='margin-bottom: 0px; margin-top: 0px;'>";
+                                            }
+                                        }
+                                    }
+                                }
+                                processedDatabaseCalls++;
+                                // don't add it twice, but add it to the features geometry array
+                                if (str.indexOf(tmpStr) == -1) {
+                                    // highlight polygon/point on mouse over, hide highlight on mouse out
+                                    //str += "<div onMouseOver='javascript:highlightFeature(\""+(features.length-1)+"\",true)' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div></div><br/>";
+                                    str += tmpStr+"</div><br/>";
+                                    //groupContent[identifyGroup] = str; // cache content
+                                }
+                                //features.push(feature);
+                            }
+                            // if failed
+                            else {
+                                if (XMLHttpRequestObjects[arrIndex].status == 404) {
+                                    alert("Identify failed. File not found: " + url, "Data Error");
+                                    processedDatabaseCalls = numDatabaseCalls;
+                                    accumulateContent(str);
+                                } else {
+                                    alert("Identify failed for call to " + url + ". Make sure it exists and does not have errors. Must be in the same directory as index.html or a lower directory. XMLHttpRequestObjects[" + arrIndex + "].status was " + XMLHttpRequestObjects[arrIndex].status, "Data Error");
+                                    processedDatabaseCalls = numDatabaseCalls;
+                                    accumulateContent(str);
+                                }
+                            }
+                            // Check if all have finished
+                            var isAllComplete = true;
+                            for (var i = 0; i < numDatabaseCalls; i++) {
+                                if ((!XMLHttpRequestObjects[i]) || (XMLHttpRequestObjects[i].readyState !== 4)) {
+                                    isAllComplete = false;
+                                    break;
+                                }
+                            }
+                            if (isAllComplete) {
+                                accumulateContent(str);
+                                // highlight first feature if none were specified by pre_title title title_field in SettingsWidget.xml file
+                                //if (numHighlightFeatures == 0){
+                                //    highlightFeature(0,true);
+                                //}
+                            }
+                        }
+                    };
+                }(index);
+                XMLHttpRequestObjects[index].send();
+            } catch (error) {
+                alert("Identify on " + layerName + " failed with error: " + error.message + " in javascript/identify.js handleQueryResults().", "Data Error");
+                console.log(error.message);
+                hideLoading();
+            }
+        }
+        // Layer without database call
+        else {
+            features.push(feature);
+            tmpStr = "<span class='idTitle'>"+ layerName + "</span><div style='padding-left: 10px;'>";
+            var first = true;
+            // set header with the layer specified in SettingsWidget.xml file or use first field value
+            if (theTitle[identifyGroup] == identifyGroup){
+                if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
+                    if(layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
+                        theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+feature.attributes[identifyLayers[identifyGroup].titleField];
+                        highlightFeature(features.length-1,false);
+                        highlightID = features.length-1;
+                    }
+                    // handle Bighorn and Goat GMU
+                    else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU Unit "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                }else {
+                    theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                }
+            }
+            view.popup.title = theTitle[identifyGroup];
+
+            var minElev = -1;
+            var maxElev = -1;
+            for (i = 0; i < identifyLayers[identifyGroup][layerName].displaynames.length; i++) {
+                if ((feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] &&
+                        feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== " " &&
+                        feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "Null" &&
+                        feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "")) {
+                    // the first line does not need a carriage return
+                    if (first) first = false;
+                    else tmpStr += "<br/>";
+                    // can't do substring on a number!
+                    if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
+                        (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) == "http"))
+                        tmpStr += "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a>";
+                    else{
+                        // Convert Min & Max Elevation display name values to ft and display only 1 decimal place
+                        if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Min Elevation"){
+                            minElev =  feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] *3.2808;
+                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + minElev.toFixed(1)+" ft.</span>";
+                        }
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Max Elevation"){
+                            maxElev =  feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] *3.2808;
+                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + maxElev.toFixed(1)+" ft.</span>";
+                        }
+                        // format numbers to 1 decimal place TODO? ************************
+                        //if(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "" &&
+                        //   feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== " " && 
+                        //   !isNaN(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]])){
+                        //    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(1)+"</span>";
+                        //}
+                        else
+                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]+"</span>";
+                    }
+                }
+            }
+            if (minElev !== -1 && maxElev !== -1) {
+                tmpStr += "<br><span class='idSubTitle'>Elevation Gain: </span><span class='idSubValue'>" + (maxElev - minElev).toFixed(1)+" ft.</span>";
+            }
+
+            // don't add it twice, but add it to the features geometry array
+            if (str.indexOf(tmpStr) == -1) {
+                // highlight polygon/point on mouse over, hide highlight on mouse out
+                // str += "<div onMouseOver='javascript:highlightFeature(\""+(features.length-1)+"\",true)' onMouseOut='javascript:removeHighlight()'>"+tmpStr+"</div></div><br/>";
+                // needed if not using highlight
+                str += tmpStr+"</div><br/>";
+            }
+        }
+    }
+    return str;     
+}
 var numHighlightFeatures=0;
 function highlightFeature(id,fade) {
     // highlight geometry, fade: true will fade, false will not fade

@@ -120,7 +120,19 @@
 					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
                 <layer  parentGroup="Transportation" label="BLM Roads and Trails" open="true" visible="true" alpha="1"
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />
-                <layer parentGroup="Transportation" label="RoadsTrails" open="true" visible="true" alpha="1.0"
+                <layer parentGroup="Transportation" label="Colorado Statd Parks Roads" visible="true" minScale="144448"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1" />
+                <!--layer parentGroup="Transportation" label="Trails" visible="true" minScale="72224"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/15" /-->
+                <!--layer parentGroup="Transportation" label="Trailheads" visible="true" minScale="72224"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/14" /-->
+                <layer parentGroup="Transportation" group="Trails" visible="true" open="false"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/"
+                    layerIds="14,15"
+                    layerVis="true,true"
+                    layerNames="Trailheads,Trails"
+                    minScale="144448"/>
+                <layer parentGroup="Transportation" label="RoadsTrails" open="true" visible="false" alpha="1.0"
                     url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer"/>
             <!-- Land and Access is hard coded in myLayerList.js to add correct GMU layer: big game, sheep, or goat -->
 			<layer label="Land and Access" open="true" type="dynamic" visible="true" alpha="1.0"
