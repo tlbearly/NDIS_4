@@ -47,10 +47,10 @@
     <!-- wkid is required.  This is the spatial reference number.-->
     <map top="85" wkid="102100"
     	 initialextent="-12350000 4250000 -11150000 5250000">
-         <!-- operationallayers:  Note: Displays in reverse order. -->
          <!-- Set open=true if you want this mapservice layer expanded at the start. -->
          <!-- Set opensublayer=comma delimited list of layer names under the mapservice checkbox to expand at the start. open must be true. -->
          <!--     example: open="true" opensublayer="Places of Interest,Township Range Sections" --> 
+        <!-- operationallayers:  Note: Displays in reverse order. -->
         <operationallayers>
             <layer label="Reference" open="false" type="dynamic" visible="false" alpha="0.85"
             		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Base_Map/MapServer"/>

@@ -227,14 +227,21 @@
 </layer>
 </folder>
 <folder label="Campgrounds">
-<!--  Campground   -->
-<layer label="Campground">
-<id>47</id>
-<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/</url>
-<geometry>point</geometry>
-<fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
-<displaynames>Name,Manager,Property Name,Reservable,More Information</displaynames>
-</layer>
+    <!--  Campground   -->
+    <layer label="Campgrounds and SWA Facilites"><!-- not working -->
+        <id>35</id>
+        <url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Base_Map/MapServer/</url>
+        <geometry>point</geometry>
+        <fields>Name,Manager</fields>
+        <displaynames>Name,Manager</displaynames>
+    </layer>
+    <layer label="Campground">
+        <id>47</id>
+        <url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/</url>
+        <geometry>point</geometry>
+        <fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
+        <displaynames>Name,Manager,Property Name,Reservable,More Information</displaynames>
+    </layer>
 </folder>
 <folder label="Offices and Hospitals">
 <!--  Emergency  -->

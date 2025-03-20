@@ -241,8 +241,9 @@
 				<id>15</id>
 				<url>https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/15</url>
 				<geometry>line</geometry>
+				<!-- Segment Length display name will round to 1 decimal place and add "mi"-->
 				<fields>name,type,surface,hiking,horse,dogs,motorcycle,snowmobile,ski,snowshoe,length_mi_,oneway,min_elevat,max_elevat</fields>
-				<displaynames>Name,Type,Surface type,Allows hiking,Allows horses,Allows dogs,Allows motorcycles,Allows snowmobiles,Allows skiing,Allows snowshoeing,Trail length in miles,One way,Min Elevation,Max Elevation</displaynames>
+				<displaynames>Name,Type,Surface type,Allows hiking,Allows horses,Allows dogs,Allows motorcycles,Allows snowmobiles,Allows skiing,Allows snowshoeing,Segment Length,One way,Min Elevation,Max Elevation</displaynames>
 			</layer>
 			<!--layer label="Trails Ours">
 				<id>2</id>
@@ -258,13 +259,16 @@
 				<fields>PLAN_ALLOW_MODE_TRNSPRT,ROUTE_PRMRY_NM,ROUTE_PRMRY_NUM,OHV_ROUTE_DSGNTN_LIM,OHV_DSGNTN_LIM_EXPLAIN,BLM_MILES</fields>
 				<displaynames>Allowed Mode of Transportation,Route Name,Route Number,OHV Route Designation Limitation,Explaination,Length in miles</displaynames>
 			</layer>
+			<!-- Identify.js will display icons and seasonal dates -->
 			<layer label="Motor Vehicle Use Map: Roads">
 				<id>1</id>
                 <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer</url>
 				<geometry>line</geometry>
-				<!--SURFACETYPE -->
-				<fields>NAME,SEG_LENGTH,HIGHCLEARANCEVEHICLE_DATESOPEN,TRACKED_OHV_GT50_DATESOPEN,OTHER_OHV_GT50_DATESOPEN,ATV_DATESOPEN,OTHERWHEELED_OHV_DATESOPEN,TRACKED_OHV_LT50_DATESOPEN,OTHER_OHV_LT50_DATESOPEN,MOTORCYCLE_DATESOPEN,SBS_SYMBOL_NAME</fields>
-				<displaynames>Name,Length in miles,High Clearance Vehicle Dates Open,Tracked OHV &gt; 50 Dates Open,Other OHV &gt; 50 Dates Open,ATV Dates Open,Other Wheeled OHV Dates Open,Tracked OHV &lt; 50 Dates Open,Other OHV &lt; 50 Dates Open,Motorcycle Dates Open,Maintained</displaynames>
+				<!--other options: HIGHCLEARANCEVEHICLE_DATESOPEN,TRACKED_OHV_GT50_DATESOPEN,OTHERWHEELED_OHV_DATESOPEN,TRACKED_OHV_LT50_DATESOPEN,OTHER_OHV_LT50_DATESOPEN, -->
+				<!-- for the icons to show up must add the following display names in this order: Seasonal,Motorcycle Dates Open,ATV Dates Open,OHV &gt; 50 Dates Open,Passenger Vehicle Dates Open -->
+				<!-- Segment Length display name will round to 1 decimal place and add "mi"-->
+				<fields>NAME,ID,GIS_MILES,SEASONAL,MOTORCYCLE_DATESOPEN,ATV_DATESOPEN,OTHER_OHV_GT50_DATESOPEN,PASSENGERVEHICLE_DATESOPEN,SURFACETYPE,SBS_SYMBOL_NAME</fields>
+				<displaynames>Name,Road #,Segment Length,Seasonal,Motorcycle Dates Open,ATV Dates Open,OHV &gt; 50 Dates Open,Passenger Vehicle Dates Open,Surface Type,Maintained</displaynames>
 			</layer>
 		</folder>
 	</tree>

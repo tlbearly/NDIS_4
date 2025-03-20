@@ -248,7 +248,7 @@ function addMapLayers(){
 
             // set Symbols
             // TODO: testing adding symbols
-            if (myLayer.url.indexOf("CPWAdminData")>0 && id == 15){
+            /*if (myLayer.url.indexOf("CPWAdminData")>0 && id == 15){
                 myLayer.renderer = {
                         type: "simple",
                         symbol: {
@@ -292,7 +292,7 @@ function addMapLayers(){
                 };
                 // TODO needs to be featureservice to add labels!!!!
                 myLayer.labelingInfo=[labelClass];
-            }
+            }*/
             // end set Symbols
 
             // Add MapService or FeatureLayer to mapLayers if it was not added already. mapLayers is definded in index.html
@@ -335,9 +335,9 @@ function addMapLayers(){
                 if (event.layer.id === view.allLayerViews.items[i].layer.id && view.allLayerViews.items[i].loaded) 
                     return;
             }
-    console.log(event.layer.id+" failed to load!!!!!!! ");
-    if (event.layer.loadError && event.layer.loadError.message) console.log("Error: "+event.layer.loadError.message+" Status: "+event.layer.loadStatus);
-    console.log("tries="+tries[event.layer.title]);
+    //console.log(event.layer.id+" failed to load!!!!!!! ");
+    //if (event.layer.loadError && event.layer.loadError.message) console.log("Error: "+event.layer.loadError.message+" Status: "+event.layer.loadStatus);
+    //console.log("tries="+tries[event.layer.title]);
             /*var layer=null;
             for(i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
                 if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label") === event.layer.id){
@@ -376,10 +376,10 @@ function addMapLayers(){
         }
 
         async function layerLoadHandler(event){
-            if (!isNaN(event.layer.id[0]))
-                console.log(event.layer.title +" loaded in layerLoadHandler.");
-            else
-                console.log(event.layer.id +" loaded in layerLoadHandler.");
+            //if (!isNaN(event.layer.id[0]))
+                //console.log(event.layer.title +" loaded in layerLoadHandler.");
+            //else
+                //console.log(event.layer.id +" loaded in layerLoadHandler.");
             
             // Set the arcade context for Wildfire Incidents to print at correct size
             // the input feature's geometry is expected
@@ -420,11 +420,15 @@ function addMapLayers(){
             }*/
             //*******************end wildfire *****************************/
 
-            // remove MVUM Status
+            // remove MVUM Status & "Visitor Map Symbology"
             if (event.layer.title === "Motor Vehicle Use Map" || event.layer.title === "MVUM"){
-                event.layer.sublayers.items[0].visible = false;
-                event.layer.sublayers.items[0].listMode = "hide";
-                event.layer.sublayers.items[0].legendEnabled = false;
+                for (var i=0;i<event.layer.sublayers.items.length;i++){
+                    if (event.layer.sublayers.items[i].title === "Status" || event.layer.sublayers.items[i].title === "Visitor Map Symbology"){
+                        event.layer.sublayers.items[i].visible = false;
+                        event.layer.sublayers.items[i].listMode = "hide";
+                        event.layer.sublayers.items[i].legendEnabled = false;
+                    }
+                }
             }
             // reorder layers (top layers and top groups) if it failed
             if (tries[event.layer.id] && tries[event.layer.id] > 1){
@@ -1090,7 +1094,7 @@ function addMapLayers(){
                 
                 // set Symbols
                 // TODO: testing adding symbols
-                if (fsLayer.url.indexOf("CPWAdminData")>-1 && url.indexOf(15) > -1){
+                /*if (fsLayer.url.indexOf("CPWAdminData")>-1 && url.indexOf(15) > -1){
                     fsLayer.renderer = {
                             type: "simple",
                             symbol: {
@@ -1134,7 +1138,7 @@ function addMapLayers(){
                     };
                     // TODO needs to be featureservice to add labels!!!!
                     fsLayer.labelingInfo=[labelClass];
-                }
+                }*/
                 // end set Symbols
 
                 // identify popup template

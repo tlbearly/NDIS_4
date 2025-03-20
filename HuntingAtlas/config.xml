@@ -44,7 +44,6 @@
     <!-- wkid is required.  This is the spatial reference number.-->
     <map top="85" wkid="102100"
     	initialextent="-12350000 4250000 -11150000 5250000">
-        <!-- operationallayers:  Note: Displays in reverse order. -->
         <!-- feature service or map service with groups and layers 
             tag: layer
             attributes:
@@ -94,26 +93,66 @@
                 popup_fields: fields to identify comma delimited (feature service only)
                 popup_labels: labels for the above fields comma delimited (feature service only)
         -->
+        <!-- operationallayers:  Note: Displays in reverse order. -->
         <operationallayers>
-			<!--layer label="Hunter Reference" open="true" type="dynamic" visible="false" alpha="0.6"
-					url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer"/-->
-			<layer label="Base Data" open="true" type="dynamic" visible="true" alpha="1.0" listMode="hide"
-                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer"/>
-			<!-- layers in groups must be feature services! -->
-            <!--layer group="Transportation2" open="false" visible="true" alpha="1" radio="false"/-->
-                <!--layer parentGroup="Transportation2" label="Trail Heads" alpha="1.0" visible="true"
-                    url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer/1"/-->
-                <!--layer parentGroup="Transportation2" label="Trails" alpha="1.0" visible="true"
-                    url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer/2"/-->
-                <!--layer group="MVUM" parentGroup="Transportation2" label="Motor Vehicle Use Map" open="true" type="dynamic" visible="true" alpha="1"
-                    url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"
-                    layerIds="1,2",
-                    layerVis="true,true"/-->
-                <!--layer parentGroup="Transportation2" label="Motor Vehicle Use Map Trails" open="true" type="dynamic" visible="true" alpha="1"
-                    url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/2"/-->
-                <!--layer parentGroup="Transportation2" label="BLM Roads and Trails" open="true" type="dynamic" visible="false" alpha="1"
-                    url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer/5" /-->
+            <!-- Land and Access is hard coded in myLayerList.js to add correct GMU layer: big game, sheep, or goat -->
+			<layer label="Land and Access" open="true" type="dynamic" visible="true" alpha="1.0"
+                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccess2025/MapServer"/>
+			
+            <!-- Game Species group layer Bob's -->
+            <layer group="Game Species" open="false" visible="false" alpha="0.7" radio="true"/>
+                <!--Elk layerNames="Migration Patterns,Migration Corridors,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Resident Population Area,Overall Range"-->
+                <!--Bighorn layerNames="Migration Patterns,Migration Corridors,Severe Winter Range,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Overall Range"-->
+                 <layer group="Black Bear" parentGroup="Game Species" open="false" visible="false"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
+                    layerIds="21,19,22"
+                    layerVis="true,true,true"
+                    layerNames="Black Bear Summer Concentration,Black Bear Fall Concentration,Black Bear Overall Range"/>
+                <layer group="White-Tailed Deer" parentGroup="Game Species" open="false" visible="false"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
+                    layerIds="193-195"
+                    layerVis="true,false,false"
+                    layerNames="White-Tailed Deer Concentration Area,White-Tailed Deer Winter Range,White-Tailed Deer Overall Range"/>
+                <layer group="Turkey" parentGroup="Game Species" open="false" visible="false"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
+                    layerIds="201-203"
+                    layerVis="true,true,true"
+                    layerNames="Turkey Winter Concentration Area,Turkey Winter Range,Turkey Overall Range"/>
+                <layer group="Pronghorn" parentGroup="Game Species" open="false" visible="false"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
+                    layerIds="115,119,121,122,124"
+                    layerVis="false,false,true,true,false"
+                    layerNames="Pronghorn Migration Patterns,Pronghorn Migration Corridors,Pronghorn Winter Concentration,Pronghorn Winter Range,Pronghorn Overall Range"/>
+                <layer group="Mule Deer" parentGroup="Game Species" open="false" visible="false"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
+                    layerIds="96,102,104,105,99"
+                    layerVis="false,true,true,true,true"
+                    layerNames="Mule Deer Migration Patterns,Mule Deer Migration Corridors,Mule Deer Winter Concentration Area,Mule Deer Winter Range,Mule Deer Summer Range"/>
+                <layer group="Mountain Goat" parentGroup="Game Species" open="false" visible="false"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
+                    layerIds="87,89-92"
+                    layerVis="true,true,true,true,false"
+                    layerNames="Mountain Goat Migration Cooridors,Mountain Goat Concentration Area,Mountain Goat Summer Range,Mountain Goat Winter Range,Mountain Goat Overall Range"/>
+                <layer group="Moose" parentGroup="Game Species" open="false" visible="false"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
+                    layerIds="80,82,84,83,85"
+                    layerVis="true,true,true,true,false"
+                    layerNames="Moose Migration Patterns,Moose Concentration Area,Moose Summer Range,Moose Winter Range,Moose Overall Range"/>
+                <layer group="Elk" parentGroup="Game Species" open="true" visible="true"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
+                    layerIds="33,40,42,43,36"
+                    layerVis="false,true,true,true,true"
+                    layerNames="Elk Migration Patterns,Elk Migration Corridors,Elk Winter Concentration Area,Elk Winter Range,Elk Summer Range"/>
+                <layer group="Bighorn Sheep" parentGroup="Game Species" open="false" visible="false"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
+                    layerIds="8,9,15-17,10,11,18"
+                    layerVis="false,true,true,true,true,false,true,false"
+                    layerNames="Bighorn Migration Patterns,Bighorn Migration Corridors,Bighorn Winter Severe Range,Bighorn Winter Concentration Area,Bighorn Winter Range,Bighorn Summer Concentration Area,Bighorn Summer Range,Bighorn Overall Range"/>
 
+            <layer label="Base Data" open="true" type="dynamic" visible="true" alpha="1.0" listMode="hide"
+                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer"/>
+
+            <!-- layers in groups must be feature services! -->
             <layer group="Transportation" visible="true" alpha="1" radio="false"/>
                 <!-- MVUM Status and Visitor Map Symbology are not used -->
                 <layer  parentGroup="Transportation" label="Motor Vehicle Use Map" open="true" visible="true" alpha="1"
@@ -122,10 +161,6 @@
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />
                 <layer parentGroup="Transportation" label="Colorado Statd Parks Roads" visible="true" minScale="144448"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1" />
-                <!--layer parentGroup="Transportation" label="Trails" visible="true" minScale="72224"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/15" /-->
-                <!--layer parentGroup="Transportation" label="Trailheads" visible="true" minScale="72224"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/14" /-->
                 <layer parentGroup="Transportation" group="Trails" visible="true" open="false"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/"
                     layerIds="14,15"
@@ -134,52 +169,6 @@
                     minScale="144448"/>
                 <layer parentGroup="Transportation" label="RoadsTrails" open="true" visible="false" alpha="1.0"
                     url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer"/>
-            <!-- Land and Access is hard coded in myLayerList.js to add correct GMU layer: big game, sheep, or goat -->
-			<layer label="Land and Access" open="true" type="dynamic" visible="true" alpha="1.0"
-                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccess2025/MapServer"/>
-			<!--layer label="Game Species" open="true" type="dynamic" visible="false" alpha="1.0"
-                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/GameSpecies2025/MapServer"/-->
-            <!-- Game Species group layer Bob's -->
-            <layer group="Game Species" open="false" visible="false" alpha="0.7" radio="true"/>
-                <!--Elk layerNames="Migration Patterns,Migration Corridors,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Resident Population Area,Overall Range"-->
-                <!--Bighorn layerNames="Migration Patterns,Migration Corridors,Severe Winter Range,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Overall Range"-->
-                 <layer group="Black Bear" parentGroup="Game Species" open="false" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="21,19,22"
-                    layerVis="true,true,true"/>
-                <layer group="White-Tailed Deer" parentGroup="Game Species" open="false" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="194,193,195"
-                    layerVis="true,false,false"/>
-                <layer group="Turkey" parentGroup="Game Species" open="false" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="201-203"
-                    layerVis="true,true,true"/>
-                <layer group="Pronghorn" parentGroup="Game Species" open="false" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="115,119,121,122,124"
-                    layerVis="false,false,true,true,false"/>
-                <layer group="Mule Deer" parentGroup="Game Species" open="false" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="96,102,104,105,99"
-                    layerVis="false,true,true,true,true"/>
-                <layer group="Mountain Goat" parentGroup="Game Species" open="false" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="87,89-92"
-                    layerVis="true,true,true,true,false"/>
-                    <!-- Missing Moose Migration Corridors -->
-                <layer group="Moose" parentGroup="Game Species" open="false" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="80,82-85"
-                    layerVis="true,true,true,true,false"/>
-                <layer group="Elk" parentGroup="Game Species" open="true" visible="true"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="33,40,42,43,36"
-                    layerVis="false,true,true,true,true"/>
-                <layer group="Bighorn Sheep" parentGroup="Game Species" open="false" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="8,9,15-17,10,11,18"
-                    layerVis="false,true,true,true,true,false,true,false"/>
 
             <layer group="Wildfire" open="false" visible="false" alpha="1" radio="false"/>
                 <layer parentGroup="Wildfire" label="Wildfire Incidents" type="dynamic" visible="true" alpha="0.8" 

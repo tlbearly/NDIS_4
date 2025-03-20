@@ -696,6 +696,8 @@ function displayContent() {
                             identifyParams.tolerance = 5;
                         else if (view.scale <= 288895)
                             identifyParams.tolerance = 3;
+                        else if (view.scale <= 577791)
+                            identifyParams.tolerance = 4;
                         else
                             identifyParams.tolerance = 1;
                     } else
@@ -1120,6 +1122,11 @@ function handleQueryResults(results) {
                 highlightFeature(0,false);
                 highlightID = 0;
             }
+            // preTitle and title used in config.xml but geometry was not clicked on. For example Goat GMU clicked outside gmu polygon
+            else if (numHighlightFeatures == -1){
+                highlightFeature(-1,false);
+                highlightID = -1;
+            }
             accumulateContent(str);
         } catch (e) {
             alert(e.message + " in javascript/identify.js handleQueryResults().", "Code Error", e);
@@ -1289,13 +1296,18 @@ function writeFeatureContent(feature,layerName){
             // set header with the layer specified in SettingsWidget.xml file or use first field value
             if (theTitle[identifyGroup] == identifyGroup){
                 if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
+                    numHighlightFeatures=-1;
                     if(layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
                         theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+feature.attributes[identifyLayers[identifyGroup].titleField];
                         highlightFeature(features.length-1,false);
                         highlightID = features.length-1;
                     }
                     // handle Bighorn and Goat GMU
-                    else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU Unit "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                    else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1){
+                        theTitle[identifyGroup] = "GMU Unit "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                        highlightFeature(features.length-1,false);
+                        highlightID = features.length-1;
+                    }
                 }else {
                     theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
                 }
@@ -1304,6 +1316,7 @@ function writeFeatureContent(feature,layerName){
 
             var minElev = -1;
             var maxElev = -1;
+            var yearlong = false; // seasonal roads if open year long do not display dates open
             for (i = 0; i < identifyLayers[identifyGroup][layerName].displaynames.length; i++) {
                 if ((feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] &&
                         feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== " " &&
@@ -1320,12 +1333,81 @@ function writeFeatureContent(feature,layerName){
                         // Convert Min & Max Elevation display name values to ft and display only 1 decimal place
                         if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Min Elevation"){
                             minElev =  feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] *3.2808;
-                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + minElev.toFixed(1)+" ft.</span>";
+                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + minElev.toFixed(1)+"'</span>";
                         }
                         else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Max Elevation"){
                             maxElev =  feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] *3.2808;
-                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + maxElev.toFixed(1)+" ft.</span>";
+                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + maxElev.toFixed(1)+"'</span>";
                         }
+                        // Trail or Road Segment Length round
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Segment Length"){
+                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>";
+                            tmpStr +=  feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(1)+"mi</span>";
+                        }
+                        // MVUM Seasonal Roads
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Seasonal"){
+                            // If MVUM SEASONAL is yearlong do not display the dates January = December
+                            if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "yearlong"){
+                                yearlong = true;
+                            }
+                            tmpStr = tmpStr.substring(0,tmpStr.length - 5); // remove blank line
+                            tmpStr += "<ul class='vertical-meta-list'>";
+                        }
+                        // MVUM Seasonal Roads Motorcycle Dates Open yearlong
+                        else if (yearlong && identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Motorcycle Dates Open")>-1){
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(118, 176, 83);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-motorcycle-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<dl><dt>Allows Motorcycles</dt>';
+                            tmpStr += "<dd class='idSubValue'>Yes</dd></dl></li>";
+                            //tmpStr = tmpStr.substring(0,tmpStr.length - 5); // remove blank line
+                        }
+                        // MVUM Seasonal Roads Motorcycle Dates Open, Seasonal dates
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Motorcycle Dates Open")>-1){
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(202, 160, 76);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-motorcycle-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<dl><dt>Allows Motorcycles</dt>';
+                            tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + " · Seasonally</dd></dl></li>";
+                        }
+                        
+                        // MVUM Seasonal Roads ATVs Dates Open yearlong
+                        else if (yearlong && identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("ATV Dates Open")>-1){
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(118, 176, 83);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-atv-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<dl><dt>Allows ATVs</dt>';
+                            tmpStr += "<dd class='idSubValue'>Yes</dd></dl></li>";
+                            //tmpStr = tmpStr.substring(0,tmpStr.length - 5); // remove blank line
+                        }
+                        // MVUM Seasonal Roads ATVs Dates Open, Seasonal dates
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("ATV Dates Open")>-1){
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(202, 160, 76);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-atv-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<dl><dt>Allows ATVs</dt>';
+                            tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + " · Seasonally</dd></dl></li>";
+                        }
+                        
+                        // MVUM Seasonal Roads OHVs > 50 Dates Open yearlong
+                        else if (yearlong && identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("OHV > 50 Dates Open")>-1){
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(118, 176, 83);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-dune-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<dl><dt>Allows OHVs&gt;50"</dt>';
+                            tmpStr += "<dd class='idSubValue'>Yes</dd></dl></li>";
+                            //tmpStr = tmpStr.substring(0,tmpStr.length - 5); // remove blank line
+                        }
+                        // MVUM Seasonal Roads Highway Vehicles Dates Open, Seasonal dates
+                        else if ( identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("OHV > 50 Dates Open")>-1){
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(202, 160, 76);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-dune-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<dl><dt>Allows OHVs&gt;50"</dt>';
+                            tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + " · Seasonally</dd></dl></li>";
+                        }
+                        // MVUM Seasonal Roads Highway Vehicles Dates Open yearlong
+                        else if (yearlong && identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Passenger Vehicle Dates Open")>-1){
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(118, 176, 83);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-drive-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<dl><dt>Allows Highway Vehicles</dt>';
+                            tmpStr += "<dd class='idSubValue'>Yes</dd></dl></li></ul>";
+                            //tmpStr = tmpStr.substring(0,tmpStr.length - 5); // remove blank line
+                        }
+                        // MVUM Seasonal Roads Highway Vehicles Dates Open, Seasonal dates
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Passenger Vehicle Dates Open")>-1){
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(202, 160, 76);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-drive-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<dl><dt>Allows Highway Vehicles</dt>';
+                            tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + " · Seasonally</dd></dl></li></ul>";
+                        }
+
                         // format numbers to 1 decimal place TODO? ************************
                         //if(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "" &&
                         //   feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== " " && 
@@ -1338,7 +1420,7 @@ function writeFeatureContent(feature,layerName){
                 }
             }
             if (minElev !== -1 && maxElev !== -1) {
-                tmpStr += "<br><span class='idSubTitle'>Elevation Gain: </span><span class='idSubValue'>" + (maxElev - minElev).toFixed(1)+" ft.</span>";
+                tmpStr += "<br><span class='idSubTitle'>Elevation Gain: </span><span class='idSubValue'>" + (maxElev - minElev).toFixed(1)+"'</span>";
             }
 
             // don't add it twice, but add it to the features geometry array
@@ -1357,15 +1439,19 @@ function highlightFeature(id,fade) {
     // highlight geometry, fade: true will fade, false will not fade
     if (features[id] && features[id].geometry && (features[id].geometry != undefined && features[id].geometry.type)) {
         //if (features[id].geometry.type === undefined || !features[id].geometry.type) return;
-        if (features[id].geometry.type === "point" ) {
-            addHighlightPoint(features[id],fade);
-            numHighlightFeatures++;
-        }else if (features[id].geometry.type === "polygon" && view.scale <= 4000000) {
-            addTempPolygon(features[id],fade);
-            numHighlightFeatures++;
-        } else if (features[id].geometry.type === "polyline") {
-            addTempLine(features[id],fade);
-            numHighlightFeatures++;
+        if (numHighlightFeatures == -1)numHighlightFeatures = 0;
+        // if id is -1 do not highlight geometry. This had preTitle and title in config.xml but geometry was not clicked on.
+        if (id > -1){
+            if (features[id].geometry.type === "point" ) {
+                addHighlightPoint(features[id],fade);
+                numHighlightFeatures++;
+            }else if (features[id].geometry.type === "polygon" && view.scale <= 4000000) {
+                addTempPolygon(features[id],fade);
+                numHighlightFeatures++;
+            } else if (features[id].geometry.type === "polyline") {
+                addTempLine(features[id],fade);
+                numHighlightFeatures++;
+            }
         }
     }
 

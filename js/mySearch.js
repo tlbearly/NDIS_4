@@ -294,7 +294,7 @@ function addSearch() {
         homeIcon.icon="home";
         homeWidget.appendChild(homeIcon);
         homeWidget.addEventListener("click",function(){
-            view.goTo(initExtent);
+            view.goTo(fullExtent);
         });
         view.ui.add(homeWidget, "top-left");
         

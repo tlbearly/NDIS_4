@@ -52,8 +52,8 @@ function myLayerList() {
     list.id = "customLayerList";
 
     // Add each root layer to layer list
-    for (var i = 0; i < mapLayers.length; i++) {
-    //for (var i=mapLayers.length-1; i>-1; i--) {
+    //for (var i = 0; i < mapLayers.length; i++) {
+    for (var i=mapLayers.length-1; i>-1; i--) {
         if (mapLayers[i].listMode === "hide") continue;
         const rootlayer = mapLayers[i]; // rootLayers
         
@@ -244,7 +244,7 @@ function addToLayerListIfAllLoaded(layer){
     var loaded = true;
 
     // transportation is not work!!! so remove loading icon and continue
-    if (layer.title === "Transportation") {
+    /*if (layer.title === "Transportation") {
         const list = document.getElementById("customLayerList");
         if (list) {
             const listItems = list.children;
@@ -259,7 +259,7 @@ function addToLayerListIfAllLoaded(layer){
             }
         }
         return true;
-    }
+    }*/
     // Make sure the layer has been added to the customLayerList and has 4 children: image, title, wait icon, switch
     /*const list = document.getElementById("customLayerList");
     if (!list) loaded = false;
@@ -392,10 +392,10 @@ function setGMU(item){
     }
     // Show correct GMU layer, hide others
     var landLayer = document.getElementById("Land and Access".replace(/ /g, "_") + "_dialog");
-    var gmuLayer = landLayer.querySelector("tr").querySelectorAll("calcite-switch");
+    var gmuLayer = landLayer.querySelectorAll("tr");
     for (var i=0; i< gmuLayer.length; i++){
-        if (gmuLayer[i].layer.title === "GMU boundary (Hunting Units)"){
-            gmuLayer[i].layer.sublayers.items.forEach((gmuScale) => {
+        if(gmuLayer[i].querySelectorAll("calcite-switch")[0].layer.title === "GMU boundary (Hunting Units)"){
+            gmuLayer[i].querySelectorAll("calcite-switch")[0].layer.sublayers.items.forEach((gmuScale) => {
                 // Big Game GMU, Bighorn GMU, and Goat GMU
                 gmuScale.sublayers.items.forEach((gmuAnimal) => {
                     switch (gmu) {
@@ -445,12 +445,26 @@ function layerListAddSublayerDialogs(event,theLayer){
 
         if(layer.listMode === "hide")return;
         // Make sure all sublayers have loaded
-        if (!addToLayerListIfAllLoaded(layer)) return;
+        //if (!addToLayerListIfAllLoaded(layer)) return;
         // remove loading on parent root layer if loaded
-        //addToLayerListIfAllLoaded(layer);
+        // Remove loading status icon in parent dialog
+        // search for listItem
+        const list = document.getElementById("customLayerList");
+        if (list) {
+            const listItems = list.children;
+            for (var i = 0; i < listItems.length; i++) {
+                if (listItems[i].label === layer.title) {
+                    // children: picture, title, status, switch
+                    listItems[i].children[2].children[0].icon = "chevron-right";
+                    listItems[i].children[2].children[0].className=""; // remove loading fading
+                    listItems[i].children[2].children[0].title = "Show "+listItems[i].children[1].innerHTML+" layers.";
+                    break;
+                }
+            }
+        }
 
         // then create sub-layer dialogs
-        console.log("creating layer dialog for: "+layer.title);
+        //console.log("creating layer dialog for: "+layer.title);
         // POPUP DIALOG for each Root Layer
         try {
             var sublayerDialog = document.createElement("calcite-dialog");
@@ -688,6 +702,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                             var subLayerIcon = document.createElement("td");
                             var img = document.createElement("img");
                             subLayerIcon.appendChild(img);
+                            subLayerIcon.style.width = "0px";
+                            subLayerListItem.appendChild(subLayerIcon);
                             // end picture of legend
                             
                             // Layer Name
@@ -717,13 +733,11 @@ function layerListAddSublayerDialogs(event,theLayer){
                             subLayerListHeader.style.fontSize = listFontSize;
                             subLayerListHeader.style.margin = "0";
                             subLayerListHeader.innerHTML = item[i].title.replace("CPWSpeciesData -",""); // title displayed
-                            //subLayerListHeader.slot = "content";
                             subLayerListItem.label = item[i].title.replace("CPWSpeciesData -","");
-                            //subLayerListItem.heading = item[i].title.replace("CPWSpeciesData -","");
                             subLayerListItem.appendChild(subLayerListHeader);
 
                             // Status has layer loaded?
-                            /*var statusColumn = document.createElement("td");
+                            var statusColumn = document.createElement("td");
                             const icon = document.createElement("calcite-icon");
                             icon.id = "statusIcon";
                             if (item[i].loaded){
@@ -734,15 +748,24 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 icon.label = "loading...";
                                 icon.title = "loading...";
                                 icon.style.marginRight = "5px";
+                            
+                                item[i].on("layerview-create", function(event){
+                                    icon.icon = "";
+                                    icon.label = "";
+                                    icon.title = "";
+                                    icon.className = "";
+                                });
                             }
                             statusColumn.appendChild(icon)
-                            subLayerListItem.appendChild(statusColumn);*/
+                            subLayerListItem.appendChild(statusColumn);
 
                             // Add Switch to actions-end of list Item
                             subLayerVisibility = document.createElement("td");
                             subLayeronOffBtn = document.createElement("calcite-switch");
                             subLayeronOffBtn.slot = "actions-end";
                             subLayeronOffBtn.layer = item[i];
+                            subLayeronOffBtn.label = item[i].title + " visibility";
+                            subLayeronOffBtn.title = item[i].title + " visibility";
                             subLayeronOffBtn.style.paddingTop = "10px";
                             subLayeronOffBtn.setAttribute("scale", "l"); // large
                             if (item[i].visible) subLayeronOffBtn.checked = true;
@@ -860,7 +883,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                     // 1st level group layers
                     let element = sublayerArr.items;
                     for (var i=element.length-1; i>-1; i--) {
-                        console.log("-->"+element[i].title);
+                        //console.log("-->"+element[i].title);
                         if (element[i].listMode === "show") {
                             // 2nd level group
                             // tr td calcite-block
@@ -869,7 +892,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                             if (hideGroupSublayers.indexOf(element[i].title) == -1 && (element[i].layers || element[i].sublayers)){
                                 let blockRow = document.createElement("tr");
                                 let blockCol = document.createElement("td");
-                                blockCol.colSpan = "2";
+                                blockCol.colSpan = "3";
                                 blockRow.appendChild(blockCol);
                                 let subLayerGroup = document.createElement("calcite-block");
                                 subLayerGroup.heading = element[i].title;
@@ -939,9 +962,9 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 if (subSublayerArr && subSublayerArr.items) {
                                     const item = subSublayerArr.items;
                                     for (var j=item.length-1; j>-1; j--) {
-                                        console.log("--> -->"+item[j].title);
+                                        //console.log("--> -->"+item[j].title);
 
-                                        // Don't include MVUS Status or Visitor Map Symbology
+                                        // Don't include MVUM Status or Visitor Map Symbology
                                         if ((element[i].title === "Motor Vehicle Use Map" || element[i].title === "MVUM") &&
                                         (item[j].title === "Status" || item[j].title === "Visitor Map Symbology")){
                                             item[j].listMode = "hide";
@@ -988,21 +1011,38 @@ function layerListAddSublayerDialogs(event,theLayer){
 
                                             // Status has layer loaded?
                                             const iconDiv = document.createElement("div");
-                                            /*const icon = document.createElement("calcite-icon");
-                                            icon.id = "statusIcon";
-                                            if (item[j].loaded){
-                                                icon.icon = "";
-                                            }else {
-                                                icon.icon = "offline";
-                                                icon.className = "waitingForConnection";
-                                                icon.label = "loading...";
-                                                icon.title = "loading...";
-                                                icon.style.marginRight = "5px";
+                                            if(item[j].type != "group"){
+                                                const icon = document.createElement("calcite-icon");
+                                                icon.id = "statusIcon";
+                                                var testLayer = item[j];
+                                                if (item[j].type === "sublayer") testLayer = item[j].parent;
+                                                if (testLayer.type === "sublayer") testLayer = item[j].parent.parent;
+                                                if (testLayer.loaded){
+                                                    icon.icon = "";
+                                                }else {
+                                                    icon.icon = "offline";
+                                                    icon.className = "waitingForConnection";
+                                                    icon.label = "loading...";
+                                                    icon.title = "loading...";
+                                                    icon.style.marginRight = "5px";
+                                                
+                                                    console.log (item[j].title+" "+item[j].type);
+                                                    // TODO !!!!!!!!!!!!!!!!!!!!!!!! not working for all layers (sublayers)
+                                                    if(testLayer.on !== undefined) {
+                                                        testLayer.on("layerview-create", function(event){
+                                                            icon.icon = "";
+                                                            icon.label = "";
+                                                            icon.title = "";
+                                                            icon.className = "";
+                                                        });
+                                                    }else {
+                                                        alert("Failed to test if layer loaded: "+item[j].title);
+                                                    }
+                                                }
+                                                iconDiv.appendChild(icon);
                                             }
-                                            iconDiv.appendChild(icon);*/
                                             subLayerListItem2.appendChild(iconDiv);
                                             
-
                                             // Add Switch to actions-end of list Item
                                             const switchDiv = document.createElement("div");
                                             let subLayeronOffBtn = document.createElement("calcite-switch");
@@ -1062,7 +1102,46 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 //subLayerListHeader.slot = "content";
                                 subLayerListItem.appendChild(subLayerListHeader);
                                 subLayerList.appendChild(subLayerListItem);
-                            
+                                
+                                // add status icon
+                                const iconDiv = document.createElement("td");
+                                if(element[i].type != "group"){
+                                    const icon = document.createElement("calcite-icon");
+                                    icon.id = "statusIcon";
+                                    var testLayer = element[i];
+                                    if (element[i].type === "sublayer") testLayer = element[i].parent;
+                                    if (testLayer.type === "sublayer") testLayer = element[i].parent.parent;
+                                    if (testLayer.loaded){
+                                        icon.icon = "";
+                                    }else {
+                                        icon.icon = "offline";
+                                        icon.className = "waitingForConnection";
+                                        icon.label = "loading...";
+                                        icon.title = "loading...";
+                                        icon.style.marginRight = "5px";
+                                    
+                                        console.log (element[i].title+" "+element[i].type);
+                                        if(testLayer.on !== undefined) {
+                                            testLayer.on("layerview-create", function(event){
+                                                icon.icon = "";
+                                                icon.label = "";
+                                                icon.title = "";
+                                                icon.className = "";
+                                            });
+                                        }else {
+                                            alert("Failed to test if layer loaded: "+element[i].title);
+                                        }
+                                    }
+                                    iconDiv.appendChild(icon);
+                                }
+                                subLayerListItem.appendChild(iconDiv);
+                                            
+
+
+
+
+
+
                                 // Add Switch to actions-end of list Item
                                 let subLayerVisibility = document.createElement("td");
                                 subLayerVisibility.style.float = "right";

@@ -16,13 +16,50 @@ body,
 }
 .idSubTitle{
   font-size: 16px;
-  font-weight: bold;
+  font-weight: normal;
   line-height: 20px;
   margin-right: 5px;
 }
 .idSubValue{
   font-size: 16px;
   line-height: 20px;
+  font-weight: bold;
+}
+/* Idenitfy Icons */
+.vertical-meta-list {
+  list-style: none;
+  margin: 0;
+  padding: 0
+}
+.vertical-meta-list li {
+  position: relative;
+  padding-left: 46px;
+  margin:0;
+}
+.vertical-meta-list dl {
+  margin: 0;
+  padding: 0;
+}
+.vertical-meta-list dd {
+  margin: 0;
+  padding: 0;
+}
+.vertical-meta-list-ico .class-ico {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 21px;
+  height: 21px;
+  margin-left: -11.5px;
+  margin-top: -11.5px;
+}
+.vertical-meta-list-ico{
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .esri-layer-list__item-content {
