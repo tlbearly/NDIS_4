@@ -406,36 +406,6 @@ function readIdentifyWidget() {
     xmlhttp.send();
 }
 
-/*function doIdentify1(evt) {
-    if (drawing) return; // If using Draw, Label, Measure widget return;
-    // 3-30-22 Allow double click to zoom in. Don't show identify popup if time since last click was < a 1/4 second
-    if (firstClick) secondClick = true;
-    else firstClick = true;
-    var d = new Date();
-    var now = d.getTime();
-    setTimeout(function(){
-        // if 2nd click was < a 1/4 second zoom in
-        if (secondClick && (now - lastIdentifyTime) < 250){
-            firstClick=false;
-            secondClick=false;
-            if (map.infoWindow.isShowing){
-                map.infoWindow.hide();
-                map.infoWindow.setTitle("");
-                hideLoading();
-            }        
-            return; // double click
-        }
-        else if (!firstClick) return;
-        else if (!secondClick) {           
-            firstClick=false;
-            secondClick=false;
-            doIdentify2(evt);
-        }
-    },250);
-    lastIdentifyTime = now;
-    return;
-}*/
-// 6-11/24 userd to be doIdentify2
 function doIdentify(evt){
     helpWidget.open = false;
     showLoading();
@@ -448,8 +418,8 @@ function doIdentify(evt){
     processedDatabaseCalls = 0;
     numHighlightFeatures = 0;
     features = [];
+    highlightID = -1;
     theEvt = evt; // Save the click point so we can call this again from changeIdentifyGroup
-    view.popup.title = "Identify";
 
     // Reset array of popupTemplate content for each group to null
     //if (groupContent["Way Point"]) delete groupContent["Way Point"]; // remove way point since we don't know if there is a way point here
@@ -459,37 +429,11 @@ function doIdentify(evt){
         theTitle[identifyGroups[i]] = null;
     }
     clickPoint = evt.mapPoint;
+    theTitle[identifyGroup] = identifyGroup;
+    view.popup.title = identifyGroup;
 
     displayContent();
 }
-
-/*function setIdentifyHeader() {
-    // Set title drop down
-    // Called by displayContent on empty content and handleQueryResults
-    var h = document.getElementsByClassName("esri-popup__main-container")[0];
-    if (!h || h.childNodes.length == 0) return;
-    title = "<span style='float:left;text-overflow:ellipsis;'>Show: <select id='id_group' name='id_group' style='margin: 5px;color:black;' onChange='changeIdentifyGroup(this)'>";
-    for (var i = 0; i < identifyGroups.length; i++) {
-        title += "<option";
-        if (identifyGroup == identifyGroups[i]) title += " selected";
-        title += ">" + identifyGroups[i] + "</option>";
-    }
-    title += "</select></span>";
-    if (h.childNodes[0].childNodes[0].childNodes[0].innerHTML.indexOf("<h") == 0){
-        h = h.childNodes[0].childNodes[0].childNodes[0].childNodes[0];
-        h.innerHTML = title;
-    }
-    else {
-        h = h.childNodes[0].childNodes[0].childNodes[0].childNodes[0];
-        var h2 = document.createElement("h2");
-        h2.slot = "header-content";
-        h2.ariaLevel = "2";
-        h2.classList = "esri-widget__heading esri-features__heading";
-        h2.role="heading";
-        h2.innerHTML = title;
-        h.parentNode.insertBefore(h2, h);
-    }
-}*/
 
 function displayContent() {
     // Display cached content if available
@@ -505,19 +449,12 @@ function displayContent() {
         return;
     }
 
-// 2/12/25 old way
-    /*if (groupContent[identifyGroup]) {
-        view.popup.title = theTitle[identifyGroup];
-        displayInfoWindow(groupContent[identifyGroup]);
-        return;
-    }*/
-
     require(["esri/rest/support/IdentifyParameters", "esri/rest/identify", "esri/rest/query", "esri/rest/support/Query"], 
     function(IdentifyParameters, Identify, query, Query) {
         try{
             var skip = -1; // if id_vis_only and the top layer is hidden this will be true
 
-            var deferreds = [];
+            //var deferreds = [];
             for (var i = 0; i < identifyLayerIds[identifyGroup].length; i++) {
                 var item = identifyLayerIds[identifyGroup][i];
                 if (item) {
@@ -538,7 +475,8 @@ function displayContent() {
                                 spatialRelationship: "intersects",
                                 outSpatialReference: map.spatialReference
                             });
-                            if (item.geometry === "line"){
+                            if (item.buffer) params.distance = parseFloat(item.buffer);
+                            else if (item.geometry === "line"){
                                 // 10k
                                 if (view.scale <= 9028)
                                     params.distance = 5;
@@ -558,13 +496,13 @@ function displayContent() {
                             } else if (item.geometry === "point"){
                                 // 24k
                                 if (view.scale <= 36112)
-                                    params.distance = 0.1;
+                                    params.distance = 0.2;
                                 // 50k
                                 else if (view.scale <= 72224)
-                                    params.distance = 0.25;
+                                    params.distance = 0.3;
                                 // 100k
                                 else if (view.scale <= 144448)
-                                    params.distance = 0.5;
+                                    params.distance = 0.75;
                                 // 500k
                                 else if (view.scale <= 577791)
                                     params.distance = 1;
@@ -585,22 +523,25 @@ function displayContent() {
                             const theLayerName = item.labels[j];
                             params.outFields = identifyLayers[identifyGroup][item.labels[j]].fields;
                             skip = true;
-                            deferreds.push(new Promise((identifySuccess, handleQueryError) => {
+                            //deferreds.push(new Promise((handleQueryResults, handleQueryError) => {
                                 query.executeQueryJSON(item.url, params) //.then(identifySuccess).catch(handleQueryError);
                                 .then((response) => {
                                     if (response.results) {
                                         response.results.layerName = theLayerName;
-                                        identifySuccess(response.results);
+                                        handleQueryResults(response.results);
+                                        //identifySuccess(response.results);
                                     }
                                     else{
                                         response.layerName = theLayerName;
-                                        identifySuccess(response);
+                                        //identifySuccess(response);
+                                        handleQueryResults(response);
                                     }
                                 })
                                 .catch((e) => {
-                                    myhandleQueryError(e);
+                                    accumulateContent(theLayerName+" layer is busy. Try again later. "+e.message);
+                                    //myhandleQueryError(e);
                                 });
-                            }));
+                            //}));
                             //deferreds.push(query.executeQueryJSON(item.url, params).then(identifySuccess).catch(handleQueryError));
                         }
                         continue;
@@ -608,7 +549,8 @@ function displayContent() {
 
 
                     // 10-19-20 Add identify Wildfires
-                    /*if (item.url.indexOf("Wildfire")>-1 || item.url.indexOf("WFIGS")>-1){
+                    /*
+                    if (item.url.indexOf("Wildfire")>-1 || item.url.indexOf("WFIGS")>-1){
                         let params = new Query({
                             returnGeometry: true,
                             geometry: clickPoint,
@@ -652,37 +594,10 @@ function displayContent() {
                         continue;
                     }*/
 
-                    // buffer the point NOT WORKING
-                    if (item.buffer){
-                        let params = new Query({
-                            returnGeometry: true,
-                            geometry: clickPoint,
-                            spatialRelationship: "intersects",
-                            outSpatialReference: map.spatialReference
-                        });
-                        for (var j=0; j<identifyLayerIds[identifyGroup][i].ids.length; j++){
-                            params.outFields = identifyLayers[identifyGroup][identifyLayerIds[identifyGroup][i].labels[j]].fields;
-                            params.distance = parseFloat(item.buffer);
-                            params.units = "miles";
-                            skip = true;
-                            deferreds.push(new Promise((identifySuccess, handleQueryError) => {
-                                query.executeQueryJSON(item.url+"/"+identifyLayerIds[identifyGroup][i].ids[j], params)
-                                .then((response) => {
-                                    if (response.results)
-                                        identifySuccess(response.results);
-                                    else
-                                        identifySuccess(response);
-                                })
-                                .catch((e) => {
-                                    myhandleQueryError(e);
-                                });
-                            }));
-                        }
-                        continue;
-                    }
                                         
                     identifyParams.layerIds = item.ids.slice(); // make a copy of this array since we change it for bighorn or goat gmu
-                    if (item.geometry === "point") {
+                    if (item.buffer) identifyParams.tolerance = item.buffer;
+                    else if (item.geometry === "point") {
                         // Used to be 15,10,5
                         if (view.scale <= 36112)
                             identifyParams.tolerance = 25;
@@ -693,9 +608,9 @@ function displayContent() {
                     } else if (item.geometry === "line") {
                         // Used to be 15,10,5
                         if (view.scale <= 36112)
-                            identifyParams.tolerance = 5;
+                            identifyParams.tolerance = 30;
                         else if (view.scale <= 288895)
-                            identifyParams.tolerance = 3;
+                            identifyParams.tolerance = 20;
                         else if (view.scale <= 577791)
                             identifyParams.tolerance = 4;
                         else
@@ -762,18 +677,27 @@ function displayContent() {
                         //var e = {details: {url: url},
                         //    message:"Failed to fetch"};
                         //myhandleQueryError(e);
-                        deferreds.push(new Promise((identifySuccess, handleQueryError) => {
+                        //deferreds.push(new Promise((handleQueryResults, handleQueryError) => {
+                        //new Promise((handleQueryResults, handleQueryError) => {
+                            const theLayerNames = item.labels;
                             Identify.identify(url,identifyParams)
                             .then((response) => {
-                                if (response.results)
-                                    identifySuccess(response.results);
-                                else
-                                    identifySuccess(response);
+                                if (response.results){
+                                    handleQueryResults(response.results);
+                                    //identifySuccess(response.results);
+                                }
+                                else{
+                                    handleQueryResults(response);
+                                    //identifySuccess(response);
+                                }
                             })
                             .catch((e) => {
-                                myhandleQueryError(e);
+                                var msg = "";
+                                for(var i=0; i<theLayerNames.length;i++) msg += theLayerNames[i]+", ";
+                                accumulateContent(msg+" layer is busy. Try again later.  Error: "+e.message+"<br/>");
+                                //myhandleQueryError(e);
                             });
-                        }));
+                        //});
                         //deferreds.push(Identify.identify(url,identifyParams).then(identifySuccess).catch(handleQueryError)); // new 6-13-24
                     }     
                 }
@@ -790,18 +714,22 @@ function displayContent() {
                     identifyParams.height = view.height;
                     identifyParams.tolerance = 1;
                     identifyParams.layerIds = [settings.sheepUrl.slice(settings.sheepUrl.lastIndexOf("/") + 1)];
-                    deferreds.push(new Promise((identifySuccess, handleQueryError) => {
+                    //deferreds.push(new Promise((handleQueryResults, handleQueryError) => {
                         Identify.identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams)
                         .then((response) => {
-                            if (response.results)
-                                identifySuccess(response.results);
-                            else
-                                identifySuccess(response);
+                            if (response.results){
+                                handleQueryResults(response.results);
+                                //identifySuccess(response.results);
+                            }
+                            else{
+                                handleQueryResults(response);
+                                //identifySuccess(response);
+                            }
                         })
                         .catch((e) => {
                             myhandleQueryError(e);
                         });
-                    }));
+                    //}));
                     //deferreds.push(Identify.identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
                 } else if (gmu == "Goat GMU") {
                     let identifyParams = new IdentifyParameters();
@@ -813,35 +741,33 @@ function displayContent() {
                     identifyParams.height = view.height;
                     identifyParams.tolerance = 1;
                     identifyParams.layerIds = [settings.goatUrl.slice(settings.goatUrl.lastIndexOf("/") + 1)];
-                    deferreds.push(new Promise((identifySuccess, handleQueryError) => {
+                    //deferreds.push(new Promise((handleQueryResults, handleQueryError) => {
                         Identify.identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams)
                         .then((response) => {
                             if (response.results)
-                                identifySuccess(response.results);
+                                handleQueryResults(response.results);
                             else
-                                identifySuccess(response);
+                            handleQueryResults(response);
                         })
                         .catch((e) => {
                             myhandleQueryError(e);
                         });
-                    }));
+                    //}));
                     //deferreds.push(Identify.identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
                 }
             }
 
-            if (deferreds && deferreds.length > 0) {
+            /*if (deferreds && deferreds.length > 0) {
                 Promise.all(deferreds).then((response) => {
                    handleQueryResults(response);
                   });
-                //var dlist = all(deferreds);
-                //dlist.then(handleQueryResults);
             } else {
                 // display empty info popup
                 numDatabaseCalls = 0;
                 processedDatabaseCalls = 0;
                 features = [];
                 accumulateContent("");
-            }
+            }*/
         } catch (e){
             alert("Problem trying to identify. Error message: "+e.message,"Warning");
 			hideLoading();
@@ -858,20 +784,23 @@ function identifySuccess(response) {
 }*/
 
 function myhandleQueryError(e) {
-    //document.getElementById("errMsg").innerHTML = "";
+    tooManyRequests = true;
     if (e.message.indexOf("Too many requests") > -1) {
         tooManyRequests = true;
         return;
     }
-    if (e.message === "Failed to fetch"){
+    /*if (e.message === "Failed to fetch"){
         alert("Data not loaded: " +e.details.url, "Data Error");
         accumulateContent("");
     }
     else if (e.details && e.details.messages && e.details.messages[0] && e.details.url)
         alert("Error in identify.js/doIdentify.  " + e.details.messages[0] + " for url="+e.details.url+". Check " + app + "/IdentifyWidget.xml urls.", "Data Error");
+    else if (e.details && e.details.raw.messages && e.details.message && e.details.url)
+        alert("Error in identify.js/doIdentify.  " + e.details.raw.message + " for url="+e.details.url+". Check " + app + "/IdentifyWidget.xml urls.", "Data Error");
     else
         alert("Error in identify.js/doIdentify.  " + e.message + " Check " + app + "/IdentifyWidget.xml urls.", "Data Error");
-    hideLoading();
+    */
+        hideLoading();
     return;
 }
 function numberWithCommas(x) {
@@ -893,168 +822,171 @@ function handleQueryResults(results) {
                 return;
             }
 
-            theTitle[identifyGroup] = identifyGroup;
+            //theTitle[identifyGroup] = identifyGroup;
 
             // Set info Content Header
             var tmpStr = "";
 	        var str = "";
-            highlightID = -1;
+            //highlightID = -1;
             // 10-19-20 Handle Wildfire
             if (identifyGroup.indexOf("Wildfire") > -1){
-                for (var r=0; r<results.length; r++){
-                    if (!results[r].features) tooManyRequests=true;
-                }
+                //for (var r=0; r<results.length; r++){
+                    if (!results.features) tooManyRequests=true;
+                //}
                 if (tooManyRequests) {
                     displayInfoWindow("<p>Too many people are requesting this data. Please try again.</p>");
                     tooManyRequests = false;
                     return;
                 }
                 else tooManyRequests = false;
-                var noData = true;
-                str = "The wildfire map layers are maintained and imported on demand from ESRI's USA Current Wildfires layer. They present the best-known point and perimeter locations of wildfire occurrences within the United States over the past 7 days from IRWIN and NIFC information.<br/><br/>";
+
+                if (results.layerName == "Wildfire Incidents") 
+                    str = "The wildfire map layers are maintained and imported on demand from ESRI's USA Current Wildfires layer. They present the best-known point and perimeter locations of wildfire occurrences within the United States over the past 7 days from IRWIN and NIFC information.<br/><br/>";
                 // add each attribute to str
-                results.forEach(function(result) {
-                    if (result.features.length > 0) noData = false;
-                    result.features.forEach(function(feature){
-                        features.push(feature);
-                        var layerName = "Wildfire Incidents";
-                        if (feature.geometry.type === "polygon") layerName = "Wildfire Perimeters";
-                        if (feature.attributes.IncidentName) {
-                            str += "<h3 style='margin-bottom: 5px;margin-top: 5px;'>"+feature.attributes.IncidentName+"</h3><span class='idTitle'>"+layerName+"</span><div style='padding-left: 10px;'>";
-                            // set the title, use the first wildfire
-                            //if (theTitle[identifyGroup] === identifyGroup){
-                            //    theTitle[identifyGroup] = feature.attributes.IncidentName;
-                            //    view.popup.title = theTitle[identifyGroup];
-                            //}
-                            // set header with the layer specified in SettingsWidget.xml file or use first field value
-                            if (theTitle[identifyGroup] == identifyGroup){
-                                if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
-                                    if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
-                                        view.popup.title = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
-                                        theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
+                //if (results.forEach){
+                //    results.forEach(function(result) {
+                    if (results.features && results.features.length > 0) {
+                        //if (result.features.length > 0) noData = false;
+                        results.features.forEach(function(feature){
+                            var r = results;
+                            features.push(feature);
+                            var layerName = "Wildfire Incidents";
+                            if (feature.geometry.type === "polygon") layerName = "Wildfire Perimeters";
+                            if (feature.attributes.IncidentName) {
+                                str += "<h3 style='margin-bottom: 5px;margin-top: 5px;'>"+feature.attributes.IncidentName+"</h3><span class='idTitle'>"+layerName+"</span><div style='padding-left: 10px;'>";
+                                // set the title, use the first wildfire
+                                //if (theTitle[identifyGroup] === identifyGroup){
+                                //    theTitle[identifyGroup] = feature.attributes.IncidentName;
+                                //    view.popup.title = theTitle[identifyGroup];
+                                //}
+                                // set header with the layer specified in SettingsWidget.xml file or use first field value
+                                if (theTitle[identifyGroup] == identifyGroup){
+                                    if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
+                                        if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
+                                            view.popup.title = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
+                                            theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
+                                            highlightFeature(features.length-1,false);
+                                            highlightID = features.length-1;
+                                        }
+                                    }else {
+                                        theTitle[identifyGroup] = feature.attributes.IncidentName;
                                         highlightFeature(features.length-1,false);
                                         highlightID = features.length-1;
                                     }
-                                }else {
-                                    theTitle[identifyGroup] = feature.attributes.IncidentName;
-                                    highlightFeature(features.length-1,false);
-                                    highlightID = features.length-1;
-                                }
-                                view.popup.title = theTitle[identifyGroup];
-                            }
-                        }
-                        var d;
-                        
-                        // popup content
-                        for (var i = 0; i < identifyLayers[identifyGroup][layerName].displaynames.length; i++) {
-                            tmpStr = "";
-                            if ((feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] &&
-                                identifyLayers[identifyGroup][layerName].fields[i] !== "IncidentName" &&
-                                identifyLayers[identifyGroup][layerName].fields[i].toLowerCase() !== "irwinid" &&
-                                feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== " " &&
-                                feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "Null" &&
-                                feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "")) {
-                                //https link (can't do substring on a number!)
-                                if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
-                                    (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) == "http"))
-                                    tmpStr = "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a><br/>";
-                                else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("percent") > -1){
-                                    tmpStr = "<span class='idSubTitle'>"+ identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "%</span><br/>";
-                                }
-                                else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("updated") > -1){
-                                    // subtract 6 hours from Greenwich time
-                                    d = (Date.now() - feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
-                                    const days = Math.trunc(d/1000/60/60/24);
-                                    const hours = Math.trunc(d/1000/60/60 - days*24);
-                                    const minutes = Math.trunc(d/1000/60 - hours*60);
-                                        var dayStr = "days";
-                                    if (days == 1) dayStr = "day";
-                                    var hourStr = "hours";
-                                    if (hours == 1) hourStr = "hour";
-                                    var minStr = "minutes";
-                                    if (minutes == 1) minStr = "minute";
-                                    if (days >= 1) {
-                                        if (hours >= 1)
-                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +days+" "+dayStr+" "+hours+" "+hourStr+" ago</span><br/>";
-                                        else
-                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +days+" "+dayStr+" ago</span><br/>";
-                                    } else if (hours >= 1){
-                                        if (minutes >= 1)
-                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +hours+" "+hourStr+" "+minutes+" "+minStr+" ago</span><br/>";
-                                        else
-                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +hours+" "+hourStr+" ago</span><br/>";
-                                    } else
-                                        tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>"+minutes+" "+minStr+" ago</span><br/>";
-                                }
-                                else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("date") > -1){
-                                    d = new Date(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
-                                    tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + (d.getMonth()+1) + "/"+ d.getDate() +"/"+ d.getFullYear() +"</span><br/>";
-                                }
-                                else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("acre") > -1 ||
-                                    identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("size") > -1 ||
-                                    identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("final") > -1 ||
-                                    identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("burned") > -1 ){
-                                    if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] >= 1)
-                                        tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + numberWithCommas(Math.round(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]])) + " Acres</span><br/>";
-                                    else
-                                        tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + numberWithCommas(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(2)) + " Acres</span><br/>";
-                                }
-                                else {
-                                    tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</span><br/>";
+                                    view.popup.title = theTitle[identifyGroup];
                                 }
                             }
-                        
-                            // don't add it twice, but add it to the features geometry array
-                            //if (tmpStr != "" && str.indexOf(tmpStr) == -1) {
-                                // highlight polygon/point on mouse over, hide highlight on mouse out
-                                //str += "<div onMouseOver='javascript:highlightFeature(\""+(features.length-1)+"\", true)' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
-                                //str += "<div>" + tmpStr;
-                                str += tmpStr;
-                            //}
-                        }
-                        str += "</div><br/>";
+                            var d;
+                            
+                            // popup content
+                            for (var i = 0; i < identifyLayers[identifyGroup][layerName].displaynames.length; i++) {
+                                tmpStr = "";
+                                if ((feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] &&
+                                    identifyLayers[identifyGroup][layerName].fields[i] !== "IncidentName" &&
+                                    identifyLayers[identifyGroup][layerName].fields[i].toLowerCase() !== "irwinid" &&
+                                    feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== " " &&
+                                    feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "Null" &&
+                                    feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "")) {
+                                    //https link (can't do substring on a number!)
+                                    if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
+                                        (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) == "http"))
+                                        tmpStr = "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a><br/>";
+                                    else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("percent") > -1){
+                                        tmpStr = "<span class='idSubTitle'>"+ identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "%</span><br/>";
+                                    }
+                                    else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("updated") > -1){
+                                        // subtract 6 hours from Greenwich time
+                                        d = (Date.now() - feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
+                                        const days = Math.trunc(d/1000/60/60/24);
+                                        const hours = Math.trunc(d/1000/60/60 - days*24);
+                                        const minutes = Math.trunc(d/1000/60 - hours*60);
+                                            var dayStr = "days";
+                                        if (days == 1) dayStr = "day";
+                                        var hourStr = "hours";
+                                        if (hours == 1) hourStr = "hour";
+                                        var minStr = "minutes";
+                                        if (minutes == 1) minStr = "minute";
+                                        if (days >= 1) {
+                                            if (hours >= 1)
+                                                tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +days+" "+dayStr+" "+hours+" "+hourStr+" ago</span><br/>";
+                                            else
+                                                tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +days+" "+dayStr+" ago</span><br/>";
+                                        } else if (hours >= 1){
+                                            if (minutes >= 1)
+                                                tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +hours+" "+hourStr+" "+minutes+" "+minStr+" ago</span><br/>";
+                                            else
+                                                tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +hours+" "+hourStr+" ago</span><br/>";
+                                        } else
+                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>"+minutes+" "+minStr+" ago</span><br/>";
+                                    }
+                                    else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("date") > -1){
+                                        d = new Date(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
+                                        tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + (d.getMonth()+1) + "/"+ d.getDate() +"/"+ d.getFullYear() +"</span><br/>";
+                                    }
+                                    else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("acre") > -1 ||
+                                        identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("size") > -1 ||
+                                        identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("final") > -1 ||
+                                        identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("burned") > -1 ){
+                                        if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] >= 1)
+                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + numberWithCommas(Math.round(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]])) + " Acres</span><br/>";
+                                        else
+                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + numberWithCommas(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(2)) + " Acres</span><br/>";
+                                    }
+                                    else {
+                                        tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</span><br/>";
+                                    }
+                                }
+                            
+                                // don't add it twice, but add it to the features geometry array
+                                //if (tmpStr != "" && str.indexOf(tmpStr) == -1) {
+                                    // highlight polygon/point on mouse over, hide highlight on mouse out
+                                    //str += "<div onMouseOver='javascript:highlightFeature(\""+(features.length-1)+"\", true)' onMouseOut='javascript:removeHighlight()'><strong>"+tmpStr;
+                                    //str += "<div>" + tmpStr;
+                                    str += tmpStr;
+                                //}
+                            }
+                            str += "</div><br/>";
+                        //});
                     });
-                });
-                if (numHighlightFeatures == 0){
-                    highlightFeature(0,false);
-                    highlightID = 0;
+                
+                    if (numHighlightFeatures == 0){
+                        highlightFeature(0,false);
+                        highlightID = 0;
+                    }
+                    // add a link to data source
+                    if (results.layerName == "Wildfire Incidents") {
+                        str += "<span class='idSubTitle'>Inciweb: </span><a href='https://inciweb.wildfire.gov/state/colorado' class='idSubValue' target='_blank'>https://inciweb.wildfire.gov/state/colorado</a><br/>";
+                    }
                 }
-                if (noData){
-                    displayInfoWindow("No wildfires at this point.");
-                    theTitle[identifyGroup] = "No Wildfires";
-                    view.popup.title = "No Wildfires";
-                    groupObj.push({
-                        identifyGroup: identifyGroup,
-                        title: theTitle[identifyGroup],
-                        content: "No wildfires at this point.",
-                        highlightID: -1,
-                        features: []
-                    });
-                    //groupContent[identifyGroup] = "No wildfires at this point."; // cache 
-                }else {
-                    str += "<span class='idSubTitle'>Inciweb: </span><a href='https://inciweb.wildfire.gov/state/colorado' class='idSubValue' target='_blank'>https://inciweb.wildfire.gov/state/colorado</a><br/>";
-                    groupObj.push({
-                        identifyGroup: identifyGroup,
-                        title: theTitle[identifyGroup],
-                        content: str,
-                        highlightID: highlightID,
-                        features: features
-                    });
-                    //groupContent[identifyGroup] = str; // cache content
-                    displayInfoWindow(str);
+                else if (results && results.layerName == "Wildfire Incidents"){
+                    str = "";
+                    //theTitle[identifyGroup] = "No Wildfires";
+                    //view.popup.title = "No Wildfires";
                 }
+                
+                accumulateContent(str);
                 return;
             }
 
+            /*if (results.forEach === undefined){
+                str += "No results for "+identifyGroup; // TODO add layer name
+                accumulateContent(str);
+                return;
+            }*/
             // Count database calls
-            results.forEach(function(result) {
-                if (result && result.length > 0) {
-                    result.forEach(function(r) {
-                        if (typeof identifyLayers[identifyGroup][r.layerName] != 'undefined')
-                            if (typeof identifyLayers[identifyGroup][r.layerName].database != 'undefined') numDatabaseCalls++;
-                    });
-                }
-            });
+            if (results.length && results.length > 0){
+                results.forEach(function(result) {
+                    //if (result && result.length > 0) {
+                    //    result.forEach(function(r) {
+                            if (typeof identifyLayers[identifyGroup][result.layerName] != 'undefined')
+                                if (typeof identifyLayers[identifyGroup][result.layerName].database != 'undefined') numDatabaseCalls++;
+                        //});
+                    //}
+                });
+            }else {
+                if (typeof identifyLayers[identifyGroup][results.layerName] != 'undefined')
+                    if (typeof identifyLayers[identifyGroup][results.layerName].database != 'undefined') numDatabaseCalls++;
+            }
 
             // Clear old database call info
             index = 0;
@@ -1066,40 +998,41 @@ function handleQueryResults(results) {
 
             // Write the content for the identify
             var countResults = -1;
-            results.forEach(function(result) {
+            //results.forEach(function(result) {
                 countResults++; // to get result layerName for buffered points
-                if (result.length > 0) {
-                    result.forEach(function(r) {
+                if (results.length && results.length > 0) {
+                    results.forEach(function(r) {
                         var tmpStr = writeFeatureContent(r.feature,r.layerName);
                         if (str.indexOf(tmpStr) == -1) 
                             str += tmpStr;
                     });
-                    groupObj.push({
+                    /*groupObj.push({
                         identifyGroup: identifyGroup,
                         title: theTitle[identifyGroup],
                         content: str,
                         highlightID: highlightID,
                         features: features
-                    });
+                    });*/
                 }
                 // Feature Server uses Query not Identify
-                else if (result.features && result.features.length > 0) {
+                else if (results.features) {
                     noData = false;
-                    const theLayerName = result.layerName;
-                    result.features.forEach(function(feature){
+                    const theLayerName = results.layerName;
+                    results.features.forEach(function(feature){
                         var tmpStr = writeFeatureContent(feature,theLayerName);
                         if (str.indexOf(tmpStr) == -1) 
                             str += tmpStr;
                     });
                     
-                    groupObj.push({
+                    /*groupObj.push({
                         identifyGroup: identifyGroup,
                         title: theTitle[identifyGroup],
                         content: str,
                         highlightID: highlightID,
                         features: features
-                    });
-                    /*result.features.forEach(function(feature){
+                    });*/
+                    /* // buffer 
+                    result.features.forEach(function(feature){
                         // Get distance from click point to feature
                         require(["esri/geometry/Point","esri/geometry/support/geodesicUtils"],
                             function (Point, geodesicUtils){
@@ -1116,7 +1049,11 @@ function handleQueryResults(results) {
                         
                     });*/
                 }
-            });
+            //});
+            // add error messages
+            if (tooManyRequests) {
+                str+= "<br/><p>Too many people are requesting this data. Please try again.</p>";
+            }
             // highlight first feature if none were specified by pre_title title title_field in SettingsWidget.xml file
             if (numHighlightFeatures == 0){
                 highlightFeature(0,false);
@@ -1169,9 +1106,10 @@ function writeFeatureContent(feature,layerName){
                                         }
                                         // handle Bighorn and Goat GMU
                                         else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU Unit "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
-                                    }else {
-                                        theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
                                     }
+                                    //else {
+                                    //    theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                                    //}
                                 }
                                 view.popup.title = theTitle[identifyGroup];
                                 // set the popup title
@@ -1263,8 +1201,9 @@ function writeFeatureContent(feature,layerName){
                                     accumulateContent(str);
                                 }
                             }
+                            
                             // Check if all have finished
-                            var isAllComplete = true;
+                            /*var isAllComplete = true;
                             for (var i = 0; i < numDatabaseCalls; i++) {
                                 if ((!XMLHttpRequestObjects[i]) || (XMLHttpRequestObjects[i].readyState !== 4)) {
                                     isAllComplete = false;
@@ -1277,7 +1216,7 @@ function writeFeatureContent(feature,layerName){
                                 //if (numHighlightFeatures == 0){
                                 //    highlightFeature(0,true);
                                 //}
-                            }
+                            }*/
                         }
                     };
                 }(index);
@@ -1308,9 +1247,10 @@ function writeFeatureContent(feature,layerName){
                         highlightFeature(features.length-1,false);
                         highlightID = features.length-1;
                     }
-                }else {
-                    theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
                 }
+                //else {
+                //    theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                //}
             }
             view.popup.title = theTitle[identifyGroup];
 
@@ -1355,58 +1295,92 @@ function writeFeatureContent(feature,layerName){
                         }
                         // MVUM Seasonal Roads Motorcycle Dates Open yearlong
                         else if (yearlong && identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Motorcycle Dates Open")>-1){
-                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(118, 176, 83);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-motorcycle-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(118, 176, 83);"><img alt="" width="32" height="32" src="./assets/images/activity-motorcycle-sm-ffffff.svg" class="class-ico"></span>';
                             tmpStr += '<dl><dt>Allows Motorcycles</dt>';
                             tmpStr += "<dd class='idSubValue'>Yes</dd></dl></li>";
                             //tmpStr = tmpStr.substring(0,tmpStr.length - 5); // remove blank line
                         }
                         // MVUM Seasonal Roads Motorcycle Dates Open, Seasonal dates
                         else if (identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Motorcycle Dates Open")>-1){
-                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(202, 160, 76);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-motorcycle-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(202, 160, 76);"><img alt="" width="32" height="32" src="./assets/images/activity-motorcycle-sm-ffffff.svg" class="class-ico"></span>';
                             tmpStr += '<dl><dt>Allows Motorcycles</dt>';
                             tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + " · Seasonally</dd></dl></li>";
                         }
                         
                         // MVUM Seasonal Roads ATVs Dates Open yearlong
                         else if (yearlong && identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("ATV Dates Open")>-1){
-                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(118, 176, 83);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-atv-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(118, 176, 83);"><img alt="" width="32" height="32" src="./assets/images/activity-atv-sm-ffffff.svg" class="class-ico"></span>';
                             tmpStr += '<dl><dt>Allows ATVs</dt>';
                             tmpStr += "<dd class='idSubValue'>Yes</dd></dl></li>";
                             //tmpStr = tmpStr.substring(0,tmpStr.length - 5); // remove blank line
                         }
                         // MVUM Seasonal Roads ATVs Dates Open, Seasonal dates
                         else if (identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("ATV Dates Open")>-1){
-                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(202, 160, 76);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-atv-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(202, 160, 76);"><img alt="" width="32" height="32" src="./assets/images/activity-atv-sm-ffffff.svg" class="class-ico"></span>';
                             tmpStr += '<dl><dt>Allows ATVs</dt>';
                             tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + " · Seasonally</dd></dl></li>";
                         }
                         
                         // MVUM Seasonal Roads OHVs > 50 Dates Open yearlong
                         else if (yearlong && identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("OHV > 50 Dates Open")>-1){
-                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(118, 176, 83);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-dune-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(118, 176, 83);"><img alt="" width="32" height="32" src="./assets/images/activity-dune-sm-ffffff.svg" class="class-ico"></span>';
                             tmpStr += '<dl><dt>Allows OHVs&gt;50"</dt>';
                             tmpStr += "<dd class='idSubValue'>Yes</dd></dl></li>";
                             //tmpStr = tmpStr.substring(0,tmpStr.length - 5); // remove blank line
                         }
                         // MVUM Seasonal Roads Highway Vehicles Dates Open, Seasonal dates
                         else if ( identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("OHV > 50 Dates Open")>-1){
-                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(202, 160, 76);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-dune-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(202, 160, 76);"><img alt="" width="32" height="32" src="./assets/images/activity-dune-sm-ffffff.svg" class="class-ico"></span>';
                             tmpStr += '<dl><dt>Allows OHVs&gt;50"</dt>';
                             tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + " · Seasonally</dd></dl></li>";
                         }
                         // MVUM Seasonal Roads Highway Vehicles Dates Open yearlong
                         else if (yearlong && identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Passenger Vehicle Dates Open")>-1){
-                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(118, 176, 83);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-drive-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(118, 176, 83);"><img alt="" width="32" height="32" src="./assets/images/activity-drive-sm-ffffff.svg" class="class-ico"></span>';
                             tmpStr += '<dl><dt>Allows Highway Vehicles</dt>';
                             tmpStr += "<dd class='idSubValue'>Yes</dd></dl></li></ul>";
                             //tmpStr = tmpStr.substring(0,tmpStr.length - 5); // remove blank line
                         }
                         // MVUM Seasonal Roads Highway Vehicles Dates Open, Seasonal dates
                         else if (identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Passenger Vehicle Dates Open")>-1){
-                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(202, 160, 76);"><img alt="" width="32" height="32" src="https://tstatic.naturalatlas.com/icons/v1/activity-drive-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(202, 160, 76);"><img alt="" width="32" height="32" src="./assets/images/activity-drive-sm-ffffff.svg" class="class-ico"></span>';
                             tmpStr += '<dl><dt>Allows Highway Vehicles</dt>';
                             tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + " · Seasonally</dd></dl></li></ul>";
                         }
+                        // phone number
+                        else if ( identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Phone")>-1){
+                            tmpStr += "<ul class='vertical-meta-list'>";
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(37, 126, 7);"><img alt="" width="32" height="32" src="./assets/images/phone.svg" class="class-ico"></span>';
+                            tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
+                            tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
+                        }
+                        // forest
+                        else if ( feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toString().indexOf("Forest")>-1){
+                            tmpStr += "<ul class='vertical-meta-list'>";
+                            tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(37, 126, 7);"><img alt="" width="32" height="32" src="./assets/images/forest.svg" class="class-ico"></span>';
+                            tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
+                            tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
+                        }
+                        // Allows dogs, horses, hiking
+                        else if ( identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Allows")>-1){
+                            tmpStr += "<ul class='vertical-meta-list'>";
+                            if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toLowerCase() != "no")
+                                tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(37, 126, 7);"><img alt="" width="32" height="32" src="./assets/images/activity-';
+                            else
+                                 tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(202, 160, 76);"><img alt="" width="32" height="32" src="./assets/images/activity-';
+                            if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("horses")>-1)
+                                tmpStr+='horseback-sm-ffffff.svg" class="class-ico"></span>';
+                            else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("hiking")>-1)
+                                tmpStr+='hike-sm-ffffff.svg" class="class-ico"></span>';
+                            else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("dogs")>-1)
+                                tmpStr+='dogwalking-sm-ffffff.svg" class="class-ico"></span>';
+                            else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("motorcycles")>-1)
+                                tmpStr+='motorcycle-sm-ffffff.svg" class="class-ico"></span>';
+                            tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
+                            tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
+                        }
+                        // Trail number
+                        //<li><span class="vertical-meta-list-ico" style="background: rgb(237, 241, 234);"><i class="si s--meta s--meta--trail-number"></i></span><dl><dt>Trail Number</dt><dd>#943</dd></dl></li>
 
                         // format numbers to 1 decimal place TODO? ************************
                         //if(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "" &&
@@ -1573,55 +1547,111 @@ function changeIdentifyGroup(sel) {
     view.popup.content = "<p align='center'>Loading...</p>";
     view.popupEnabled = false;
     features = [];
+    highlightID = -1;
     numDatabaseCalls = 0;
     processedDatabaseCalls = 0;
+    theTitle[identifyGroup] = identifyGroup;
+    view.popup.title = identifyGroup;
     displayContent();
 }
 
 function accumulateContent(theContent){
+    // get data for the currently selected idenitfyGroup
+
+    // cache the identify group. Create the array item if it does not exist. Each identify map click will recreate groupObj array.
+    let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
+    if (obj.length === 0){
+        // cache content
+        groupObj.push({
+            identifyGroup: identifyGroup,
+            title: theTitle[identifyGroup],
+            content: theContent,
+            highlightID: highlightID,
+            features: features
+        });
+        obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
+        // Fills view.popup.content with tabs menu and theContent
+        displayInfoWindow(theContent); // update identify popup
+    }
+    // Accumulate content
+    else {
+        obj[0].features = features; // update features array
+        obj[0].highlightID = highlightID;
+        // there is content so "hide not data at this point" message.
+        if (obj[0].content.indexOf(identifyGroup+" at this point.") != -1 && theContent !== ""){
+            obj[0].content = theContent;
+            var existCondition = setInterval(function() {
+                if (document.getElementById("myPopupContent")){
+                    clearInterval(existCondition);
+                    document.getElementById("myPopupContent").innerHTML=theContent; // append new content
+                    if (theTitle[identifyGroup] !== "No "+identifyGroup) theTitle[identifyGroup] = theTitle[identifyGroup];
+                    else theTitle[identifyGroup] = identifyGroup;
+                    view.popup.title = theTitle[identifyGroup];
+                }
+            }, 100); // check every 100ms
+        }else {
+            obj[0].content += theContent; // accumulate content    
+            // update view.popup.content by adding to div element. It flashes horribly if call view.popup.content = ....
+            // wait for content to populate
+            var existCondition = setInterval(function() {
+                if (document.getElementById('myPopupContent')) {
+                    clearInterval(existCondition);
+                    document.getElementById("myPopupContent").innerHTML+=theContent; // append new content
+                }
+            }, 100); // check every 100ms
+        }
+    }
+
     if (numDatabaseCalls == processedDatabaseCalls) {
         numDatabaseCalls = 0;
         processedDatabaseCalls = 0;
+    }
 
-        // No info found, just display XY coordinates
-        if (features.length == 0) {
-            var str;
-            var visible = "";
-            const obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
-            if (identifyLayerIds[identifyGroup][0].id_vis_only) visible = "visible "; // 1-10-18 add word visible if identifying visible only
-            if (identifyLayers[identifyGroup].desc) {
-                str = "<div><p style='font-style:italic;top:-15px;position:relative;'>" + identifyLayers[identifyGroup].desc + "</p>No " + visible + identifyGroup + " at this point.<br/></div>";
-                theContent = str;
-                // cache content
-                groupObj.push({
-                    identifyGroup: identifyGroup,
-                    title: "No "+theTitle[identifyGroup],
-                    content: str,
-                    highlightID: -1,
-                    features: []
-                });
-                //groupContent[identifyGroup] = str; // cache content
-                theTitle[identifyGroup] = "No "+identifyGroup;
-                view.popup.title = "No "+identifyGroup;
-                str = null;
-            } else {
-                str = "<div>No " + visible + identifyGroup + " at this point.<br/></div>";
-                theContent = str;
-                // cache content
-                groupObj.push({
-                    identifyGroup: identifyGroup,
-                    title:  "No "+ theTitle[identifyGroup],
-                    content: str,
-                    highlightID: -1,
-                    features: []
-                });
-                //groupContent[identifyGroup] = str; // cache content
-                theTitle[identifyGroup] = "No "+identifyGroup;
-                view.popup.title = "No "+identifyGroup;
-                str = null;
-            }
+    // No info found, just display XY coordinates
+    if (features.length == 0 && obj[0].content=="") {
+        var str;
+        var visible = "";
+        // find the index
+        for (var i=0; i<groupObj.length; i++){
+            if (groupObj[i].identifyGroup === identifyGroup) break;
         }
-        displayInfoWindow(theContent);
+        if (identifyLayerIds[identifyGroup][0].id_vis_only) visible = "visible "; // 1-10-18 add word visible if identifying visible only
+        if (identifyLayers[identifyGroup].desc) {
+            str = "<div id='noData'><p style='font-style:italic;top:-15px;position:relative;'>" + identifyLayers[identifyGroup].desc + "</p>No " + visible + identifyGroup + " at this point.<br/></div>";
+            theContent = str;
+            // cache content
+            groupObj[i]={
+                identifyGroup: identifyGroup,
+                title: "No "+theTitle[identifyGroup],
+                content: str,
+                highlightID: -1,
+                features: []
+            };
+            theTitle[identifyGroup] = "No "+identifyGroup;
+            view.popup.title = "No "+identifyGroup;
+            str = null;
+        } else {
+            str = "<div id='noData'>No " + visible + identifyGroup + " at this point.<br/></div>";
+            theContent = str;
+            // cache content
+            groupObj[i] = {
+                identifyGroup: identifyGroup,
+                title:  "No "+ theTitle[identifyGroup],
+                content: str,
+                highlightID: -1,
+                features: []
+            };
+            theTitle[identifyGroup] = "No "+identifyGroup;
+            view.popup.title = "No "+identifyGroup;
+            str = null;
+        }
+        // write no data message to view.popup.content when it is populated
+        var existCondition = setInterval(function() {
+            if (document.getElementById('myPopupContent')) {
+                clearInterval(existCondition);
+                document.getElementById("myPopupContent").innerHTML+=theContent; // append new content
+            }
+        }, 100); // check every 100ms
     }
 }
 
@@ -1633,17 +1663,6 @@ function setPrj(){
 function customStuff(theContent){
     // add a drop down list and footer to the popup content
     const outerDiv = document.createElement("calcite-tabs");
-    //outerDiv.style.marginLeft = "-12px";
-    //outerDiv.style.marginRight = "-12px";
- 
-    /*var content = "<div style='padding:12px;'><strong>Show:</strong> <select id='id_group' name='id_group' style='margin:5px;color:black;' onChange='changeIdentifyGroup(this)'>";
-    for (var i = 0; i < identifyGroups.length; i++) {
-        content += "<option";
-        if (identifyGroup == identifyGroups[i]) content += " selected";
-        content+= ">" + identifyGroups[i] + "</option>";
-    }
-    content += "</select></div>";*/
-    
     var content = '<calcite-tab-nav slot="title-group">';// style="position:fixed;background-color:white;height:50px;width:444px;margin-top:-12px;padding:10px;">';
     var i,j;
     for (i = 0; i < identifyGroups.length; i++) {
@@ -1657,8 +1676,11 @@ function customStuff(theContent){
     for (i = 0; i < identifyGroups.length; i++) {
         content += "<calcite-tab";
         if (identifyGroup == identifyGroups[i]){
+            // Content
             content += " select='true'>";// style='margin-top:30px;'>";// style='overflow:auto;'>";
-            content += "<div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'>"+theContent+"</div>";
+            content += "<div id='myPopupContent' style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'>"+theContent+"</div>";
+            
+            // Footer
             // XY point
             content += "<div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='m' style='color:var(--press);vertical-align:middle;'></calcite-icon> <span class='idTitle'>Location:</span> <input type='text' value='Loading XY...' id='idXY' disabled='true'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;color:var(--press)'><calcite-icon aria-hidden='true' icon='copy' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon></a> <span id='copyNote'></span>";
             content += '<div id="xycoordsDialog" title="Change Display Format" style="margin-left:25px;margin-top:10px;">';
@@ -1668,7 +1690,6 @@ function customStuff(theContent){
             //const xyDisplay=["WGS84 Web Mercator","Decimal Degrees","Degrees, Minutes, Seconds","Degrees, Minutes","WGS84 UTM Zone 12N","WGS84 UTM Zone 13N","NAD83 UTM Zone 12N","NAD83 UTM Zone 13N","NAD27 UTM Zone 12N","NAD27 UTM Zone 13N"];
             const xyValue=["dd","32613"];
             const xyDisplay=["Decimal Degrees","WGS 84/UTM zone 13N"];
-
             for (j=0; j<xyValue.length;j++){
                 content += '        <option value="'+xyValue[j]+'"';
                 if (settings.XYProjection === xyValue[j])content += ' selected="selected"';
@@ -1680,26 +1701,20 @@ function customStuff(theContent){
             
             // Elevation
             content += "<div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'><calcite-icon aria-hidden='true' icon='altitude' scale='l' style='color:var(--press);vertical-align:middle;'></calcite-icon> <span id='idElevation'>Loading elevation...</span></div>"
+            
             // Zoom To
             content += "<div style='padding:12px;'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='color:var(--press);vertical-align:middle;margin-right: 5px;'></calcite-icon><span style='color:var(--press)'> Zoom To</span></a> ";
+            
             // Get Directions
             if (driving_directions){
                 content += "<a href='javascript:getDirections()' style='float:left;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='color:var(--press);vertical-align:middle;margin-right: 5px;'></span><span style='color:var(--press)'> Get Directions</span></a></div>";
             }
         } else {
-            content += "><div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'></div>"; //overflow:auto;
+            content += "><div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'></div>";
         }
 
         content += "</calcite-tab>";
     }
-    //content += "</calcite-tabs>";
-
-
-    // footer
-    //content += "<div style='padding:0;margin:0;border:none;'>";
-    //content += "<div style='height:fit-content;padding:5px 12px 5px;'>";
-    
-    
     outerDiv.innerHTML = content;
     return outerDiv;
 }
@@ -1708,23 +1723,27 @@ function displayInfoWindow(theContent) {
     view.popup.content = customStuff(theContent);
     
     view.openPopup();
-    if (view.popup){
-        view.popup.when(() => {
-            document.getElementsByClassName("esri-popup__main-container")[0].style.marginTop = "90px"; // place below title and search
-        // document.getElementsByClassName("esri-popup__main-container")[0].getElementsByClassName("esri-features__container")[0].style.overflow="hidden"; // remove double scroll bar
-        });
-    }
-    // wait for popup to populate header then add drop down
-    /*var h = document.getElementsByClassName("esri-popup__main-container")[0];
-    if (!h || h.childNodes.length == 0) {
-        var tim = setInterval(function(){
-            if (h && h.childNodes.length != 0) {
-                clearInterval(tim);
-                setIdentifyHeader();
+    //if (view.popup){
+    //    view.popup.when(() => {
+          //  document.getElementsByClassName("esri-popup__main-container")[0].style.marginTop = "90px"; // place below title and search
+            // add tab menu to hidden slot content-top TODO cannot get the slot!!!!!
+            /*let readyDOM = this.querySelector('*[slot=content-top]');
+            var content = '<calcite-tabs><calcite-tab-nav slot="title-group">';// style="position:fixed;background-color:white;height:50px;width:444px;margin-top:-12px;padding:10px;">';
+            for (var i = 0; i < identifyGroups.length; i++) {
+                content += '<calcite-tab-title onclick="changeIdentifyGroup(this)"';
+                if (identifyGroup == identifyGroups[i]) content += " selected";
+                content+= ">" + identifyGroups[i] + '</calcite-tab-title>'
             }
-        },500);
-    }
-    else setIdentifyHeader();*/
+            content += "</calcite-tab-nav></calcite-tabs>";
+            // add menu tabs to hidden slot content-top
+            //const contentTop = document.getElementsByClassName("esri-popup__main-container")[0].querySelector('*[slot=content-top');
+            readyDOM.innerHTML = content;
+            readyDOM.style.display = "block";*/
+
+        // document.getElementsByClassName("esri-popup__main-container")[0].getElementsByClassName("esri-features__container")[0].style.overflow="hidden"; // remove double scroll bar
+    //    });
+    //}
+
     view.popup.viewModel.location = clickPoint;
     setIdentifyFooter(clickPoint); // add xy point and elevation to footer
     hideLoading();

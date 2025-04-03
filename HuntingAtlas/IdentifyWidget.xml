@@ -242,8 +242,8 @@
 				<url>https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/15</url>
 				<geometry>line</geometry>
 				<!-- Segment Length display name will round to 1 decimal place and add "mi"-->
-				<fields>name,type,surface,hiking,horse,dogs,motorcycle,snowmobile,ski,snowshoe,length_mi_,oneway,min_elevat,max_elevat</fields>
-				<displaynames>Name,Type,Surface type,Allows hiking,Allows horses,Allows dogs,Allows motorcycles,Allows snowmobiles,Allows skiing,Allows snowshoeing,Segment Length,One way,Min Elevation,Max Elevation</displaynames>
+				<fields>name,type,surface,hiking,horse,dogs,motorcycle,length_mi_,oneway,min_elevat,max_elevat</fields>
+				<displaynames>Name,Type,Surface type,Allows hiking,Allows horses,Allows dogs,Allows motorcycles,Segment Length,One way,Min Elevation,Max Elevation</displaynames>
 			</layer>
 			<!--layer label="Trails Ours">
 				<id>2</id>

@@ -20,7 +20,7 @@
   <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
   
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=47" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=49" async="true" />
   <link rel="stylesheet" href="./assets/css/custom-theme.css?v=32" async="true" />
   
   <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
@@ -32,7 +32,7 @@
   <script type="text/javascript" src="js/myBasemaps.js?v=24" async="true"></script>
   <script type="text/javascript" src="js/myLayerList.js?v=128" async="true"></script>
   <script type="text/javascript" src="js/mySearch.js?v=9" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=48" async="true"></script> <!-- read IdentifyWidget.xml -->
+  <script type="text/javascript" src="js/identify.js?v=54" async="true"></script> <!-- read IdentifyWidget.xml -->
   <script type="text/javascript" src="js/errorBox.js?v=3" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=2" async="true"></script>
@@ -441,8 +441,10 @@
   </div>
   <div id="disclaimer" class="errorbox" style="display:none;border:2px solid white;margin:auto;width:570px;border-radius:12px;top:20px;height:calc(100vh - 40px);padding-bottom: 10px;">
     <h2 id="disclaimerTitle" style="border-top-left-radius:12px;border-top-right-radius:12px;background-color:var(--background);border-bottom:1px solid #ddd;text-align:center;margin:0;padding:0;"></h2>
-    <div style="overflow: auto;height: calc(100vh - 112px);">
+    <div style="overflow-y:auto;overflow-x:hidden;height:calc(100vh - 160px);">
       <div id="disclaimerContent" style="padding:10px;"></div>
+      </div>
+    <div style="height:60px">
       <p><input id="disclaimerBtn" type="checkbox" onclick="setCookie('noDisclaimer','1')"> Do not show again. (This is stored in a cookie in your browser history.)</p>
 		  <p align="center"><button class="myButton" type="button" onclick="javascript:closeDisclaimer()" aria-busy="false" aria-label="Agree to disclaimer, hide disclaimer" aria-pressed="false">Agree</button><a href="https://cpw.state.co.us/"><button class="myButton" type="button" aria-busy="false" aria-label="Disagree with disclaimer, load CPW main site." aria-pressed="false">Disagree</button></a></p>
     </div>

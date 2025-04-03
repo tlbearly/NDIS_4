@@ -134,12 +134,13 @@ calcite-panel,
 }
 /* set identify height */
 .esri-popup--is-docked-top-left .esri-popup__main-container, .esri-popup--is-docked-top-right .esri-popup__main-container, .esri-popup--is-docked-bottom-left .esri-popup__main-container, .esri-popup--is-docked-bottom-right .esri-popup__main-container {
-  max-height: calc(100% - 90px);
+  max-height: calc(100% - 110px);
+  margin-top: 110px;
 }
 @media screen and (max-width: 768px) {
   .esri-popup--is-docked-top-left .esri-popup__main-container, .esri-popup--is-docked-top-right .esri-popup__main-container, .esri-popup--is-docked-bottom-left .esri-popup__main-container, .esri-popup--is-docked-bottom-right .esri-popup__main-container {
     max-height: calc(50%);
-    margin-top: 10px !important;
+    margin-top: 90px !important;
     width: 100%;
   }
   .help {

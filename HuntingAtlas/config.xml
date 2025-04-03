@@ -159,7 +159,7 @@
 					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
                 <layer  parentGroup="Transportation" label="BLM Roads and Trails" open="true" visible="true" alpha="1"
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />
-                <layer parentGroup="Transportation" label="Colorado Statd Parks Roads" visible="true" minScale="144448"
+                <layer parentGroup="Transportation" label="Colorado State Parks Roads" visible="true" minScale="144448"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1" />
                 <layer parentGroup="Transportation" group="Trails" visible="true" open="false"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/"
@@ -167,8 +167,8 @@
                     layerVis="true,true"
                     layerNames="Trailheads,Trails"
                     minScale="144448"/>
-                <layer parentGroup="Transportation" label="RoadsTrails" open="true" visible="false" alpha="1.0"
-                    url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer"/>
+                <!--layer parentGroup="Transportation" label="RoadsTrails" open="true" visible="false" alpha="1.0"
+                    url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer"/-->
 
             <layer group="Wildfire" open="false" visible="false" alpha="1" radio="false"/>
                 <layer parentGroup="Wildfire" label="Wildfire Incidents" type="dynamic" visible="true" alpha="0.8" 
