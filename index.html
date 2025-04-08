@@ -20,7 +20,7 @@
   <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
   
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=49" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=50" async="true" />
   <link rel="stylesheet" href="./assets/css/custom-theme.css?v=32" async="true" />
   
   <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
@@ -32,7 +32,7 @@
   <script type="text/javascript" src="js/myBasemaps.js?v=24" async="true"></script>
   <script type="text/javascript" src="js/myLayerList.js?v=128" async="true"></script>
   <script type="text/javascript" src="js/mySearch.js?v=9" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=54" async="true"></script> <!-- read IdentifyWidget.xml -->
+  <script type="text/javascript" src="js/identify.js?v=56" async="true"></script> <!-- read IdentifyWidget.xml -->
   <script type="text/javascript" src="js/errorBox.js?v=3" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=2" async="true"></script>
@@ -448,6 +448,10 @@
       <p><input id="disclaimerBtn" type="checkbox" onclick="setCookie('noDisclaimer','1')"> Do not show again. (This is stored in a cookie in your browser history.)</p>
 		  <p align="center"><button class="myButton" type="button" onclick="javascript:closeDisclaimer()" aria-busy="false" aria-label="Agree to disclaimer, hide disclaimer" aria-pressed="false">Agree</button><a href="https://cpw.state.co.us/"><button class="myButton" type="button" aria-busy="false" aria-label="Disagree with disclaimer, load CPW main site." aria-pressed="false">Disagree</button></a></p>
     </div>
+  </div>
+  <div id="identifyPopup" style="display:none;border-radius:12px;position:absolute;top:130px;left:15px;height:calc(100vh - 165px);z-index:2;background-color:white;border:1px solid lightgray;width:500px;max-width:calc(100vw - 30px);">
+    <h2 style="font-size:1rem;margin:0;padding:10px;border-bottom:1px solid lightgray;"><span id="identifyTitle">Identify</span><button id="identifyClose" class="myButton" style="float:right;box-shadow:none;border: none;padding:15px;border-radius: 12px;margin:-9px;"  onclick="javascript:closeIdentify()" aria-busy="false" aria-label="Close" aria-pressed="false">X</button></h2>
+    <div id="identifyContent" style="padding:10px;overflow-y:auto;"></div>
   </div>
   <div id="viewDiv"></div>
     <!-- XY Coordinate Format Dialog ***** MOVE TO IDENTIFY??? ******-->

@@ -155,9 +155,10 @@
             <!-- layers in groups must be feature services! -->
             <layer group="Transportation" visible="true" alpha="1" radio="false"/>
                 <!-- MVUM Status and Visitor Map Symbology are not used -->
-                <layer  parentGroup="Transportation" label="Motor Vehicle Use Map" open="true" visible="true" alpha="1"
-					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
-                <layer  parentGroup="Transportation" label="BLM Roads and Trails" open="true" visible="true" alpha="1"
+                <layer  parentGroup="Transportation" label="Motor Vehicle Use Map" open="true" visible="true" alpha="1"  minScale="144448"
+                    url="https://services.arcgis.com/h4jNYexE41HKnu98/ArcGIS/rest/services/Motor_Vehicle_Use_Map_Roads/FeatureServer/0"/>
+					<!--url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/-->
+                <layer  parentGroup="Transportation" label="BLM Roads and Trails" open="true" visible="true" alpha="1" minScale="144448"
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />
                 <layer parentGroup="Transportation" label="Colorado State Parks Roads" visible="true" minScale="144448"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1" />

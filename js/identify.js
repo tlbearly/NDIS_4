@@ -5,6 +5,8 @@
 var identify = null;
 var tasks;
 var clickPoint;
+var promiseNumber = 0;
+var thePromises = [];
 var features = []; // number of features found
 var numDatabaseCalls = 0;
 var processedDatabaseCalls = 0;
@@ -13,14 +15,7 @@ var identifyGroup;
 var theEvt;
 var identifyGroups = [];
 var identifyLayers = {};
-var groupContent = {}; // Cache the popup content for each group for a map click
-// groupObj = [{
-//  identifyGroup: tab name
-//  title: popup title
-//  content: popup content
-//  highlightID: features id
-//  features: [] of features at click point
-// }]
+//var groupContent = {}; // Cache the popup content for each group for a map click
 var groupObj=[]; // Cache the popup content for each group for a map click. Array of objects for each identify tab that has been viewed. title, content, highlightID (features array id), features [], identifyGroup (tab name)
 var highlightID = 0;
 var theTitle = [];
@@ -35,11 +30,6 @@ var lastIdentifyTime=0; // 4-1-22
 //"esri/rest/support/IdentifyParameters",
 require(["esri/rest/identify"
 ], function(Identify) {
-    //setup generic identify parameters
-    //identifyParams = new IdentifyParameters();
-    //identifyParams.returnGeometry = true;
-    //identifyParams.layerOption = "all"; // top, visible, all, popup
-   
     identify = Identify;
 
     // Set up symbols for highlight on mouse over
@@ -54,6 +44,11 @@ require(["esri/rest/identify"
     pointSymbol = new PictureMarkerSymbol("assets/images/i_flag.png", 40, 40);
     lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 10]), 1);*/
 });
+
+
+function closeIdentify(){
+    document.getElementById("identifyPopup").style.display = "none";
+}
 
 function readIdentifyWidget() {
     // Read the IdentifyWidget.xml file
@@ -418,6 +413,7 @@ function doIdentify(evt){
     processedDatabaseCalls = 0;
     numHighlightFeatures = 0;
     features = [];
+    thePromises = [];
     highlightID = -1;
     theEvt = evt; // Save the click point so we can call this again from changeIdentifyGroup
 
@@ -431,17 +427,19 @@ function doIdentify(evt){
     clickPoint = evt.mapPoint;
     theTitle[identifyGroup] = identifyGroup;
     view.popup.title = identifyGroup;
+    document.getElementById("identifyTitle").innerHTML = identifyGroup;
 
     displayContent();
 }
 
 function displayContent() {
     // Display cached content if available
-    // Else loop through each layer found at the map click and call identifySuccess & handleQueryResults to handle each
+    // Else loop through each layer found at the map click and call accumulate & handleQueryResults to handle each
     // Use cached content if available
     const obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
     if (obj.length > 0){
         view.popup.title = obj[0].title;
+        document.getElementById("identifyTitle").innerHTML = obj[0].title;
         displayInfoWindow(obj[0].content); // do we need featues of highlightID? pass obj
         removeHighlight();
         features = obj[0].features;
@@ -449,10 +447,11 @@ function displayContent() {
         return;
     }
 
-    require(["esri/rest/support/IdentifyParameters", "esri/rest/identify", "esri/rest/query", "esri/rest/support/Query"], 
-    function(IdentifyParameters, Identify, query, Query) {
+    require(["esri/rest/support/IdentifyParameters", "esri/rest/identify", "esri/rest/query", "esri/rest/support/Query", "esri/config"], 
+    function(IdentifyParameters, Identify, query, Query, esriConfig) {
         try{
             var skip = -1; // if id_vis_only and the top layer is hidden this will be true
+            esriConfig.request.timeout = 5000;
 
             //var deferreds = [];
             for (var i = 0; i < identifyLayerIds[identifyGroup].length; i++) {
@@ -479,20 +478,20 @@ function displayContent() {
                             else if (item.geometry === "line"){
                                 // 10k
                                 if (view.scale <= 9028)
-                                    params.distance = 5;
+                                    params.distance = 0.1;
                                 // 24k
                                 else if (view.scale <= 36112)
-                                    params.distance = 10;
+                                    params.distance = 0.2;
                                 // 50k
                                 else if (view.scale <= 72224)
-                                    params.distance = 30;
+                                    params.distance = .3;
                                 // 100k
                                 else if (view.scale <= 144448)
-                                    params.distance = 50;
+                                    params.distance = .75;
                                 // > 100k
                                 else 
-                                    params.distance = 100;
-                                params.units = "meters";
+                                    params.distance = 1;
+                                params.units = "miles";
                             } else if (item.geometry === "point"){
                                 // 24k
                                 if (view.scale <= 36112)
@@ -516,6 +515,8 @@ function displayContent() {
                                 params.distance = 1;
                                 params.units = "meters";
                             }
+
+                            // limit query by expression
                             if (item.url.indexOf("CPWAdminData")>0 && item.url.indexOf(15)>-1){
                                 params.where = "type<>'Road'";
                             }
@@ -523,22 +524,30 @@ function displayContent() {
                             const theLayerName = item.labels[j];
                             params.outFields = identifyLayers[identifyGroup][item.labels[j]].fields;
                             skip = true;
+                            promiseNumber++;
+                            const thePromise = promiseNumber;
+                            thePromises.push(promiseNumber);
+                            console.log("Query "+theLayerName+" loading  - promise #"+thePromise+" distance="+params.distance);
+                            // first time add div with promise number
+                            accumulateContent(thePromise,"<div id='promise"+thePromise+"'><span class='idTitle'>"+theLayerName+"</span><div style='padding: 0 0 20px 10px;'><calcite-icon class='waitingForConnection' title='Loading' aria-hidden='true' icon='offline' scale='m' calcite-hydrated='' style='margin-right: 5px;'></calcite-icon><span style='vertical-align:text-top;'>Loading...</span></div></div>");
                             //deferreds.push(new Promise((handleQueryResults, handleQueryError) => {
                                 query.executeQueryJSON(item.url, params) //.then(identifySuccess).catch(handleQueryError);
                                 .then((response) => {
+                                    console.log("Query "+theLayerName+" response - promise #"+thePromise);
                                     if (response.results) {
                                         response.results.layerName = theLayerName;
-                                        handleQueryResults(response.results);
+                                        handleQueryResults(response.results,thePromise);
                                         //identifySuccess(response.results);
                                     }
-                                    else{
+                                    else{                                        
                                         response.layerName = theLayerName;
                                         //identifySuccess(response);
-                                        handleQueryResults(response);
+                                        handleQueryResults(response,thePromise);
                                     }
                                 })
                                 .catch((e) => {
-                                    accumulateContent(theLayerName+" layer is busy. Try again later. "+e.message);
+                                    console.log("Query "+theLayerName+" failed   - promise #"+thePromise);
+                                    accumulateContent(thePromise,"<span class='idTitle'>"+theLayerName+"</span><div style='padding:0 0 20px 10px;'><span class='idSubTitle'>Request failed: </span><span class='idSubValue'>"+e.message+"</span><br></div>");
                                     //myhandleQueryError(e);
                                 });
                             //}));
@@ -604,13 +613,17 @@ function displayContent() {
                         else if (view.scale <= 288895)
                             identifyParams.tolerance = 20;
                         else
-                            identifyParams.tolerance = 10;
+                            identifyParams.tolerance = 1;
                     } else if (item.geometry === "line") {
                         // Used to be 15,10,5
                         if (view.scale <= 36112)
                             identifyParams.tolerance = 30;
+                        // 50k
+                        else if (view.scale <= 72224)
+                            identifyParams.tolerance = 15;
+                        // 100k, 250k
                         else if (view.scale <= 288895)
-                            identifyParams.tolerance = 20;
+                            identifyParams.tolerance = 10;
                         else if (view.scale <= 577791)
                             identifyParams.tolerance = 4;
                         else
@@ -669,6 +682,12 @@ function displayContent() {
                         var elkID = parseInt(settings.elkUrl.slice(settings.elkUrl.lastIndexOf("/") +1));
                         var index = identifyParams.layerIds.indexOf(elkID);
                         if (index > -1) identifyParams.layerIds.splice(index, 1);
+                        if (gmu == "Bighorn GMU") {
+                            identifyParams.layerIds.push(settings.sheepUrl.slice(settings.sheepUrl.lastIndexOf("/") + 1));
+                        }
+                        else if (gmu == "Goat GMU") {
+                            identifyParams.layerIds.push(settings.goatUrl.slice(settings.goatUrl.lastIndexOf("/") + 1));
+                        }
                     }
                     if (identifyParams.layerIds.length == 0) skip = true;
                     if (!skip){
@@ -679,22 +698,42 @@ function displayContent() {
                         //myhandleQueryError(e);
                         //deferreds.push(new Promise((handleQueryResults, handleQueryError) => {
                         //new Promise((handleQueryResults, handleQueryError) => {
+                            promiseNumber++;
+                            const thePromise=promiseNumber;
+                            thePromises.push(promiseNumber);
                             const theLayerNames = item.labels;
+                            // first time add div with promise number
+                            var str = "<div id='promise"+thePromise+"'>";
+                            for (var k=0;k<theLayerNames.length;k++){
+                                console.log("Identify "+theLayerNames[k]+" loading  - promise #"+thePromise+" tolerance="+identifyParams.tolerance);    
+                                str += "<span class='idTitle'>"+theLayerNames[k]+"</span><div style='padding: 0 0 20px 10px;'><calcite-icon class='waitingForConnection' title='Loading' aria-hidden='true' icon='offline' scale='m' calcite-hydrated='' style='margin-right: 5px;'></calcite-icon><span style='vertical-align:text-top;'>Loading...</span></div>";
+                            }
+                            str += "</div>";
+                            accumulateContent(thePromise,str);
                             Identify.identify(url,identifyParams)
                             .then((response) => {
+                                for (var k=0;k<theLayerNames.length;k++)
+                                    console.log("Identify "+theLayerNames[k]+" response - promise #"+thePromise+" tolerance="+identifyParams.tolerance);
                                 if (response.results){
-                                    handleQueryResults(response.results);
+                                    handleQueryResults(response.results,thePromise);
                                     //identifySuccess(response.results);
                                 }
                                 else{
-                                    handleQueryResults(response);
+                                    handleQueryResults(response,thePromise);
                                     //identifySuccess(response);
                                 }
                             })
                             .catch((e) => {
-                                var msg = "";
-                                for(var i=0; i<theLayerNames.length;i++) msg += theLayerNames[i]+", ";
-                                accumulateContent(msg+" layer is busy. Try again later.  Error: "+e.message+"<br/>");
+                                var str = ""; //"<div id='promise"+thePromise+"'>";
+                                for (var k=0;k<theLayerNames.length;k++){
+                                    console.log("Identify "+theLayerNames[k]+" loading  - promise #"+thePromise+" tolerance="+identifyParams.tolerance);    
+                                    str += "<span class='idTitle'>"+theLayerNames[k]+"</span><div style='padding: 0 0 20px 10px;'><span class='idSubTitle'>Request failed because: </span><span class='idSubValue'>"+e.message+"</span><br></div></div>";
+                                }
+                                //str += "</div>";
+                                accumulateContent(thePromise,str);
+                                for(var k=0; k<theLayerNames.length;k++){
+                                    console.log("Identify "+theLayerNames[k]+" failed   - promise #"+thePromise+" tolerance="+identifyParams.tolerance);                                    
+                                }
                                 //myhandleQueryError(e);
                             });
                         //});
@@ -703,7 +742,7 @@ function displayContent() {
                 }
             }
             // Add goat and sheep gmus
-            if (identifyGroup === "Hunter Resources") { // ***************** TODO which group is GMU in?????? GMU and Land Management") {
+            /*if (identifyGroup === "Hunter Resources") { // ***************** TODO which group is GMU in?????? GMU and Land Management") {
                 if (gmu == "Bighorn GMU") {
                     let identifyParams = new IdentifyParameters();
                     identifyParams.returnGeometry = true;
@@ -755,7 +794,7 @@ function displayContent() {
                     //}));
                     //deferreds.push(Identify.identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
                 }
-            }
+            }*/
 
             /*if (deferreds && deferreds.length > 0) {
                 Promise.all(deferreds).then((response) => {
@@ -806,7 +845,7 @@ function myhandleQueryError(e) {
 function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
-function handleQueryResults(results) {
+function handleQueryResults(results,thePromise) {
     // results contains an array of identifyGroups
     // in which results[i] contains an array of objects:
     // 	displayFieldName
@@ -864,6 +903,7 @@ function handleQueryResults(results) {
                                     if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
                                         if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
                                             view.popup.title = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
+                                            document.getElementById("identifyTitle").innerHTML = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
                                             theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
                                             highlightFeature(features.length-1,false);
                                             highlightID = features.length-1;
@@ -874,6 +914,7 @@ function handleQueryResults(results) {
                                         highlightID = features.length-1;
                                     }
                                     view.popup.title = theTitle[identifyGroup];
+                                    document.getElementById("identifyTitle").innerHTML = theTitle[identifyGroup];
                                 }
                             }
                             var d;
@@ -959,18 +1000,18 @@ function handleQueryResults(results) {
                     }
                 }
                 else if (results && results.layerName == "Wildfire Incidents"){
-                    str = "";
+                    str = "No wildfire incidents at this point.";
                     //theTitle[identifyGroup] = "No Wildfires";
                     //view.popup.title = "No Wildfires";
                 }
                 
-                accumulateContent(str);
+                accumulateContent(thePromise,str);
                 return;
             }
 
             /*if (results.forEach === undefined){
                 str += "No results for "+identifyGroup; // TODO add layer name
-                accumulateContent(str);
+                accumulateContent(thePromise,str);
                 return;
             }*/
             // Count database calls
@@ -999,55 +1040,23 @@ function handleQueryResults(results) {
             // Write the content for the identify
             var countResults = -1;
             //results.forEach(function(result) {
-                countResults++; // to get result layerName for buffered points
+                //countResults++; // to get result layerName for buffered points
                 if (results.length && results.length > 0) {
                     results.forEach(function(r) {
-                        var tmpStr = writeFeatureContent(r.feature,r.layerName);
+                        var tmpStr = writeFeatureContent(r.feature,r.layerName,thePromise);
                         if (str.indexOf(tmpStr) == -1) 
                             str += tmpStr;
                     });
-                    /*groupObj.push({
-                        identifyGroup: identifyGroup,
-                        title: theTitle[identifyGroup],
-                        content: str,
-                        highlightID: highlightID,
-                        features: features
-                    });*/
                 }
                 // Feature Server uses Query not Identify
                 else if (results.features) {
                     noData = false;
                     const theLayerName = results.layerName;
                     results.features.forEach(function(feature){
-                        var tmpStr = writeFeatureContent(feature,theLayerName);
+                        var tmpStr = writeFeatureContent(feature,theLayerName,thePromise);
                         if (str.indexOf(tmpStr) == -1) 
                             str += tmpStr;
                     });
-                    
-                    /*groupObj.push({
-                        identifyGroup: identifyGroup,
-                        title: theTitle[identifyGroup],
-                        content: str,
-                        highlightID: highlightID,
-                        features: features
-                    });*/
-                    /* // buffer 
-                    result.features.forEach(function(feature){
-                        // Get distance from click point to feature
-                        require(["esri/geometry/Point","esri/geometry/support/geodesicUtils"],
-                            function (Point, geodesicUtils){
-                            var pt2 = new Point(feature.geometry.x, feature.geometry.y, map.spatialReference);
-                            const join = geodesicUtils.geodesicDistance
-                            (
-                                new Point({ x: clickPoint.longitude, y: clickPoint.latitude }),
-                                new Point({ x: pt2.longitude, y: pt2.latitude }),
-                                "miles"
-                            );
-                            const { distance, azimuth } = join;
-                            console.log("Campground: "+feature.attributes['name']+" Distance: ", distance, ", Direction: ", azimuth);
-                        });  
-                        
-                    });*/
                 }
             //});
             // add error messages
@@ -1064,7 +1073,7 @@ function handleQueryResults(results) {
                 highlightFeature(-1,false);
                 highlightID = -1;
             }
-            accumulateContent(str);
+            accumulateContent(thePromise,str);
         } catch (e) {
             alert(e.message + " in javascript/identify.js handleQueryResults().", "Code Error", e);
             hideLoading();
@@ -1072,7 +1081,7 @@ function handleQueryResults(results) {
     //});
 }
 
-function writeFeatureContent(feature,layerName){
+function writeFeatureContent(feature,layerName,thePromise){
 
     var str = "";
     var tmpStr = "";
@@ -1112,6 +1121,7 @@ function writeFeatureContent(feature,layerName){
                                     //}
                                 }
                                 view.popup.title = theTitle[identifyGroup];
+                                document.getElementById("identifyTitle").innerHTML = theTitle[identifyGroup];
                                 // set the popup title
                                 //if (layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
                                 //else theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
@@ -1194,11 +1204,11 @@ function writeFeatureContent(feature,layerName){
                                 if (XMLHttpRequestObjects[arrIndex].status == 404) {
                                     alert("Identify failed. File not found: " + url, "Data Error");
                                     processedDatabaseCalls = numDatabaseCalls;
-                                    accumulateContent(str);
+                                    accumulateContent(thePromise,str);
                                 } else {
                                     alert("Identify failed for call to " + url + ". Make sure it exists and does not have errors. Must be in the same directory as index.html or a lower directory. XMLHttpRequestObjects[" + arrIndex + "].status was " + XMLHttpRequestObjects[arrIndex].status, "Data Error");
                                     processedDatabaseCalls = numDatabaseCalls;
-                                    accumulateContent(str);
+                                    accumulateContent(thePromise,str);
                                 }
                             }
                             
@@ -1211,7 +1221,7 @@ function writeFeatureContent(feature,layerName){
                                 }
                             }
                             if (isAllComplete) {
-                                accumulateContent(str);
+                                accumulateContent(thePromise,str);
                                 // highlight first feature if none were specified by pre_title title title_field in SettingsWidget.xml file
                                 //if (numHighlightFeatures == 0){
                                 //    highlightFeature(0,true);
@@ -1253,6 +1263,7 @@ function writeFeatureContent(feature,layerName){
                 //}
             }
             view.popup.title = theTitle[identifyGroup];
+            document.getElementById("identifyTitle").innerHTML = theTitle[identifyGroup];
 
             var minElev = -1;
             var maxElev = -1;
@@ -1360,6 +1371,29 @@ function writeFeatureContent(feature,layerName){
                             tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(37, 126, 7);"><img alt="" width="32" height="32" src="./assets/images/forest.svg" class="class-ico"></span>';
                             tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
                             tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
+                        }
+                        // BLM Office
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "BLM Office"){
+                            tmpStr += "<ul class='vertical-meta-list'>";
+                                tmpStr += '<li><span class="vertical-meta-list-ico"><img alt="" src="./assets/images/blm_sm2.svg" class="fs_blm_icons"></span>';
+                                tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
+                                tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
+                        }
+                        // Land Management USFS, BLM
+                        else if ( layerName.toLowerCase().indexOf("land management") > -1 && identifyLayers[identifyGroup][layerName].displaynames[i] === "Land Manager"){
+                            if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toLowerCase().indexOf("usfs") > -1){
+                                tmpStr += "<ul class='vertical-meta-list'>";
+                                tmpStr += '<li><span class="vertical-meta-list-ico""><img alt="USFS logo" src="./assets/images/usfs_sm2.svg" class="fs_blm_icons"></span>';
+                                tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
+                                tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
+                            }
+                            else if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toLowerCase().indexOf("blm") > -1){
+                                tmpStr += "<ul class='vertical-meta-list'>";
+                                tmpStr += '<li><span class="vertical-meta-list-ico"><img alt="" src="./assets/images/blm_sm2.svg" class="fs_blm_icons"></span>';
+                                tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
+                                tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
+                            }
+                            else tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]+"</span>";
                         }
                         // Allows dogs, horses, hiking
                         else if ( identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Allows")>-1){
@@ -1547,16 +1581,21 @@ function changeIdentifyGroup(sel) {
     view.popup.content = "<p align='center'>Loading...</p>";
     view.popupEnabled = false;
     features = [];
+    thePromises = [];
     highlightID = -1;
     numDatabaseCalls = 0;
     processedDatabaseCalls = 0;
     theTitle[identifyGroup] = identifyGroup;
     view.popup.title = identifyGroup;
+    document.getElementById("identifyTitle").innerHTML = identifyGroup;
     displayContent();
 }
 
-function accumulateContent(theContent){
+function accumulateContent(thePromise,theContent){
     // get data for the currently selected idenitfyGroup
+
+    // check if this is an old promise
+    if(thePromises.indexOf(thePromise) === -1) return;
 
     // cache the identify group. Create the array item if it does not exist. Each identify map click will recreate groupObj array.
     let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
@@ -1567,7 +1606,8 @@ function accumulateContent(theContent){
             title: theTitle[identifyGroup],
             content: theContent,
             highlightID: highlightID,
-            features: features
+            features: features,
+            promises: thePromises // array of promise numbers for this tab
         });
         obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
         // Fills view.popup.content with tabs menu and theContent
@@ -1577,8 +1617,8 @@ function accumulateContent(theContent){
     else {
         obj[0].features = features; // update features array
         obj[0].highlightID = highlightID;
-        // there is content so "hide not data at this point" message.
-        if (obj[0].content.indexOf(identifyGroup+" at this point.") != -1 && theContent !== ""){
+        // there is content so "hide no data at this point" message.
+        /*if (obj[0].content.indexOf(identifyGroup+" at this point.") != -1 && theContent !== ""){
             obj[0].content = theContent;
             var existCondition = setInterval(function() {
                 if (document.getElementById("myPopupContent")){
@@ -1589,17 +1629,23 @@ function accumulateContent(theContent){
                     view.popup.title = theTitle[identifyGroup];
                 }
             }, 100); // check every 100ms
-        }else {
-            obj[0].content += theContent; // accumulate content    
+        }else {*/
+               
             // update view.popup.content by adding to div element. It flashes horribly if call view.popup.content = ....
             // wait for content to populate
             var existCondition = setInterval(function() {
                 if (document.getElementById('myPopupContent')) {
                     clearInterval(existCondition);
-                    document.getElementById("myPopupContent").innerHTML+=theContent; // append new content
+                    if (document.getElementById("promise"+thePromise))
+                        document.getElementById("promise"+thePromise).innerHTML = theContent;
+                    // first time add it to top level
+                    else{
+                        document.getElementById("myPopupContent").innerHTML+=theContent; // append new content
+                    }
+                    obj[0].content = document.getElementById("myPopupContent").innerHTML; // accumulate content
                 }
             }, 100); // check every 100ms
-        }
+        //}
     }
 
     if (numDatabaseCalls == processedDatabaseCalls) {
@@ -1608,7 +1654,7 @@ function accumulateContent(theContent){
     }
 
     // No info found, just display XY coordinates
-    if (features.length == 0 && obj[0].content=="") {
+    /*if (features.length == 0 && obj[0].content=="") {
         var str;
         var visible = "";
         // find the index
@@ -1622,13 +1668,13 @@ function accumulateContent(theContent){
             // cache content
             groupObj[i]={
                 identifyGroup: identifyGroup,
-                title: "No "+theTitle[identifyGroup],
+                title: theTitle[identifyGroup],
                 content: str,
                 highlightID: -1,
                 features: []
             };
-            theTitle[identifyGroup] = "No "+identifyGroup;
-            view.popup.title = "No "+identifyGroup;
+            theTitle[identifyGroup] = identifyGroup;
+            view.popup.title = identifyGroup;
             str = null;
         } else {
             str = "<div id='noData'>No " + visible + identifyGroup + " at this point.<br/></div>";
@@ -1636,13 +1682,13 @@ function accumulateContent(theContent){
             // cache content
             groupObj[i] = {
                 identifyGroup: identifyGroup,
-                title:  "No "+ theTitle[identifyGroup],
+                title:  theTitle[identifyGroup],
                 content: str,
                 highlightID: -1,
                 features: []
             };
-            theTitle[identifyGroup] = "No "+identifyGroup;
-            view.popup.title = "No "+identifyGroup;
+            theTitle[identifyGroup] = identifyGroup;
+            view.popup.title = identifyGroup;
             str = null;
         }
         // write no data message to view.popup.content when it is populated
@@ -1652,7 +1698,7 @@ function accumulateContent(theContent){
                 document.getElementById("myPopupContent").innerHTML+=theContent; // append new content
             }
         }, 100); // check every 100ms
-    }
+    }*/
 }
 
 function setPrj(){
@@ -1677,7 +1723,7 @@ function customStuff(theContent){
         content += "<calcite-tab";
         if (identifyGroup == identifyGroups[i]){
             // Content
-            content += " select='true'>";// style='margin-top:30px;'>";// style='overflow:auto;'>";
+            content += " select='true' style='overflow-y:auto;height:calc(100vh - 270px);'>";// style='margin-top:30px;'>";// style='overflow:auto;'>";
             content += "<div id='myPopupContent' style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'>"+theContent+"</div>";
             
             // Footer
@@ -1720,9 +1766,11 @@ function customStuff(theContent){
 }
 function displayInfoWindow(theContent) {
     // open popup and set content to string theContent
-    view.popup.content = customStuff(theContent);
-    
-    view.openPopup();
+    //view.popup.content = customStuff(theContent);
+    document.getElementById("identifyContent").innerHTML = "<calcite-tabs>" +customStuff(theContent).innerHTML+"</calcite-tabs>";
+    document.getElementById("identifyPopup").style.display = "block";
+    //view.openPopup();
+
     //if (view.popup){
     //    view.popup.when(() => {
           //  document.getElementsByClassName("esri-popup__main-container")[0].style.marginTop = "90px"; // place below title and search

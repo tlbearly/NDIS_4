@@ -61,6 +61,13 @@ body,
   top: 0;
   left: 0;
 }
+.fs_blm_icons {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    width: 48px;
+    height: 48px;
+}
 
 .esri-layer-list__item-content {
   font-size: 1rem !important;
