@@ -20,7 +20,7 @@
   <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
   
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=50" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=57" async="true" />
   <link rel="stylesheet" href="./assets/css/custom-theme.css?v=32" async="true" />
   
   <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
@@ -31,11 +31,11 @@
   <script type="text/javascript" src="js/addMapLayers.js?v=42" async="true"></script> <!-- read config.xml, add links to help -->
   <script type="text/javascript" src="js/myBasemaps.js?v=24" async="true"></script>
   <script type="text/javascript" src="js/myLayerList.js?v=128" async="true"></script>
-  <script type="text/javascript" src="js/mySearch.js?v=9" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=56" async="true"></script> <!-- read IdentifyWidget.xml -->
+  <script type="text/javascript" src="js/mySearch.js?v=10" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=58" async="true"></script> <!-- read IdentifyWidget.xml -->
   <script type="text/javascript" src="js/errorBox.js?v=3" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
-  <script type="text/javascript" src="js/myMeasure.js?v=2" async="true"></script>
+  <script type="text/javascript" src="js/myMeasure.js?v=3" async="true"></script>
 
   <script>
     // force rounded corners
@@ -211,7 +211,7 @@
         var popupOpenCount = 0;
         view.when(() => {
           // Hide graphic pin when identify closes
-          reactiveUtils.watch(
+          /*reactiveUtils.watch(
             () => view.popup.visible,
             (visible) => {
               if (!visible){
@@ -221,7 +221,7 @@
                 popupOpenCount++;
               }
             }
-          );
+          );*/
         
           // test using esri layerlist
           //myMapLayers();
@@ -315,11 +315,6 @@
           // just capture when it closes
         
           
-       
-         /* reactiveUtils.on(()=>view.popup, "visible", (event)=>{
-            alert("close");
-          });*/
-          
           // add Scale Bar
           let scaleBar = new ScaleBar({
             view: view,
@@ -332,8 +327,7 @@
 
           // add scale 1:24000
           let mapScale = document.createElement("div");
-          mapScale.style.position = "relative";
-          mapScale.style.bottom = "-5px";
+          mapScale.style.padding = "10px";
           mapScale.id="mapscale";
           let mapScaleTitle = document.createElement("label");
           mapScaleTitle.innerHTML="Map scale 1:";
@@ -352,9 +346,19 @@
             option.value=values[i];
             mapScaleList.appendChild(option);
           }
-          view.ui.add(mapScale, {
-            position: "bottom-left"
+          mapScaleBtn = new Expand({
+            view,
+            content: mapScale,
+            expandTooltip: "Map Scale",
+            label: "Map Scale",
+            mode: "floating", // small widget on mobile too
+            autoCollapse: true, // close widget on map scale change
+            defaultClass: "esri-expand",
+            expandIconClass: "esri-icon-expand",
+            expandIcon: "actual-size"
           });
+          view.ui.add(mapScaleBtn, "bottom-right");
+          
 
           readIdentifyWidget(); // in identify, calls addSearch which needs elkUrl
           
@@ -435,9 +439,13 @@
 <body class="green-theme">
   <calcite-loader id="loadingImg" label="Loading..." style="display:none;position:absolute;top:calc(50% - 90px);left:50%;z-index:4;"></calcite-loader>
   <div id="errBox" class="errorbox" style="display:none;">
-    <div id="errTitle" class="errortitle"></div>
-    <div id="errMsg" class="errormsg"></div>
-    <button id="errBtn" class="errorbtn">OK</button>
+    <header>
+      <div id="errTitle" class="errortitle"></div>
+    </header>
+    <article>
+      <div id="errMsg" class="errormsg"></div>
+      <button id="errBtn" class="errorbtn">OK</button>
+    </article>
   </div>
   <div id="disclaimer" class="errorbox" style="display:none;border:2px solid white;margin:auto;width:570px;border-radius:12px;top:20px;height:calc(100vh - 40px);padding-bottom: 10px;">
     <h2 id="disclaimerTitle" style="border-top-left-radius:12px;border-top-right-radius:12px;background-color:var(--background);border-bottom:1px solid #ddd;text-align:center;margin:0;padding:0;"></h2>
@@ -449,9 +457,13 @@
 		  <p align="center"><button class="myButton" type="button" onclick="javascript:closeDisclaimer()" aria-busy="false" aria-label="Agree to disclaimer, hide disclaimer" aria-pressed="false">Agree</button><a href="https://cpw.state.co.us/"><button class="myButton" type="button" aria-busy="false" aria-label="Disagree with disclaimer, load CPW main site." aria-pressed="false">Disagree</button></a></p>
     </div>
   </div>
-  <div id="identifyPopup" style="display:none;border-radius:12px;position:absolute;top:130px;left:15px;height:calc(100vh - 165px);z-index:2;background-color:white;border:1px solid lightgray;width:500px;max-width:calc(100vw - 30px);">
-    <h2 style="font-size:1rem;margin:0;padding:10px;border-bottom:1px solid lightgray;"><span id="identifyTitle">Identify</span><button id="identifyClose" class="myButton" style="float:right;box-shadow:none;border: none;padding:15px;border-radius: 12px;margin:-9px;"  onclick="javascript:closeIdentify()" aria-busy="false" aria-label="Close" aria-pressed="false">X</button></h2>
-    <div id="identifyContent" style="padding:10px;overflow-y:auto;"></div>
+  <div id="identifyPopup" class="myDialog myIdDialog" style="display:none;">
+    <header class="myHeader">
+      <h2><span id="identifyTitle">Identify</span><button id="identifyClose" class="myCloseButton"  onclick="javascript:closeIdentify()" aria-busy="false" aria-label="Close" aria-pressed="false">X</button></h2>
+    </header>
+    <article>
+      <div id="identifyContent" style="padding:10px;overflow-y:auto;"></div>
+    </article>
   </div>
   <div id="viewDiv"></div>
     <!-- XY Coordinate Format Dialog ***** MOVE TO IDENTIFY??? ******-->

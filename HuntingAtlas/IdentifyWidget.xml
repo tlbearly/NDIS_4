@@ -235,7 +235,6 @@
 				<displaynames>Incident Name,Calculated Acres</displaynames>
 			</layer>
 		</folder>
-		
 		<folder label="Roads and Trails">
 			<layer label="Trails">
 				<id>15</id>
@@ -254,17 +253,17 @@
 			</layer-->
 			<layer label="BLM Colorado Routes">
 				<id>5</id>
-				<url>https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer</url>
+				<url>https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer/5</url>
 				<geometry>line</geometry>
 				<fields>PLAN_ALLOW_MODE_TRNSPRT,ROUTE_PRMRY_NM,ROUTE_PRMRY_NUM,OHV_ROUTE_DSGNTN_LIM,OHV_DSGNTN_LIM_EXPLAIN,BLM_MILES</fields>
 				<displaynames>Allowed Mode of Transportation,Route Name,Route Number,OHV Route Designation Limitation,Explaination,Length in miles</displaynames>
 			</layer>
 			<!-- Identify.js will display icons and seasonal dates -->
-			<layer label="Motor_Vehicle_Use_Map_Roads"> <!--Motor Vehicle Use Map: Roads"-->
-				<!-- This one is not responsive!!!!!!!!! id>1</id-->
-                <!--url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer</url-->
-				<url>https://services.arcgis.com/h4jNYexE41HKnu98/ArcGIS/rest/services/Motor_Vehicle_Use_Map_Roads/FeatureServer/0</url>
-				<id>0</id>
+			<layer label="Motor Vehicle Use Map: Roads"> <!--"Motor_Vehicle_Use_Map_Roads"-->
+				<id>1</id>
+                <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer</url>
+				<!--url>https://services.arcgis.com/h4jNYexE41HKnu98/ArcGIS/rest/services/Motor_Vehicle_Use_Map_Roads/FeatureServer/0</url-->
+				<!--id>0</id-->
 				<geometry>line</geometry>
 				<!--other options: HIGHCLEARANCEVEHICLE_DATESOPEN,TRACKED_OHV_GT50_DATESOPEN,OTHERWHEELED_OHV_DATESOPEN,TRACKED_OHV_LT50_DATESOPEN,OTHER_OHV_LT50_DATESOPEN, -->
 				<!-- for the icons to show up must add the following display names in this order: Seasonal,Motorcycle Dates Open,ATV Dates Open,OHV &gt; 50 Dates Open,Passenger Vehicle Dates Open -->

@@ -426,7 +426,7 @@ function doIdentify(evt){
     }
     clickPoint = evt.mapPoint;
     theTitle[identifyGroup] = identifyGroup;
-    view.popup.title = identifyGroup;
+    //view.popup.title = identifyGroup;
     document.getElementById("identifyTitle").innerHTML = identifyGroup;
 
     displayContent();
@@ -438,7 +438,7 @@ function displayContent() {
     // Use cached content if available
     const obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
     if (obj.length > 0){
-        view.popup.title = obj[0].title;
+        //view.popup.title = obj[0].title;
         document.getElementById("identifyTitle").innerHTML = obj[0].title;
         displayInfoWindow(obj[0].content); // do we need featues of highlightID? pass obj
         removeHighlight();
@@ -447,14 +447,20 @@ function displayContent() {
         return;
     }
 
-    require(["esri/rest/support/IdentifyParameters", "esri/rest/identify", "esri/rest/query", "esri/rest/support/Query", "esri/config"], 
-    function(IdentifyParameters, Identify, query, Query, esriConfig) {
+    require(["esri/rest/support/IdentifyParameters", "esri/rest/identify", "esri/rest/query", "esri/rest/support/Query"], 
+    function(IdentifyParameters, Identify, query, Query) {
         try{
             var skip = -1; // if id_vis_only and the top layer is hidden this will be true
-            esriConfig.request.timeout = 5000;
 
             //var deferreds = [];
-            for (var i = 0; i < identifyLayerIds[identifyGroup].length; i++) {
+            var i;
+            // create thePromise array of promise numbers. Used to see if there was no data found in accumulateData
+            var count = promiseNumber+1;
+            for (i=0;i < identifyLayerIds[identifyGroup].length; i++) {
+                thePromises.push(count);
+                count++;
+            }
+            for (i = 0; i < identifyLayerIds[identifyGroup].length; i++) {
                 var item = identifyLayerIds[identifyGroup][i];
                 if (item) {
                     let identifyParams = new IdentifyParameters();
@@ -478,20 +484,20 @@ function displayContent() {
                             else if (item.geometry === "line"){
                                 // 10k
                                 if (view.scale <= 9028)
-                                    params.distance = 0.1;
+                                    params.distance = 50;
                                 // 24k
                                 else if (view.scale <= 36112)
-                                    params.distance = 0.2;
+                                    params.distance = 50;
                                 // 50k
                                 else if (view.scale <= 72224)
-                                    params.distance = .3;
+                                    params.distance = 100;
                                 // 100k
                                 else if (view.scale <= 144448)
-                                    params.distance = .75;
+                                    params.distance = 300;
                                 // > 100k
                                 else 
                                     params.distance = 1;
-                                params.units = "miles";
+                                params.units = "meters";
                             } else if (item.geometry === "point"){
                                 // 24k
                                 if (view.scale <= 36112)
@@ -526,7 +532,6 @@ function displayContent() {
                             skip = true;
                             promiseNumber++;
                             const thePromise = promiseNumber;
-                            thePromises.push(promiseNumber);
                             console.log("Query "+theLayerName+" loading  - promise #"+thePromise+" distance="+params.distance);
                             // first time add div with promise number
                             accumulateContent(thePromise,"<div id='promise"+thePromise+"'><span class='idTitle'>"+theLayerName+"</span><div style='padding: 0 0 20px 10px;'><calcite-icon class='waitingForConnection' title='Loading' aria-hidden='true' icon='offline' scale='m' calcite-hydrated='' style='margin-right: 5px;'></calcite-icon><span style='vertical-align:text-top;'>Loading...</span></div></div>");
@@ -700,7 +705,6 @@ function displayContent() {
                         //new Promise((handleQueryResults, handleQueryError) => {
                             promiseNumber++;
                             const thePromise=promiseNumber;
-                            thePromises.push(promiseNumber);
                             const theLayerNames = item.labels;
                             // first time add div with promise number
                             var str = "<div id='promise"+thePromise+"'>";
@@ -902,7 +906,7 @@ function handleQueryResults(results,thePromise) {
                                 if (theTitle[identifyGroup] == identifyGroup){
                                     if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
                                         if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
-                                            view.popup.title = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
+                                            //view.popup.title = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
                                             document.getElementById("identifyTitle").innerHTML = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
                                             theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
                                             highlightFeature(features.length-1,false);
@@ -913,7 +917,7 @@ function handleQueryResults(results,thePromise) {
                                         highlightFeature(features.length-1,false);
                                         highlightID = features.length-1;
                                     }
-                                    view.popup.title = theTitle[identifyGroup];
+                                    //view.popup.title = theTitle[identifyGroup];
                                     document.getElementById("identifyTitle").innerHTML = theTitle[identifyGroup];
                                 }
                             }
@@ -1120,7 +1124,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                                     //    theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
                                     //}
                                 }
-                                view.popup.title = theTitle[identifyGroup];
+                                //view.popup.title = theTitle[identifyGroup];
                                 document.getElementById("identifyTitle").innerHTML = theTitle[identifyGroup];
                                 // set the popup title
                                 //if (layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
@@ -1262,7 +1266,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                 //    theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
                 //}
             }
-            view.popup.title = theTitle[identifyGroup];
+            //view.popup.title = theTitle[identifyGroup];
             document.getElementById("identifyTitle").innerHTML = theTitle[identifyGroup];
 
             var minElev = -1;
@@ -1275,7 +1279,8 @@ function writeFeatureContent(feature,layerName,thePromise){
                         feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "")) {
                     // the first line does not need a carriage return
                     if (first) first = false;
-                    else tmpStr += "<br/>";
+                    else if(tmpStr.substring(tmpStr.length - 5) != "</ul>")
+                        tmpStr += "<br/>";
                     // can't do substring on a number!
                     if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
                         (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) == "http"))
@@ -1578,15 +1583,16 @@ function setIdentifyFooter(clickPt) {
 function changeIdentifyGroup(sel) {
     removeHighlight();
     identifyGroup = sel.innerText;
-    view.popup.content = "<p align='center'>Loading...</p>";
-    view.popupEnabled = false;
+    document.getElementById("identifyContent").innerHTML = "<p align='center'>Loading...</p>";
+    //view.popup.content = "<p align='center'>Loading...</p>";
+    //view.popupEnabled = false;
     features = [];
     thePromises = [];
     highlightID = -1;
     numDatabaseCalls = 0;
     processedDatabaseCalls = 0;
     theTitle[identifyGroup] = identifyGroup;
-    view.popup.title = identifyGroup;
+    //view.popup.title = identifyGroup;
     document.getElementById("identifyTitle").innerHTML = identifyGroup;
     displayContent();
 }
@@ -1595,7 +1601,8 @@ function accumulateContent(thePromise,theContent){
     // get data for the currently selected idenitfyGroup
 
     // check if this is an old promise
-    if(thePromises.indexOf(thePromise) === -1) return;
+    if(thePromises.indexOf(thePromise) === -1) 
+        return;
 
     // cache the identify group. Create the array item if it does not exist. Each identify map click will recreate groupObj array.
     let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
@@ -1615,8 +1622,9 @@ function accumulateContent(thePromise,theContent){
     }
     // Accumulate content
     else {
-        obj[0].features = features; // update features array
-        obj[0].highlightID = highlightID;
+        if (features != []) obj[0].features = features; // update features array
+        if(highlightID != -1) obj[0].highlightID = highlightID;
+        obj[0].promises = thePromises;
         // there is content so "hide no data at this point" message.
         /*if (obj[0].content.indexOf(identifyGroup+" at this point.") != -1 && theContent !== ""){
             obj[0].content = theContent;
@@ -1638,11 +1646,32 @@ function accumulateContent(thePromise,theContent){
                     clearInterval(existCondition);
                     if (document.getElementById("promise"+thePromise))
                         document.getElementById("promise"+thePromise).innerHTML = theContent;
-                    // first time add it to top level
+                    // first time add each promise to top level (Loading...)
                     else{
                         document.getElementById("myPopupContent").innerHTML+=theContent; // append new content
                     }
                     obj[0].content = document.getElementById("myPopupContent").innerHTML; // accumulate content
+                    // Check for no data
+                    var allPromisesDone = true;
+                    var promiseContent = "";
+                    for(var i=0; i<thePromises.length;i++){
+                        // if this promise has loaded
+                        if (document.getElementById("promise"+thePromises[i])){
+                            promiseContent += document.getElementById("promise"+thePromises[i]).innerHTML;
+                        } else {
+                            allPromisesDone = false;
+                        }
+                    }
+                    if (allPromisesDone && promiseContent === ""){
+                        if (document.getElementById("myPopupContent").innerHTML.indexOf(" at this point.") > -1) return; // don't show it twice!
+                        var visible = "";
+                        if (identifyLayerIds[identifyGroup][0].id_vis_only) visible = "visible "; // 1-10-18 add word visible if identifying visible only
+                        document.getElementById("myPopupContent").innerHTML+="<div id='noData'>No " + visible + identifyGroup + " at this point.<br/></div>";
+                        obj[0].content = document.getElementById("myPopupContent").innerHTML; // accumulate content
+                        theTitle[identifyGroup] = "No "+identifyGroup;
+                        obj[0].title = "No "+identifyGroup;
+                        document.getElementById("identifyTitle").innerHTML="No "+identifyGroup;
+                    }
                 }
             }, 100); // check every 100ms
         //}
@@ -1723,7 +1752,7 @@ function customStuff(theContent){
         content += "<calcite-tab";
         if (identifyGroup == identifyGroups[i]){
             // Content
-            content += " select='true' style='overflow-y:auto;height:calc(100vh - 270px);'>";// style='margin-top:30px;'>";// style='overflow:auto;'>";
+            content += " select='true' class='myIdTab'>";
             content += "<div id='myPopupContent' style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'>"+theContent+"</div>";
             
             // Footer
@@ -1792,7 +1821,7 @@ function displayInfoWindow(theContent) {
     //    });
     //}
 
-    view.popup.viewModel.location = clickPoint;
+ // not using esri popup   view.popup.viewModel.location = clickPoint;
     setIdentifyFooter(clickPoint); // add xy point and elevation to footer
     hideLoading();
 }
@@ -1974,7 +2003,7 @@ function displayInfoWindow(theContent) {
 function getDirections() {
     // Open Google maps directions to point
     require(["esri/geometry/support/webMercatorUtils"], function(webMercatorUtils) {
-        var geoPt = webMercatorUtils.webMercatorToGeographic(view.popup.viewModel.location);
+        var geoPt = webMercatorUtils.webMercatorToGeographic(clickPoint);
         var url = "http://google.com/maps?output=classic&q=" + geoPt.y + "," + geoPt.x;
         window.open(url, "_blank");
     });
@@ -1985,7 +2014,7 @@ function zoomToPt() {
     if (view.scale < level) level = view.scale; // don't zoom out!!!
     // zoom to point
     view.goTo({
-        target: view.popup.viewModel.location,
+        target: clickPoint,
         scale: level
     });
 }

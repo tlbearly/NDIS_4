@@ -163,7 +163,8 @@ function addMeasure(graphicsLayer){
             }
         }
         sketch.on("update", (e) => {
-            view.closePopup();
+            //view.closePopup();
+            closeIdentify();
             const geometry = e.graphics[0].geometry;
 
             if (e.state === "start") {

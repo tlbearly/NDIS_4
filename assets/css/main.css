@@ -28,7 +28,7 @@ body,
 /* Idenitfy Icons */
 .vertical-meta-list {
   list-style: none;
-  margin: 0;
+  margin: 7px 0;
   padding: 0
 }
 .vertical-meta-list li {
@@ -67,6 +67,59 @@ body,
     left: -5px;
     width: 48px;
     height: 48px;
+}
+
+.myDialog{
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2), 6px 6px 5px rgba(0, 0, 0, 0.1);
+  border-radius:12px;
+  z-index:2;
+  background-color:white;
+  border:1px solid lightgray;
+}
+.myHeader{
+  background-color: #f3f3f3;
+  border-top-left-radius:12px;
+  border-top-right-radius:12px;
+}
+.myHeader h2 {
+  font-size:1rem;
+  margin:0;
+  padding:10px;
+  border-bottom:1px solid lightgray;
+}
+.myCloseButton{
+  background-color: #f3f3f3;
+  border-radius:12px;
+  float:right;
+  box-shadow:none;
+  border: none;
+  padding:15px;
+  margin:-9px;
+}
+.myCloseButton:hover{
+  background-color: #e4e4e4;
+}
+.myIdDialog{
+  position:absolute;
+  top:120px;
+  left:15px;
+  max-height:calc(100vh - 115px);
+  width:500px;
+  max-width:calc(100vw - 30px);
+}
+.myIdTab{
+  overflow-y: auto;
+  max-height: calc(100vh - 240px);
+  margin-top: 10px;
+}
+@media screen and (max-width: 768px) {
+  .myIdDialog {
+    max-height: 50vh;
+    top:10px;
+  }
+  .myIdTab{
+    max-height: calc(50vh - 110px)
+  }
 }
 
 .esri-layer-list__item-content {
@@ -133,12 +186,6 @@ calcite-panel,
   border-radius: 0.75rem !important;
 }
 
-/* add transparent white background around scale bar and map scale */
-.esri-ui-bottom-left {
-  background-color: #ffffffdd;
-  border-radius: 12px;
-   padding: 0 0 10px 5px;
-}
 /* set identify height */
 .esri-popup--is-docked-top-left .esri-popup__main-container, .esri-popup--is-docked-top-right .esri-popup__main-container, .esri-popup--is-docked-bottom-left .esri-popup__main-container, .esri-popup--is-docked-bottom-right .esri-popup__main-container {
   max-height: calc(100% - 110px);

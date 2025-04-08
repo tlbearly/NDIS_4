@@ -232,7 +232,8 @@ function addSearch() {
         searchWidget.when(()=>{
             // if identify is showing close it when click on search widget
             searchWidget.container.addEventListener("click", function(event) {
-            view.closePopup();
+                //view.closePopup();
+                closeIdentify();
             });
 
             // change filter icon from down arrow to filter
