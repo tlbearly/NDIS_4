@@ -335,9 +335,9 @@ input[type="checkbox"]:checked {
   border-top-right-radius: 0;
 }
 
-.esri-expand {
-  min-width: 40px;
-  min-height: 40px;
+.esri-collapse__icon {
+  width: 24px;
+  height: 20px;
 }
 
 /*.esri-expand__content-container{

@@ -67,7 +67,7 @@ function readIdentifyWidget() {
                     // Load user saved XY projection
                     if (xmlDoc.getElementsByTagName("xy_projection")[0] && xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0] &&
                     (xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue !== "dd" && xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue !== "32613"))
-                        alert("Error in "+app+"/SettingsWidget.xml file. Tag, xy_projection, must be 'dd' or '32613'.","Data Error");
+                        alert("Error in "+app+"/IdentifyWidget.xml file. Tag, xy_projection, must be 'dd' or '32613'.","Data Error");
                     var myPrj = getCookie("prj");
                     if (myPrj !== "")
                         settings = { "XYProjection": myPrj };
@@ -75,7 +75,7 @@ function readIdentifyWidget() {
                         if (xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0]) {
                             settings = { "XYProjection": xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue };
                         }
-                        else alert("Missing tag: xy_projection in "+app+"/SettingsWidget.xml", "Data Error");
+                        else alert("Missing tag: xy_projection in "+app+"/IdentifyWidget.xml", "Data Error");
                     }
 
                     // Map Link Not Used
@@ -92,27 +92,27 @@ function readIdentifyWidget() {
                     if (use_gmus) {
                         settings.useGMUs = true;
                         if (!xmlDoc.getElementsByTagName("gmu_url")[0])
-                            alert("Missing tag: gmu_url in " + app + "/SettingsWidget.xml", "Data Error");
+                            alert("Missing tag: gmu_url in " + app + "/IdentifyWidget.xml", "Data Error");
                         else
                             settings.elkUrl = xmlDoc.getElementsByTagName("gmu_url")[0].childNodes[0].nodeValue;
                         if (!xmlDoc.getElementsByTagName("gmu_field")[0])
-                            alert("Missing tag: gmu_field in " + app + "/SettingsWidget.xml", "Data Error");
+                            alert("Missing tag: gmu_field in " + app + "/IdentifyWidget.xml", "Data Error");
                         else
                             settings.elkField = xmlDoc.getElementsByTagName("gmu_field")[0].childNodes[0].nodeValue;
                         if (!xmlDoc.getElementsByTagName("sheep_gmu_url")[0])
-                            alert("Missing tag: sheep_gmu_url in " + app + "/SettingsWidget.xml", "Data Error");
+                            alert("Missing tag: sheep_gmu_url in " + app + "/IdentifyWidget.xml", "Data Error");
                         else
                             settings.sheepUrl = xmlDoc.getElementsByTagName("sheep_gmu_url")[0].childNodes[0].nodeValue;
                         if (!xmlDoc.getElementsByTagName("sheep_gmu_field")[0])
-                            alert("Missing tag: sheep_gmu_field in " + app + "/SettingsWidget.xml", "Data Error");
+                            alert("Missing tag: sheep_gmu_field in " + app + "/IdentifyWidget.xml", "Data Error");
                         else
                             settings.sheepField = xmlDoc.getElementsByTagName("sheep_gmu_field")[0].childNodes[0].nodeValue;
                         if (!xmlDoc.getElementsByTagName("goat_gmu_url")[0])
-                            alert("Missing tag: goat_gmu_url in " + app + "/SettingsWidget.xml", "Data Error");
+                            alert("Missing tag: goat_gmu_url in " + app + "/IdentifyWidget.xml", "Data Error");
                         else
                             settings.goatUrl = xmlDoc.getElementsByTagName("goat_gmu_url")[0].childNodes[0].nodeValue;
                         if (!xmlDoc.getElementsByTagName("goat_gmu_field")[0])
-                            alert("Missing tag: goat_gmu_field in " + app + "/SettingsWidget.xml", "Data Error");
+                            alert("Missing tag: goat_gmu_field in " + app + "/IdentifyWidget.xml", "Data Error");
                         else
                             settings.goatField = xmlDoc.getElementsByTagName("goat_gmu_field")[0].childNodes[0].nodeValue;
                         //if (gmu == "Big Game GMU")
@@ -152,7 +152,7 @@ function readIdentifyWidget() {
                     if (show_elevation && xmlDoc.getElementsByTagName("elevation_url")[0]) {
                         if (xmlDoc.getElementsByTagName("elevation_url")[0].firstChild.nodeValue)
                             elevation_url = xmlDoc.getElementsByTagName("elevation_url")[0].firstChild.nodeValue;
-                        else alert("Missing elevation_url tag in SettingsWidget.xml.", "Data Error");
+                        else alert("Missing elevation_url tag in IdentifyWidget.xml.", "Data Error");
                     /*    view.popup.actions.push( 
                             {
                                 id: "elevation",
@@ -181,7 +181,7 @@ function readIdentifyWidget() {
                         if (folder[f].getAttribute("title_layer")) {
                             identifyLayers[identifyGroups[f]].titleLayer = folder[f].getAttribute("title_layer");
                             if (!folder[f].getAttribute("pre_title"))
-                                alert("Error in " + app + "/SettingsWidget.xml. Missing pre_title in folder: " + identifyGroups[f] + ". <folder label='' pre_title='GMU Units ' layer-title='layer name to use as identify title'>", "Data Error");
+                                alert("Error in " + app + "/IdentifyWidget.xml. Missing pre_title in folder: " + identifyGroups[f] + ". <folder label='' pre_title='GMU Number ' layer-title='layer name to use as identify title'>", "Data Error");
                             else
                                 identifyLayers[identifyGroups[f]].preTitle = folder[f].getAttribute("pre_title");
                         }
@@ -199,26 +199,26 @@ function readIdentifyWidget() {
                         var label = "missing label";
                         for (var i = 0; i < layer.length; i++) {
                             if (!layer[i].getAttribute("label"))
-                                alert("Error in " + app + "/SettingsWidget.xml. Missing label in folder: " + identifyGroups[f] + ".", "Data Error");
+                                alert("Error in " + app + "/IdentifyWidget.xml. Missing label in folder: " + identifyGroups[f] + ".", "Data Error");
                             else
                                 label = layer[i].getAttribute("label");
 
                             // Make sure vis_url and vis_id are set if id_vis_only is true
                             if (folder[f].getAttribute("id_vis_only") && folder[f].getAttribute("id_vis_only").toLowerCase() == "true") {
                                 if (!layer[i].getElementsByTagName("vis_url")[0] || !layer[i].getElementsByTagName("vis_id")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. When vis_id_only is set in a folder, every layer in the folder must have a vis_id and vis_url tag for the layer that is in the map to check if it is visible or not. Missing vis_url and vis_id tags in folder: " + identifyGroups[f] + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. When vis_id_only is set in a folder, every layer in the folder must have a vis_id and vis_url tag for the layer that is in the map to check if it is visible or not. Missing vis_url and vis_id tags in folder: " + identifyGroups[f] + ".", "Data Error");
                             }
                             identifyLayers[identifyGroups[f]][label] = {};
 
                             // Create list of ids for this layer
                             var found = false;
                             if (!layer[i].getElementsByTagName("url")[0] || !layer[i].getElementsByTagName("id")[0])
-                                alert("Error in " + app + "/SettingsWidget.xml. Missing url or id in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                alert("Error in " + app + "/IdentifyWidget.xml. Missing url or id in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                             else {
                                 // build array of unique buffer radius, id_vis_only, url, and geometry. These layers can be called all at once in identify. Query will need to call each layer indepently.
                                 for (var j = 0; j < identifyLayerIds[identifyGroups[f]].length; j++) {
                                     // Buffer points and
-                                    // Identify only visible layers. Each layer in this folder in SettingsWidget.xml must have a vis_id and vis_url tags
+                                    // Identify only visible layers. Each layer in this folder in IdentifyWidget.xml must have a vis_id and vis_url tags
                                     if ((folder[f].getAttribute("id_vis_only") && folder[f].getAttribute("id_vis_only").toLowerCase() == "true") &&
                                         layer[i].getElementsByTagName("buffer")[0] !== undefined &&
                                         identifyLayerIds[identifyGroups[f]][j].buffer == parseFloat(layer[i].getElementsByTagName("buffer")[0].childNodes[0].nodeValue) &&  
@@ -241,7 +241,7 @@ function readIdentifyWidget() {
                                             found = true;
                                     }
                                     // Do not buffer points and
-                                    // Identify only visible layers. Each layer in this folder in SettingsWidget.xml must have a vis_id and vis_url tags
+                                    // Identify only visible layers. Each layer in this folder in IdentifyWidget.xml must have a vis_id and vis_url tags
                                     else if (layer[i].getElementsByTagName("buffer")[0] === undefined && !identifyLayerIds[identifyGroups[f]][j].buffer &&
                                         (folder[f].getAttribute("id_vis_only") && folder[f].getAttribute("id_vis_only").toLowerCase() == "true") &&
                                         identifyLayerIds[identifyGroups[f]][j].url == layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue &&
@@ -266,7 +266,7 @@ function readIdentifyWidget() {
                             if (!found) {
                                 // url was not found in list, add it. It had unique values for buffer, id_vis_only, url, and geometry
                                 if (!layer[i].getElementsByTagName("url")[0] || !layer[i].getElementsByTagName("id")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. Missing url or id in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. Missing url or id in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else {
                                     // Add id_vis_only for layer identify option LAYER_OPTION_ALL or LAYER_OPTION_VISIBLE at the folder level 1-9-18
                                     var vis_url = null,
@@ -298,23 +298,23 @@ function readIdentifyWidget() {
                             // Add a layer that has a database call
                             if (layer[i].getElementsByTagName("database")[0]) {
                                 if (!layer[i].getElementsByTagName("url")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. Missing url in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. Missing url in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else
                                     identifyLayers[identifyGroups[f]][label].url = layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue;
                                 if (!layer[i].getElementsByTagName("id")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. Missing id in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. Missing id in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else
                                     identifyLayers[identifyGroups[f]][label].id = layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue;
                                 if (!layer[i].getElementsByTagName("geometry")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. Missing geometry in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. Missing geometry in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else
                                     identifyLayers[identifyGroups[f]][label].geometry = layer[i].getElementsByTagName("geometry")[0].childNodes[0].nodeValue;
                                 if (!layer[i].getElementsByTagName("fields")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. Missing fields in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. Missing fields in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else
                                     identifyLayers[identifyGroups[f]][label].fields = layer[i].getElementsByTagName("fields")[0].childNodes[0].nodeValue.split(",");
                                 if (!layer[i].getElementsByTagName("displaynames")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. Missing displaynames in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. Missing displaynames in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else
                                     identifyLayers[identifyGroups[f]][label].displaynames = layer[i].getElementsByTagName("displaynames")[0].childNodes[0].nodeValue.split(",");
                                 if (layer[i].getElementsByTagName("position")[0])
@@ -322,12 +322,12 @@ function readIdentifyWidget() {
                                 else
                                     identifyLayers[identifyGroups[f]][label].position = 0;
                                 if (!layer[i].getElementsByTagName("database")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. Missing database in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. Missing database in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else
                                     identifyLayers[identifyGroups[f]][label].database = layer[i].getElementsByTagName("database")[0].childNodes[0].nodeValue;
 
                                 if (!layer[i].getElementsByTagName("filename")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. Missing filename in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. Missing filename in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else
                                     identifyLayers[identifyGroups[f]][label].filename = layer[i].getElementsByTagName("filename")[0].childNodes[0].nodeValue;
                                 if (layer[i].getElementsByTagName("one2one_fields")[0] && layer[i].getElementsByTagName("one2one_fields")[0].childNodes.length > 0)
@@ -340,23 +340,23 @@ function readIdentifyWidget() {
                             // Add layer without database call
                             else {
                                 if (!layer[i].getElementsByTagName("url")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. Missing url in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. Missing url in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else
                                     identifyLayers[identifyGroups[f]][label].url = layer[i].getElementsByTagName("url")[0].childNodes[0].nodeValue;
                                 if (!layer[i].getElementsByTagName("id")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. Missing id in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. Missing id in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else
                                     identifyLayers[identifyGroups[f]][label].id = layer[i].getElementsByTagName("id")[0].childNodes[0].nodeValue;
                                 if (!layer[i].getElementsByTagName("geometry")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. Missing geometry in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. Missing geometry in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else
                                     identifyLayers[identifyGroups[f]][label].geometry = layer[i].getElementsByTagName("geometry")[0].childNodes[0].nodeValue;
                                 if (!layer[i].getElementsByTagName("fields")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. Missing fields in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. Missing fields in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else
                                     identifyLayers[identifyGroups[f]][label].fields = layer[i].getElementsByTagName("fields")[0].childNodes[0].nodeValue.split(",");
                                 if (!layer[i].getElementsByTagName("displaynames")[0])
-                                    alert("Error in " + app + "/SettingsWidget.xml. Missing displaynames in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
+                                    alert("Error in " + app + "/IdentifyWidget.xml. Missing displaynames in folder: " + identifyGroups[f] + " for layer: " + label + ".", "Data Error");
                                 else
                                     identifyLayers[identifyGroups[f]][label].displaynames = layer[i].getElementsByTagName("displaynames")[0].childNodes[0].nodeValue.split(",");
 
@@ -379,21 +379,21 @@ function readIdentifyWidget() {
                         }
                     }
 
-                    // Call draw init here since it needs the XYprojection value which was read from user cookie or settingsWidget.xml
+                    // Call draw init here since it needs the XYprojection value which was read from user cookie or IdentifyWidget.xml
  // TODO drawing widget
  //                 drawInit();
                 //});
             } catch (e) {
-                alert("Error reading " + app + "/SettingsWidget.xml in javascript/identify.js readSettingsWidget(): " + e.message, "Data Error", e);
+                alert("Error reading " + app + "/IdentifyWidget.xml in javascript/identify.js readSettingsWidget(): " + e.message, "Data Error", e);
                 hideLoading();
             }
         }
         // if missing file
         else if (xmlhttp.status === 404) {
-            alert("Error: Missing " + app + "/settingsWidget.xml file.", "Data Error");
+            alert("Error: Missing " + app + "/IdentifyWidget.xml file.", "Data Error");
             hideLoading();
         } else if (xmlhttp.readyState === 4 && xmlhttp.status === 500) {
-            alert("Error reading " + app + "/settingsWidget.xml.", "Code Error");
+            alert("Error reading " + app + "/IdentifyWidget.xml.", "Code Error");
             hideLoading();
         }
     };
@@ -450,7 +450,7 @@ function displayContent() {
     require(["esri/rest/support/IdentifyParameters", "esri/rest/identify", "esri/rest/query", "esri/rest/support/Query"], 
     function(IdentifyParameters, Identify, query, Query) {
         try{
-            var skip = -1; // if id_vis_only and the top layer is hidden this will be true
+            var skip = false; // if id_vis_only and the top layer is hidden this will be true
 
             //var deferreds = [];
             var i;
@@ -463,13 +463,80 @@ function displayContent() {
             for (i = 0; i < identifyLayerIds[identifyGroup].length; i++) {
                 var item = identifyLayerIds[identifyGroup][i];
                 if (item) {
-                    let identifyParams = new IdentifyParameters();
-                    identifyParams.returnGeometry = true;
-                    identifyParams.layerOption = "all"; // top, visible, all, popup
-                    identifyParams.geometry = clickPoint; 
-                    identifyParams.mapExtent = view.extent;
-                    identifyParams.width = view.width;
-                    identifyParams.height = view.height;
+
+                    // Show only visible items for identifyGroup when id_vis_only="true" in IdentifyWidget.xml
+                    // NOTE: IdentifyParameters option LAYER_OPTION_VISIBLE is supposed to do this but is not working 1-9-18
+                    skip = false;
+                    var url;
+                    if (item.id_vis_only) {
+                       // identifyParams.layerOption = "visible"; // this is not working so get visible layers manually and set identifyParams.layerIds ????????????????
+                        url = item.vis_url;
+                        // trim off last /
+                        if (item.vis_url[item.vis_url.length - 1] === "/") 
+                            url = item.vis_url.substr(0, item.vis_url.length - 1);
+                        // Get array of all layers -- MOVE THIS TO TOP only do once
+                        var alllayers=[];
+                        for (var k=0; k<map.layers.items.length; k++){
+                            if (map.layers.items[k].layers !== undefined){
+                                for(var m=0; m<map.layers.items[k].layers.items.length; m++){
+                                    if(map.layers.items[k].layers.items[m].layers !== undefined){
+                                        for(var n=0; n<map.layers.items[k].layers.items[m].length; n++){
+                                            if(map.layers.items[k].layers.items[m].layers.items[n].layers !== undefined){
+                                                alert("Need to add code to identify.js line 659 to check for visible layers to identify.");
+                                            }else{
+                                                alllayers.push(map.layers.items[k].layers.items[m].layers.items[n]);
+                                            }
+                                        }
+                                    }else{
+                                        alllayers.push(map.layers.items[k].layers.items[m]);
+                                    }
+                                }
+                            }else
+                                alllayers.push(map.layers.items[k]);
+                        }
+                        //var vis_layers = [];
+                        //identifyParams.layerIds = item.vis_ids.slice(); // get list of ids used in the map
+                        // Loop through each top layer in the TOC that is visible at this scale
+                        for(k=0; k<alllayers.length; k++) {
+                            if (alllayers[k].url && url.toLowerCase().indexOf(alllayers[k].url.toLowerCase()) > -1) {
+                                // TODO check if layerID exists!
+                                if (alllayers[k].visible == false && alllayers[k].layerId.toString() === item.id) {
+                                    skip = true;
+                                    thePromises.pop();// remove the last promise number from the promises array. Used to show no data.
+                                    break;
+                                }
+
+                                /*if (layer.visible == true) {
+                                    skip = false;
+                                    //var found = false;
+                                    for (var i = 0; i < identifyParams.layerIds.length; i++) {
+                                        var id = identifyParams.layerIds[i];
+                                        // Make sure it and all it's parents are visible
+                                        while (layer.layerInfos[id].visible == true) {
+                                            if (layer.layerInfos[id].parentLayerId == -1) {
+                                                vis_layers.push(identifyParams.layerIds[i]);
+                                                break;
+                                            } else {
+                                                id = layer.layerInfos[id].parentLayerId;
+                                            }
+                                        }
+                                    }
+                                    identifyParams.layerIds = vis_layers;
+                                } else if (skip == -1) {
+                                    skip = true;
+                                }*/
+                            }
+                        } // for each layer
+                        
+                    } else {
+                        //skip = false;
+                        url = item.url;
+                    }
+                    if (skip) continue;
+
+
+
+                    
 
                     // Query FeatureServer - Identify does not work
                     if (item.url.toLowerCase().indexOf("featureserver") > -1){
@@ -532,13 +599,13 @@ function displayContent() {
                             skip = true;
                             promiseNumber++;
                             const thePromise = promiseNumber;
-                            console.log("Query "+theLayerName+" loading  - promise #"+thePromise+" distance="+params.distance);
+                           // console.log("Query "+theLayerName+" loading  - promise #"+thePromise+" distance="+params.distance);
                             // first time add div with promise number
                             accumulateContent(thePromise,"<div id='promise"+thePromise+"'><span class='idTitle'>"+theLayerName+"</span><div style='padding: 0 0 20px 10px;'><calcite-icon class='waitingForConnection' title='Loading' aria-hidden='true' icon='offline' scale='m' calcite-hydrated='' style='margin-right: 5px;'></calcite-icon><span style='vertical-align:text-top;'>Loading...</span></div></div>");
                             //deferreds.push(new Promise((handleQueryResults, handleQueryError) => {
                                 query.executeQueryJSON(item.url, params) //.then(identifySuccess).catch(handleQueryError);
                                 .then((response) => {
-                                    console.log("Query "+theLayerName+" response - promise #"+thePromise);
+                                   // console.log("Query "+theLayerName+" response - promise #"+thePromise);
                                     if (response.results) {
                                         response.results.layerName = theLayerName;
                                         handleQueryResults(response.results,thePromise);
@@ -551,8 +618,8 @@ function displayContent() {
                                     }
                                 })
                                 .catch((e) => {
-                                    console.log("Query "+theLayerName+" failed   - promise #"+thePromise);
-                                    accumulateContent(thePromise,"<span class='idTitle'>"+theLayerName+"</span><div style='padding:0 0 20px 10px;'><span class='idSubTitle'>Request failed: </span><span class='idSubValue'>"+e.message+"</span><br></div>");
+                                    //console.log("Query "+theLayerName+" failed   - promise #"+thePromise+ " error="+e.message);
+                                    accumulateContent(thePromise,"<span class='idTitle'>"+theLayerName+"</span><div style='padding:0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubValue'>External map service is unavailable.</span><br></div>");
                                     //myhandleQueryError(e);
                                 });
                             //}));
@@ -590,7 +657,7 @@ function displayContent() {
                             params.outFields = identifyLayers[identifyGroup]["Wildfire Perimeters"].fields;
                         }
                         else
-                            alert("In SettingsWidget.xml tag Wildfire folder, must contain layers with the following names: Wildfire Incidents or Wildfire Perimeters.", "Data Error");
+                            alert("In IdentifyWidget.xml tag Wildfire folder, must contain layers with the following names: Wildfire Incidents or Wildfire Perimeters.", "Data Error");
                         skip = true;
                         deferreds.push(new Promise((identifySuccess, handleQueryError) => {
                             query.executeQueryJSON(item.url, params) //.then(identifySuccess).catch(handleQueryError);
@@ -608,7 +675,13 @@ function displayContent() {
                         continue;
                     }*/
 
-                                        
+                    let identifyParams = new IdentifyParameters();
+                    identifyParams.returnGeometry = true;
+                    identifyParams.layerOption = "all"; // top, visible, all, popup
+                    identifyParams.geometry = clickPoint; 
+                    identifyParams.mapExtent = view.extent;
+                    identifyParams.width = view.width;
+                    identifyParams.height = view.height;                
                     identifyParams.layerIds = item.ids.slice(); // make a copy of this array since we change it for bighorn or goat gmu
                     if (item.buffer) identifyParams.tolerance = item.buffer;
                     else if (item.geometry === "point") {
@@ -636,24 +709,46 @@ function displayContent() {
                     } else
                         identifyParams.tolerance = 1;
 
-                    // Show only visible items for identifyGroup when id_vis_only="true" in SettingsWidget.xml
+                    // Show only visible items for identifyGroup when id_vis_only="true" in IdentifyWidget.xml
                     // NOTE: IdentifyParameters option LAYER_OPTION_VISIBLE is supposed to do this but is not working 1-9-18
-                    var url;
+                    /*var url;
                     if (item.id_vis_only) {
                         identifyParams.layerOption = "visible"; // this is not working so get visible layers manually and set identifyParams.layerIds ????????????????
                         url = item.vis_url;
                         // trim off last /
-                        if (item.vis_url[item.vis_url.length - 1] == "/") url = item.vis_url.substr(0, item.vis_url.length - 1);
+                        if (item.vis_url[item.vis_url.length - 1] === "/") url = item.vis_url.substr(0, item.vis_url.length - 1);
                         skip = false;
 
 
-                        // Get list of visible layers
-                        /*var layers = map.getLayersVisibleAtScale(map.getScale());
+                        // Get array of all layers
+                        var layers=[];
+                        for (var k=0; k<map.layers.items.length; k++){
+                            if (map.layers.items[k].layers !== undefined){
+                                for(var m=0; m<map.layers.items[k].layers.items.length; m++){
+                                    if(map.layers.items[k].layers.items[m].layers !== undefined){
+                                        for(var n=0; n<map.layers.items[k].layers.items[m].length; n++){
+                                            if(map.layers.items[k].layers.items[m].layers.items[n].layers !== undefined){
+                                                alert("Need to add code to identify.js line 659 to check for visible layers to identify.");
+                                            }else{
+                                                layers.push(map.layers.items[k].layers.items[m].layers.items[n]);
+                                            }
+                                        }
+                                    }else{
+                                        layers.push(map.layers.items[k].layers.items[m]);
+                                    }
+                                }
+                            }else
+                                layers.push(map.layers.items[k]);
+                        }
+                        
+                        //var layers = map.getLayersVisibleAtScale(map.getScale());
                         var vis_layers = [];
                         identifyParams.layerIds = item.vis_ids.slice(); // get list of ids used in the map
                         // Loop through each top layer in the TOC that is visible at this scale
                         layers.forEach(function(layer) {
                             if (layer.url && layer.url.toLowerCase() == url.toLowerCase()) {
+                               // if (layer.url === url && layer.visible == false) skip = true;
+
                                 if (layer.visible == true) {
                                     skip = false;
                                     //var found = false;
@@ -675,12 +770,13 @@ function displayContent() {
                                 }
                             }
                         }); // for each layer
-                        */
+                        
                     } else {
                         skip = false;
                         url = item.url;
-                    }
+                    }*/
 
+                    var url = item.url;
                     // remove Big Game GMU if this is identifying Bighorn or Goat GMU
                     if (settings.elkUrl && item.url == settings.elkUrl.slice(0, settings.elkUrl.lastIndexOf("/") + 1) && gmu != "Big Game GMU") {
                         // Find the index to the layerId for Big Game GMU and remove it from the layer ids.
@@ -709,7 +805,7 @@ function displayContent() {
                             // first time add div with promise number
                             var str = "<div id='promise"+thePromise+"'>";
                             for (var k=0;k<theLayerNames.length;k++){
-                                console.log("Identify "+theLayerNames[k]+" loading  - promise #"+thePromise+" tolerance="+identifyParams.tolerance);    
+                               // console.log("Identify "+theLayerNames[k]+" loading  - promise #"+thePromise+" tolerance="+identifyParams.tolerance);    
                                 str += "<span class='idTitle'>"+theLayerNames[k]+"</span><div style='padding: 0 0 20px 10px;'><calcite-icon class='waitingForConnection' title='Loading' aria-hidden='true' icon='offline' scale='m' calcite-hydrated='' style='margin-right: 5px;'></calcite-icon><span style='vertical-align:text-top;'>Loading...</span></div>";
                             }
                             str += "</div>";
@@ -717,7 +813,7 @@ function displayContent() {
                             Identify.identify(url,identifyParams)
                             .then((response) => {
                                 for (var k=0;k<theLayerNames.length;k++)
-                                    console.log("Identify "+theLayerNames[k]+" response - promise #"+thePromise+" tolerance="+identifyParams.tolerance);
+                                   // console.log("Identify "+theLayerNames[k]+" response - promise #"+thePromise+" tolerance="+identifyParams.tolerance);
                                 if (response.results){
                                     handleQueryResults(response.results,thePromise);
                                     //identifySuccess(response.results);
@@ -730,14 +826,11 @@ function displayContent() {
                             .catch((e) => {
                                 var str = ""; //"<div id='promise"+thePromise+"'>";
                                 for (var k=0;k<theLayerNames.length;k++){
-                                    console.log("Identify "+theLayerNames[k]+" loading  - promise #"+thePromise+" tolerance="+identifyParams.tolerance);    
-                                    str += "<span class='idTitle'>"+theLayerNames[k]+"</span><div style='padding: 0 0 20px 10px;'><span class='idSubTitle'>Request failed because: </span><span class='idSubValue'>"+e.message+"</span><br></div></div>";
+                                    //console.log("Identify "+theLayerNames[k]+" failed  - promise #"+thePromise+" tolerance="+identifyParams.tolerance+" Error="+e.message);    
+                                    str += "<span class='idTitle'>"+theLayerNames[k]+"</span><div style='padding: 0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubValue'>External map service is unavailable.</span><br></div></div>";
                                 }
                                 //str += "</div>";
                                 accumulateContent(thePromise,str);
-                                for(var k=0; k<theLayerNames.length;k++){
-                                    console.log("Identify "+theLayerNames[k]+" failed   - promise #"+thePromise+" tolerance="+identifyParams.tolerance);                                    
-                                }
                                 //myhandleQueryError(e);
                             });
                         //});
@@ -883,7 +976,7 @@ function handleQueryResults(results,thePromise) {
                 }
                 else tooManyRequests = false;
 
-                if (results.layerName == "Wildfire Incidents") 
+                if (results.layerName === "Wildfire Incidents") 
                     str = "The wildfire map layers are maintained and imported on demand from ESRI's USA Current Wildfires layer. They present the best-known point and perimeter locations of wildfire occurrences within the United States over the past 7 days from IRWIN and NIFC information.<br/><br/>";
                 // add each attribute to str
                 //if (results.forEach){
@@ -902,8 +995,8 @@ function handleQueryResults(results,thePromise) {
                                 //    theTitle[identifyGroup] = feature.attributes.IncidentName;
                                 //    view.popup.title = theTitle[identifyGroup];
                                 //}
-                                // set header with the layer specified in SettingsWidget.xml file or use first field value
-                                if (theTitle[identifyGroup] == identifyGroup){
+                                // set header with the layer specified in IdentifyWidget.xml file or use first field value
+                                if (theTitle[identifyGroup] === identifyGroup){
                                     if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
                                         if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
                                             //view.popup.title = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
@@ -934,7 +1027,7 @@ function handleQueryResults(results,thePromise) {
                                     feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "")) {
                                     //https link (can't do substring on a number!)
                                     if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
-                                        (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) == "http"))
+                                        (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) === "http"))
                                         tmpStr = "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a><br/>";
                                     else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("percent") > -1){
                                         tmpStr = "<span class='idSubTitle'>"+ identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "%</span><br/>";
@@ -1067,7 +1160,7 @@ function handleQueryResults(results,thePromise) {
             if (tooManyRequests) {
                 str+= "<br/><p>Too many people are requesting this data. Please try again.</p>";
             }
-            // highlight first feature if none were specified by pre_title title title_field in SettingsWidget.xml file
+            // highlight first feature if none were specified by pre_title title title_field in IdentifyWidget.xml file
             if (numHighlightFeatures == 0){
                 highlightFeature(0,false);
                 highlightID = 0;
@@ -1109,7 +1202,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                                 features.push(feature);
                                 var xmlDoc = createXMLdoc(XMLHttpRequestObjects[arrIndex]);
                                 
-                                // set header with the layer specified in SettingsWidget.xml file or use first field value
+                                // set header with the layer specified in IdentifyWidget.xml file or use first field value
                                 if (theTitle[identifyGroup] == identifyGroup){
                                     if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
                                         if(layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
@@ -1118,7 +1211,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                                             highlightID = features.length-1;
                                         }
                                         // handle Bighorn and Goat GMU
-                                        else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = "GMU Unit "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                                        else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = layerName+" Number "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
                                     }
                                     //else {
                                     //    theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
@@ -1226,7 +1319,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                             }
                             if (isAllComplete) {
                                 accumulateContent(thePromise,str);
-                                // highlight first feature if none were specified by pre_title title title_field in SettingsWidget.xml file
+                                // highlight first feature if none were specified by pre_title title title_field in IdentifyWidget.xml file
                                 //if (numHighlightFeatures == 0){
                                 //    highlightFeature(0,true);
                                 //}
@@ -1246,7 +1339,7 @@ function writeFeatureContent(feature,layerName,thePromise){
             features.push(feature);
             tmpStr = "<span class='idTitle'>"+ layerName + "</span><div style='padding-left: 10px;'>";
             var first = true;
-            // set header with the layer specified in SettingsWidget.xml file or use first field value
+            // set header with the layer specified in IdentifyWidget.xml file or use first field value
             if (theTitle[identifyGroup] == identifyGroup){
                 if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
                     numHighlightFeatures=-1;
@@ -1257,14 +1350,14 @@ function writeFeatureContent(feature,layerName,thePromise){
                     }
                     // handle Bighorn and Goat GMU
                     else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1){
-                        theTitle[identifyGroup] = "GMU Unit "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                        theTitle[identifyGroup] = layerName +" Number "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
                         highlightFeature(features.length-1,false);
                         highlightID = features.length-1;
                     }
                 }
-                //else {
-                //    theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
-                //}
+                else {
+                    //theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                }
             }
             //view.popup.title = theTitle[identifyGroup];
             document.getElementById("identifyTitle").innerHTML = theTitle[identifyGroup];
@@ -1281,7 +1374,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                     if (first) first = false;
                     else if(tmpStr.substring(tmpStr.length - 5) != "</ul>")
                         tmpStr += "<br/>";
-                    // can't do substring on a number!
+                    // Handle a link. Can't do substring on a number!
                     if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
                         (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) == "http"))
                         tmpStr += "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a>";
@@ -1371,34 +1464,32 @@ function writeFeatureContent(feature,layerName,thePromise){
                             tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
                         }
                         // forest
-                        else if ( feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toString().indexOf("Forest")>-1){
+                        /*else if ( feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toString().indexOf("Forest")>-1){
                             tmpStr += "<ul class='vertical-meta-list'>";
                             tmpStr += '<li><span class="vertical-meta-list-ico" style="background: rgb(37, 126, 7);"><img alt="" width="32" height="32" src="./assets/images/forest.svg" class="class-ico"></span>';
                             tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
                             tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
-                        }
+                        }*/
                         // BLM Office
                         else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "BLM Office"){
                             tmpStr += "<ul class='vertical-meta-list'>";
-                                tmpStr += '<li><span class="vertical-meta-list-ico"><img alt="" src="./assets/images/blm_sm2.svg" class="fs_blm_icons"></span>';
-                                tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
-                                tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
+                            tmpStr += '<li><span class="vertical-meta-list-ico"><img alt="" src="./assets/images/blm_sm.svg" class="fs_blm_icons"></span>';
+                            tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
+                            tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
                         }
-                        // Land Management USFS, BLM
-                        else if ( layerName.toLowerCase().indexOf("land management") > -1 && identifyLayers[identifyGroup][layerName].displaynames[i] === "Land Manager"){
-                            if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toLowerCase().indexOf("usfs") > -1){
-                                tmpStr += "<ul class='vertical-meta-list'>";
-                                tmpStr += '<li><span class="vertical-meta-list-ico""><img alt="USFS logo" src="./assets/images/usfs_sm2.svg" class="fs_blm_icons"></span>';
-                                tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
-                                tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
-                            }
-                            else if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toLowerCase().indexOf("blm") > -1){
-                                tmpStr += "<ul class='vertical-meta-list'>";
-                                tmpStr += '<li><span class="vertical-meta-list-ico"><img alt="" src="./assets/images/blm_sm2.svg" class="fs_blm_icons"></span>';
-                                tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
-                                tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
-                            }
-                            else tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]+"</span>";
+                        // USFS Ranger District
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "USFS District"){
+                            tmpStr += "<ul class='vertical-meta-list'>";
+                            tmpStr += '<li><span class="vertical-meta-list-ico""><img alt="USFS logo" src="./assets/images/usfs_sm.svg" class="fs_blm_icons"></span>';
+                            tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
+                            tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
+                        }
+                        // CPW Field Office
+                        else if (layerName === "Contact Info" && identifyLayers[identifyGroup][layerName].displaynames[i] === "Office Name"){
+                            tmpStr += "<ul class='vertical-meta-list'>";
+                            tmpStr += '<li><span class="vertical-meta-list-ico""><img alt="CPW logo" src="./assets/images/cpw_sm.svg" class="fs_blm_icons"></span>';
+                            tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
+                            tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
                         }
                         // Allows dogs, horses, hiking
                         else if ( identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Allows")>-1){
@@ -1462,6 +1553,7 @@ function highlightFeature(id,fade) {
                 addTempPolygon(features[id],fade);
                 numHighlightFeatures++;
             } else if (features[id].geometry.type === "polyline") {
+                console.log("highlight line numHighlight="+numHighlightFeatures);
                 addTempLine(features[id],fade);
                 numHighlightFeatures++;
             }
@@ -1498,6 +1590,7 @@ function removeHighlight() {
     for (var i=0; i<numHighlightFeatures; i++)
         view.graphics.remove(view.graphics.items[view.graphics.items.length-1]);
     numHighlightFeatures=0;
+    console.log("remove all highlights");
 }
 
 /*function setIdentifyContentHeader(name) {

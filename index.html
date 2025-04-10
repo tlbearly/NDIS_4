@@ -20,7 +20,7 @@
   <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
   
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=57" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=60" async="true" />
   <link rel="stylesheet" href="./assets/css/custom-theme.css?v=32" async="true" />
   
   <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
@@ -32,7 +32,7 @@
   <script type="text/javascript" src="js/myBasemaps.js?v=24" async="true"></script>
   <script type="text/javascript" src="js/myLayerList.js?v=128" async="true"></script>
   <script type="text/javascript" src="js/mySearch.js?v=10" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=58" async="true"></script> <!-- read IdentifyWidget.xml -->
+  <script type="text/javascript" src="js/identify.js?v=59" async="true"></script> <!-- read IdentifyWidget.xml -->
   <script type="text/javascript" src="js/errorBox.js?v=3" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=3" async="true"></script>
@@ -353,8 +353,7 @@
             label: "Map Scale",
             mode: "floating", // small widget on mobile too
             autoCollapse: true, // close widget on map scale change
-            defaultClass: "esri-expand",
-            expandIconClass: "esri-icon-expand",
+            //expandIconClass: "esri-icon-expand",
             expandIcon: "actual-size"
           });
           view.ui.add(mapScaleBtn, "bottom-right");

@@ -121,7 +121,7 @@
 	<elevation_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Elevation/MapServer</elevation_url>
 	
 	<tree>
-		<folder label="Hunter Resources" pre_title="GMU Unit " title_layer="Big Game GMU Boundaries" title_field="GMUID">
+		<folder label="Hunter Resources" pre_title="GMU Number " title_layer="Big Game GMU Boundaries" title_field="GMUID">
 			<link label="Moon Rise, Sun Rise and Set at click point">https://</link>
 			<link label="Weather at click point">https://</link>
 			<!-- GMU      NOTE: cannot use vis_id with GMU -->
@@ -235,10 +235,12 @@
 				<displaynames>Incident Name,Calculated Acres</displaynames>
 			</layer>
 		</folder>
-		<folder label="Roads and Trails">
+		<folder label="Roads and Trails" id_vis_only="true">
 			<layer label="Trails">
 				<id>15</id>
 				<url>https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/15</url>
+				<vis_id>15</vis_id>
+				<vis_url>https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/15</vis_url>
 				<geometry>line</geometry>
 				<!-- Segment Length display name will round to 1 decimal place and add "mi"-->
 				<fields>name,type,surface,hiking,horse,dogs,motorcycle,length_mi_,oneway,min_elevat,max_elevat</fields>
@@ -253,7 +255,9 @@
 			</layer-->
 			<layer label="BLM Colorado Routes">
 				<id>5</id>
-				<url>https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer/5</url>
+				<url>https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/FeatureServer/5</url>
+				<vis_id>5</vis_id>
+				<vis_url>https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/FeatureServer/5</vis_url>
 				<geometry>line</geometry>
 				<fields>PLAN_ALLOW_MODE_TRNSPRT,ROUTE_PRMRY_NM,ROUTE_PRMRY_NUM,OHV_ROUTE_DSGNTN_LIM,OHV_DSGNTN_LIM_EXPLAIN,BLM_MILES</fields>
 				<displaynames>Allowed Mode of Transportation,Route Name,Route Number,OHV Route Designation Limitation,Explaination,Length in miles</displaynames>
@@ -262,6 +266,8 @@
 			<layer label="Motor Vehicle Use Map: Roads"> <!--"Motor_Vehicle_Use_Map_Roads"-->
 				<id>1</id>
                 <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer</url>
+				<vis_id>1</vis_id>
+                <vis_url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer</vis_url>
 				<!--url>https://services.arcgis.com/h4jNYexE41HKnu98/ArcGIS/rest/services/Motor_Vehicle_Use_Map_Roads/FeatureServer/0</url-->
 				<!--id>0</id-->
 				<geometry>line</geometry>
@@ -274,6 +280,8 @@
 			<layer label="Colorado State Parks Roads">
                 <id>1</id>
 				<url>https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1</url>
+				<vis_id>1</vis_id>
+				<vis_url>https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1</vis_url>
 				<geometry>line</geometry>
 				<!-- Segment Length display name will round to 1 decimal place and add "mi"-->
 				<fields>ROAD_NAME,ROAD_AKA,SEG_LEN_MI,VEH_TYPE,d_ROAD_TYP,d_SURFACE</fields>
