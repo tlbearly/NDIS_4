@@ -1422,7 +1422,8 @@ function readConfig(){
                     const linkDiv = document.createElement("div");
                     linkDiv.innerHTML = linkStr;
                     // add links to help
-                    helpContent.appendChild(linkDiv);
+                    //helpContent.appendChild(linkDiv);
+                    document.getElementById("helpContent").appendChild(linkDiv);
 
                     readURLParmeters(); // calls addMapLayers
                 } 
@@ -1675,7 +1676,7 @@ function zoomToQueryParams(){
                         } else if (xmlurl.status === 404)
                             alert("Missing url.xml file in " + app + " directory.", "Data Error");
                         else if (xmlurl.readyState === 4 && xmlurl.status === 500)
-                            alert("Error: had trouble reading " + app + "/url.xml file in readConfig.js.", "Data Error");
+                            alert("Error: had trouble reading " + app + "/url.xml file in addMapLayers.js readConfig.", "Data Error");
                     };
                     xmlurl.open("GET", urlFile, true);
                     xmlurl.send(null);

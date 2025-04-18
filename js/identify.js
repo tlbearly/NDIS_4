@@ -402,7 +402,8 @@ function readIdentifyWidget() {
 }
 
 function doIdentify(evt){
-    helpWidget.open = false;
+    //helpWidget.open = false;
+    closeHelp();
     showLoading();
     view.graphics.removeAll();//(view.graphics.items[view.graphics.items.length-1]); // remove last marker symbol
         
@@ -432,6 +433,28 @@ function doIdentify(evt){
     displayContent();
 }
 
+function isMapLayerInIdentify(url,id){
+    // check if this url is an identify visible only layer
+    for (var i=0; i<identifyGroups.length; i++){
+        for (var j=0; j<identifyLayerIds[identifyGroups[i]].length;j++){
+            // debug
+            //if (identifyLayerIds[identifyGroups[i]][j].vis_url !== null) {
+            //    console.log (identifyLayerIds[identifyGroups[i]][j].vis_url+" =? "+url +" id="+id+ " > -1 "+ identifyLayerIds[identifyGroups[i]][j].vis_ids.indexOf(id.toString()));
+            //}
+            if (identifyLayerIds[identifyGroups[i]][j].vis_url !== null && (identifyLayerIds[identifyGroups[i]][j].vis_url.indexOf(url) > -1 ||
+                url.indexOf(identifyLayerIds[identifyGroups[i]][j].vis_url) > -1)
+                && identifyLayerIds[identifyGroups[i]][j].vis_ids.indexOf(id.toString()) > -1){
+                //console.log("true");
+                return true;
+            }
+            else if (url === identifyLayerIds[identifyGroups[i]][j].url){
+                //console.log("false");
+                return false;
+            }
+        }
+    }
+    return false;
+}
 function displayContent() {
     // Display cached content if available
     // Else loop through each layer found at the map click and call accumulate & handleQueryResults to handle each
@@ -440,7 +463,7 @@ function displayContent() {
     if (obj.length > 0){
         //view.popup.title = obj[0].title;
         document.getElementById("identifyTitle").innerHTML = obj[0].title;
-        displayInfoWindow(obj[0].content); // do we need featues of highlightID? pass obj
+        displayInfoWindow(obj[0].content.replace(/ style=\"display:none;\"/g,"")); // do we need featues of highlightID? pass obj
         removeHighlight();
         features = obj[0].features;
         highlightFeature(obj[0].highlightID,false);
@@ -460,6 +483,89 @@ function displayContent() {
                 thePromises.push(count);
                 count++;
             }
+
+            // Get array of all layers -- MOVE THIS TO TOP only do once
+            var alllayers=[];
+            for (var k=0; k<map.layers.items.length; k++){
+                var items=null;
+                if (map.layers.items[k].sublayers) items = map.layers.items[k].sublayers.items;
+                else if (map.layers.items[k].layers !== undefined) items = map.layers.items[k].layers.items;
+                if (items){
+                    for(var m=0; m<items.length; m++){
+                        var items2=null;
+                        if(items[m].layers !== undefined) items2 = items[m].layers.items;
+                        else if (items[m].sublayers) items2 = items[m].sublayers.items;
+                        if (items2){
+                            for(var n=0; n<items2.length; n++){
+                                var items3=null;
+                                if(items2[n].layers !== undefined) items3 = items2[n].layers.items;
+                                else if( items2[n].sublayers) items3 = items2[n].sublayers.items;
+                                if (items3){
+                                    for(var p=0; p<items3.length; p++){
+                                        if(items3[p].layers !== undefined || items3[p].sublayers){
+                                            //alert("Need to add code to identify.js line 490 to check for visible layers to identify.");
+                                            console.log("Identify visible only layers is ignoring "+items3[p].title+" Need to add code to identify.js line 490 to check for visible layers to identify.");
+                                        }else{
+                                            //console.log(items3[p].title);
+                                            if (items3[p].url.toLowerCase().indexOf("featureserver") > -1){
+                                                if (items3[p].url !== undefined && items3[p].url !== null && isMapLayerInIdentify(items3[p].url,items3[p].layerId)){
+                                                    if (items3[p].minScale == 0 && items3[p].parent.parent.minScale != 0){
+                                                        console.log ("set minScale of "+items3[p].title+" "+items3[p].minScale+" to minScale of "+items3[p].parent.parent.title+" "+items3[p].parent.parent.minScale);
+                                                        items3[p].minScale = items3[p].parent.parent.minScale;
+                                                    }
+                                                    alllayers.push(items3[p]);
+                                                }
+                                            }else{
+                                                if (items3[p].url !== undefined && items3[p].url !== null && isMapLayerInIdentify(items3[p].url,items3[p].id)){
+                                                    if (items3[p].minScale == 0 && items3[p].parent.parent.minScale != 0){
+                                                        console.log ("set minScale of "+items3[p].title+" "+items3[p].minScale+" to minScale of "+items3[p].parent.parent.title+" "+items3[p].parent.parent.minScale);
+                                                        items3[p].minScale = items3[p].parent.parent.minScale;
+                                                    }
+                                                    alllayers.push(items3[p]);
+                                                }
+                                            }
+                                        }
+                                    }      
+                                }else{
+                                    //console.log(items2[n].title);
+                                    if (items2[n].url.toLowerCase().indexOf("featureserver") > -1){
+                                        if (items2[n].url !== undefined && items2[n].url !== null && isMapLayerInIdentify(items2[n].url,items2[n].layerId)){
+                                            if (items2[n].minScale == 0 && items2[n].parent.minScale != 0){
+                                                console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
+                                                items2[n].minScale = items2[n].parent.minScale;
+                                            }
+                                            alllayers.push(items2[n]);
+                                        }
+                                    }else{
+                                        if (items2[n].url !== undefined && items2[n].url !== null && isMapLayerInIdentify(items2[n].url,items2[n].id)){
+                                            if (items2[n].minScale == 0 && items2[n].parent.minScale != 0){
+                                                console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
+                                                items2[n].minScale = items2[n].parent.minScale;
+                                            }
+                                            alllayers.push(items2[n]);
+                                        }
+                                    }
+                                }
+                            }
+                        }else{
+                            //console.log(items[m].title);
+                            if (items[m].url.toLowerCase().indexOf("featureserver") > -1){
+                                if (items[m].url !== undefined && items[m].url !== null && isMapLayerInIdentify(items[m].url,items[m].layerId))
+                                    alllayers.push(items[m]);
+                            }else{
+                                if (items[m].url !== undefined && items[m].url !== null && isMapLayerInIdentify(items[m].url,items[m].id))
+                                    alllayers.push(items[m]);
+                            }
+                        }
+                    }
+                }else{
+                    //console.log(map.layers.items[k].title);
+                    if (map.layers.items[k].url !== undefined && map.layers.items[k].url !== null && isMapLayerInIdentify(map.layers.items[k].url))
+                        alllayers.push(map.layers.items[k]);
+                }
+            }
+
+            // Loop through each layer in this identifyGroup folder and call handleQueryResults to write result to identifyPopup div
             for (i = 0; i < identifyLayerIds[identifyGroup].length; i++) {
                 var item = identifyLayerIds[identifyGroup][i];
                 if (item) {
@@ -474,33 +580,24 @@ function displayContent() {
                         // trim off last /
                         if (item.vis_url[item.vis_url.length - 1] === "/") 
                             url = item.vis_url.substr(0, item.vis_url.length - 1);
-                        // Get array of all layers -- MOVE THIS TO TOP only do once
-                        var alllayers=[];
-                        for (var k=0; k<map.layers.items.length; k++){
-                            if (map.layers.items[k].layers !== undefined){
-                                for(var m=0; m<map.layers.items[k].layers.items.length; m++){
-                                    if(map.layers.items[k].layers.items[m].layers !== undefined){
-                                        for(var n=0; n<map.layers.items[k].layers.items[m].length; n++){
-                                            if(map.layers.items[k].layers.items[m].layers.items[n].layers !== undefined){
-                                                alert("Need to add code to identify.js line 659 to check for visible layers to identify.");
-                                            }else{
-                                                alllayers.push(map.layers.items[k].layers.items[m].layers.items[n]);
-                                            }
-                                        }
-                                    }else{
-                                        alllayers.push(map.layers.items[k].layers.items[m]);
-                                    }
-                                }
-                            }else
-                                alllayers.push(map.layers.items[k]);
-                        }
+                        
                         //var vis_layers = [];
                         //identifyParams.layerIds = item.vis_ids.slice(); // get list of ids used in the map
                         // Loop through each top layer in the TOC that is visible at this scale
                         for(k=0; k<alllayers.length; k++) {
-                            if (alllayers[k].url && url.toLowerCase().indexOf(alllayers[k].url.toLowerCase()) > -1) {
-                                // TODO check if layerID exists!
-                                if (alllayers[k].visible == false && alllayers[k].layerId.toString() === item.id) {
+                            // check if id of this layer matches
+                            if (alllayers[k].type === "feature"){
+                                if (item.vis_ids.indexOf(alllayers[k].layerId.toString()) == -1)
+                                    continue;
+                            }else if (item.vis_ids.indexOf(alllayers[k].id.toString()) == -1)
+                                continue;
+                            // check if url matches
+                            if (alllayers[k].url && (alllayers[k].url.toLowerCase().indexOf(url.toLowerCase()) > -1 ||
+                                url.toLowerCase().indexOf(alllayers[k].url.toLowerCase()) > -1)) {
+                                // check if not visible and not visible at this scale
+                                if (alllayers[k].visible == false || (alllayers[k].visible === true &&
+                                    ((alllayers[k].minScale != 0 && alllayers[k].minScale < view.scale) ||
+                                    (alllayers[k].maxScale != 0 && alllayers[k].maxScale > view.scale)))) {
                                     skip = true;
                                     thePromises.pop();// remove the last promise number from the promises array. Used to show no data.
                                     break;
@@ -601,7 +698,7 @@ function displayContent() {
                             const thePromise = promiseNumber;
                            // console.log("Query "+theLayerName+" loading  - promise #"+thePromise+" distance="+params.distance);
                             // first time add div with promise number
-                            accumulateContent(thePromise,"<div id='promise"+thePromise+"'><span class='idTitle'>"+theLayerName+"</span><div style='padding: 0 0 20px 10px;'><calcite-icon class='waitingForConnection' title='Loading' aria-hidden='true' icon='offline' scale='m' calcite-hydrated='' style='margin-right: 5px;'></calcite-icon><span style='vertical-align:text-top;'>Loading...</span></div></div>");
+                            accumulateContent(thePromise,"<div id='promise"+thePromise+"' style='display:none;'><span class='idTitle'>"+theLayerName+"</span><div style='padding: 0 0 20px 10px;'><calcite-icon class='waitingForConnection' title='Loading' aria-hidden='true' icon='offline' scale='m' calcite-hydrated='' style='margin-right: 5px;'></calcite-icon><span style='vertical-align:text-top;'>Loading...</span></div></div>");
                             //deferreds.push(new Promise((handleQueryResults, handleQueryError) => {
                                 query.executeQueryJSON(item.url, params) //.then(identifySuccess).catch(handleQueryError);
                                 .then((response) => {
@@ -803,7 +900,7 @@ function displayContent() {
                             const thePromise=promiseNumber;
                             const theLayerNames = item.labels;
                             // first time add div with promise number
-                            var str = "<div id='promise"+thePromise+"'>";
+                            var str = "<div id='promise"+thePromise+"' style='display:none;'>";
                             for (var k=0;k<theLayerNames.length;k++){
                                // console.log("Identify "+theLayerNames[k]+" loading  - promise #"+thePromise+" tolerance="+identifyParams.tolerance);    
                                 str += "<span class='idTitle'>"+theLayerNames[k]+"</span><div style='padding: 0 0 20px 10px;'><calcite-icon class='waitingForConnection' title='Loading' aria-hidden='true' icon='offline' scale='m' calcite-hydrated='' style='margin-right: 5px;'></calcite-icon><span style='vertical-align:text-top;'>Loading...</span></div>";
@@ -904,6 +1001,14 @@ function displayContent() {
                 features = [];
                 accumulateContent("");
             }*/
+           if (thePromises.length == 0){
+            numDatabaseCalls = 0;
+            processedDatabaseCalls = 0;
+            features = [];
+            theTitle[identifyGroup] = "No "+identifyGroup;
+            document.getElementById("identifyTitle").innerHTML="No "+identifyGroup;
+            accumulateContent(-1,"No visible "+identifyGroup+" at this point.");
+           }
         } catch (e){
             alert("Problem trying to identify. Error message: "+e.message,"Warning");
 			hideLoading();
@@ -1004,6 +1109,11 @@ function handleQueryResults(results,thePromise) {
                                             theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
                                             highlightFeature(features.length-1,false);
                                             highlightID = features.length-1;
+                                            // update groupObj title (cached tab)
+                                            let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
+                                            if (obj.length != 0){
+                                                obj[0].title = theTitle[identifyGroup];
+                                            }
                                         }
                                     }else {
                                         theTitle[identifyGroup] = feature.attributes.IncidentName;
@@ -1098,8 +1208,24 @@ function handleQueryResults(results,thePromise) {
                 }
                 else if (results && results.layerName == "Wildfire Incidents"){
                     str = "No wildfire incidents at this point.";
-                    //theTitle[identifyGroup] = "No Wildfires";
+                    theTitle[identifyGroup] = "No Wildfires";
+                    document.getElementById("identifyTitle").innerHTML = "No Wildfires";
                     //view.popup.title = "No Wildfires";
+                    let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
+                    if (obj.length === 0){
+                        // cache content
+                        groupObj.push({
+                            identifyGroup: identifyGroup,
+                            title: "No Wildfires",
+                            content: str,
+                            highlightID: -1,
+                            features: [],
+                            promises: [] // array of promise numbers for this tab
+                        });
+                    } else {
+                        obj[0].title = "No Wildfires";
+                        obj[0].content = str;
+                    }
                 }
                 
                 accumulateContent(thePromise,str);
@@ -1209,9 +1335,21 @@ function writeFeatureContent(feature,layerName,thePromise){
                                             theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+feature.attributes[identifyLayers[identifyGroup].titleField];
                                             highlightFeature(features.length-1,false);
                                             highlightID = features.length-1;
+                                            // update groupObj title (cached tab)
+                                            let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
+                                            if (obj.length != 0){
+                                                obj[0].title = theTitle[identifyGroup];
+                                            }
                                         }
                                         // handle Bighorn and Goat GMU
-                                        else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1) theTitle[identifyGroup] = layerName+" Number "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                                        else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1) {
+                                            theTitle[identifyGroup] = layerName+" Number "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                                            // update groupObj title (cached tab)
+                                            let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
+                                            if (obj.length != 0){
+                                                obj[0].title = theTitle[identifyGroup];
+                                            }
+                                        }
                                     }
                                     //else {
                                     //    theTitle[identifyGroup] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
@@ -1310,7 +1448,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                             }
                             
                             // Check if all have finished
-                            /*var isAllComplete = true;
+                            var isAllComplete = true;
                             for (var i = 0; i < numDatabaseCalls; i++) {
                                 if ((!XMLHttpRequestObjects[i]) || (XMLHttpRequestObjects[i].readyState !== 4)) {
                                     isAllComplete = false;
@@ -1323,7 +1461,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                                 //if (numHighlightFeatures == 0){
                                 //    highlightFeature(0,true);
                                 //}
-                            }*/
+                            }
                         }
                     };
                 }(index);
@@ -1347,12 +1485,22 @@ function writeFeatureContent(feature,layerName,thePromise){
                         theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+feature.attributes[identifyLayers[identifyGroup].titleField];
                         highlightFeature(features.length-1,false);
                         highlightID = features.length-1;
+                        // update groupObj title (cached tab)
+                        let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
+                        if (obj.length != 0){
+                            obj[0].title = theTitle[identifyGroup];
+                        }
                     }
                     // handle Bighorn and Goat GMU
                     else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1){
                         theTitle[identifyGroup] = layerName +" Number "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
                         highlightFeature(features.length-1,false);
                         highlightID = features.length-1;
+                        // update groupObj title (cached tab)
+                        let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
+                        if (obj.length != 0){
+                            obj[0].title = theTitle[identifyGroup];
+                        }
                     }
                 }
                 else {
@@ -1507,7 +1655,10 @@ function writeFeatureContent(feature,layerName,thePromise){
                             else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("motorcycles")>-1)
                                 tmpStr+='motorcycle-sm-ffffff.svg" class="class-ico"></span>';
                             tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
-                            tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
+                            tmpStr += "<dd class='idSubValue'>"+toTitleCase(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]) + "</dd></dl></li></ul>";
+                        }
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Surface Type")>-1){
+                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + toTitleCase(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]])+"</span>";
                         }
                         // Trail number
                         //<li><span class="vertical-meta-list-ico" style="background: rgb(237, 241, 234);"><i class="si s--meta s--meta--trail-number"></i></span><dl><dt>Trail Number</dt><dd>#943</dd></dl></li>
@@ -1694,8 +1845,19 @@ function accumulateContent(thePromise,theContent){
     // get data for the currently selected idenitfyGroup
 
     // check if this is an old promise
-    if(thePromises.indexOf(thePromise) === -1) 
+    if(thePromises.length > 0 && thePromises.indexOf(thePromise) === -1) 
         return;
+
+    // Delay showing loading for 1 second
+    if (thePromise > -1){
+        var loadTimer = setInterval(function() {
+            if (document.getElementById('myPopupContent')) {
+                clearInterval(loadTimer);
+                if (document.getElementById("promise"+thePromise))
+                    document.getElementById("promise"+thePromise).style.display = "block";
+            }
+        },800);
+    }
 
     // cache the identify group. Create the array item if it does not exist. Each identify map click will recreate groupObj array.
     let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
@@ -1704,7 +1866,7 @@ function accumulateContent(thePromise,theContent){
         groupObj.push({
             identifyGroup: identifyGroup,
             title: theTitle[identifyGroup],
-            content: theContent,
+            content: theContent.replace(/ style=\'display:none;\'/g,""),
             highlightID: highlightID,
             features: features,
             promises: thePromises // array of promise numbers for this tab
@@ -1718,19 +1880,6 @@ function accumulateContent(thePromise,theContent){
         if (features != []) obj[0].features = features; // update features array
         if(highlightID != -1) obj[0].highlightID = highlightID;
         obj[0].promises = thePromises;
-        // there is content so "hide no data at this point" message.
-        /*if (obj[0].content.indexOf(identifyGroup+" at this point.") != -1 && theContent !== ""){
-            obj[0].content = theContent;
-            var existCondition = setInterval(function() {
-                if (document.getElementById("myPopupContent")){
-                    clearInterval(existCondition);
-                    document.getElementById("myPopupContent").innerHTML=theContent; // append new content
-                    if (theTitle[identifyGroup] !== "No "+identifyGroup) theTitle[identifyGroup] = theTitle[identifyGroup];
-                    else theTitle[identifyGroup] = identifyGroup;
-                    view.popup.title = theTitle[identifyGroup];
-                }
-            }, 100); // check every 100ms
-        }else {*/
                
             // update view.popup.content by adding to div element. It flashes horribly if call view.popup.content = ....
             // wait for content to populate
@@ -1743,7 +1892,7 @@ function accumulateContent(thePromise,theContent){
                     else{
                         document.getElementById("myPopupContent").innerHTML+=theContent; // append new content
                     }
-                    obj[0].content = document.getElementById("myPopupContent").innerHTML; // accumulate content
+                    obj[0].content = document.getElementById("myPopupContent").innerHTML.replace(/ style=\'display:none;\'/g,""); // accumulate content
                     // Check for no data
                     var allPromisesDone = true;
                     var promiseContent = "";
@@ -1760,14 +1909,13 @@ function accumulateContent(thePromise,theContent){
                         var visible = "";
                         if (identifyLayerIds[identifyGroup][0].id_vis_only) visible = "visible "; // 1-10-18 add word visible if identifying visible only
                         document.getElementById("myPopupContent").innerHTML+="<div id='noData'>No " + visible + identifyGroup + " at this point.<br/></div>";
-                        obj[0].content = document.getElementById("myPopupContent").innerHTML; // accumulate content
+                        obj[0].content = document.getElementById("myPopupContent").innerHTML.replace(/ style=\'display:none;\'/g,""); // accumulate content
                         theTitle[identifyGroup] = "No "+identifyGroup;
                         obj[0].title = "No "+identifyGroup;
                         document.getElementById("identifyTitle").innerHTML="No "+identifyGroup;
                     }
                 }
             }, 100); // check every 100ms
-        //}
     }
 
     if (numDatabaseCalls == processedDatabaseCalls) {

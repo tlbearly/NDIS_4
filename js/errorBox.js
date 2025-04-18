@@ -75,7 +75,10 @@ function alert(){
 
 	console.log(msg);
 	// do not show the same error message twice
-	if (document.getElementById("errMsg").innerHTML.indexOf(msg) > -1) return;
+	if (document.getElementById("errMsg").innerHTML.indexOf(msg) > -1) {
+		document.getElementById("errBox").style.display="block";
+		return;
+	}
 	if (oldversion())
 		document.getElementById("errMsg").innerHTML += msg+"<br/><br/>WARNING: Your browser appears to be old. Some functionality may not be available to you. Consider upgrading to the latest version.  Your browser was detected as: "+navigator.sayswho+"<br/><br/>";
 	else

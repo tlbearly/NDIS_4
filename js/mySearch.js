@@ -320,6 +320,6 @@ function addSearch() {
         });*/
 
         // Add Help Widget
-        view.ui.add(helpWidget, "top-left");
+        //view.ui.add(helpWidget, "top-left");
     });
 }
