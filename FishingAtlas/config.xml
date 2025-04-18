@@ -56,11 +56,20 @@
             		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Base_Map/MapServer"/>
 			<layer label="Fishing Info" open="true" opensublayer="Recommended opportunties" type="dynamic" visible="true" alpha="0.9"
             		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Main_Map/MapServer"/>
-			<layer group="Transportation" open="false" visible="true" alpha="1" radio="false"/>
-                <layer  parentGroup="Transportation" label="Motor Vehicle Use Map" visible="false" alpha="1"
+			<!-- layers in groups must be feature services! -->
+            <layer group="Transportation" visible="true" alpha="1" radio="false"/>
+                <layer  parentGroup="Transportation" label="Motor Vehicle Use Map" open="true" visible="true" alpha="1"  minScale="144448"
 					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer"/>
-                <layer  parentGroup="Transportation" label="BLM Roads and Trails" visible="false" alpha="1"
-                    url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/MapServer" />
+                <layer  parentGroup="Transportation" label="BLM Colorado Routes" open="true" visible="true" alpha="1" minScale="144448"
+                    url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/FeatureServer/5" />
+                <layer parentGroup="Transportation" label="Colorado State Parks Roads" visible="true" minScale="144448"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1" />
+                <layer parentGroup="Transportation" group="Trails" visible="true" open="false"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/"
+                    layerIds="14,15"
+                    layerVis="true,true"
+                    layerNames="Trailheads,Trails"
+                    minScale="144448"/>
             <layer group="Wildfire" label="Wildfire" open="true" type="dynamic" visible="true" alpha="0.8"/>
 			    <layer parentGroup="Wildfire" label="Wildfire Perimeters" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
 			    <layer parentGroup="Wildfire" label="Wildfire Incidents" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>

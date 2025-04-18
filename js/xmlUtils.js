@@ -76,7 +76,7 @@
 				//CREATING MULTIPLE XMLHTTPREQUEST OBJECTS FOR EACH CALL
 		//THIS WILL HELP YOU NOT JAM YOUR SERVER WITH MULTIPLE REQUESTS AT ONCE. 
 		//Globals:
-		//	var index=0;
+		//	var xmlIndex=0;
 		//	var XMLHttpRequestObjects= new Array();
 		function createMultiXMLhttpRequest()
 		{
@@ -93,5 +93,5 @@
 					alert("ActiveX is turned off. Please Enable or upgrade your browser. System Message :"+e.message);
 				}
 			}
-			index = XMLHttpRequestObjects.length -1;
+			xmlIndex = XMLHttpRequestObjects.length -1;
 		}

@@ -716,7 +716,7 @@ function displayContent() {
                                 })
                                 .catch((e) => {
                                     //console.log("Query "+theLayerName+" failed   - promise #"+thePromise+ " error="+e.message);
-                                    accumulateContent(thePromise,"<span class='idTitle'>"+theLayerName+"</span><div style='padding:0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubValue'>External map service is unavailable.</span><br></div>");
+                                    accumulateContent(thePromise,"<span class='idTitle'>"+theLayerName+"</span><div style='padding:0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubValue'>External map service is unavailable.</span><br/></div>");
                                     //myhandleQueryError(e);
                                 });
                             //}));
@@ -783,21 +783,26 @@ function displayContent() {
                     if (item.buffer) identifyParams.tolerance = item.buffer;
                     else if (item.geometry === "point") {
                         // Used to be 15,10,5
-                        if (view.scale <= 36112)
+                        // 24k
+                        if (view.scale <= 36113)
                             identifyParams.tolerance = 25;
-                        else if (view.scale <= 288895)
-                            identifyParams.tolerance = 20;
+                        // 50, 100, 250k
+                        else if (view.scale <= 288896)
+                            identifyParams.tolerance = 25;
+                        // 500k
+                        else if (view.scale <= 577791)
+                            identifyParams.tolerance = 15;
                         else
                             identifyParams.tolerance = 1;
                     } else if (item.geometry === "line") {
                         // Used to be 15,10,5
-                        if (view.scale <= 36112)
+                        if (view.scale <= 36113)
                             identifyParams.tolerance = 30;
                         // 50k
                         else if (view.scale <= 72224)
                             identifyParams.tolerance = 15;
                         // 100k, 250k
-                        else if (view.scale <= 288895)
+                        else if (view.scale <= 288896)
                             identifyParams.tolerance = 10;
                         else if (view.scale <= 577791)
                             identifyParams.tolerance = 4;
@@ -924,7 +929,7 @@ function displayContent() {
                                 var str = ""; //"<div id='promise"+thePromise+"'>";
                                 for (var k=0;k<theLayerNames.length;k++){
                                     //console.log("Identify "+theLayerNames[k]+" failed  - promise #"+thePromise+" tolerance="+identifyParams.tolerance+" Error="+e.message);    
-                                    str += "<span class='idTitle'>"+theLayerNames[k]+"</span><div style='padding: 0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubValue'>External map service is unavailable.</span><br></div></div>";
+                                    str += "<span class='idTitle'>"+theLayerNames[k]+"</span><div style='padding: 0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubValue'>External map service is unavailable.</span><br/></div></div>";
                                 }
                                 //str += "</div>";
                                 accumulateContent(thePromise,str);
@@ -1100,7 +1105,7 @@ function handleQueryResults(results,thePromise) {
                                 //    theTitle[identifyGroup] = feature.attributes.IncidentName;
                                 //    view.popup.title = theTitle[identifyGroup];
                                 //}
-                                // set header with the layer specified in IdentifyWidget.xml file or use first field value
+                                // set header with the layer specified in IdentifyWidget.xml file with preTitle, titleField or identifyGroup as title
                                 if (theTitle[identifyGroup] === identifyGroup){
                                     if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
                                         if(r.layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
@@ -1253,12 +1258,13 @@ function handleQueryResults(results,thePromise) {
             }
 
             // Clear old database call info
-            index = 0;
+            // move to writeFeatureContent()
+            /*xmlIndex = 0;
             if (XMLHttpRequestObjects){
                 while (XMLHttpRequestObjects.length > 0) {
                     XMLHttpRequestObjects.pop();
                 }
-            }
+            }*/
 
             // Write the content for the identify
             var countResults = -1;
@@ -1267,7 +1273,7 @@ function handleQueryResults(results,thePromise) {
                 if (results.length && results.length > 0) {
                     results.forEach(function(r) {
                         var tmpStr = writeFeatureContent(r.feature,r.layerName,thePromise);
-                        if (str.indexOf(tmpStr) == -1) 
+                        if (str.indexOf(tmpStr) == -1 && tmpStr !== undefined && tmpStr !== "undefined") 
                             str += tmpStr;
                     });
                 }
@@ -1277,7 +1283,7 @@ function handleQueryResults(results,thePromise) {
                     const theLayerName = results.layerName;
                     results.features.forEach(function(feature){
                         var tmpStr = writeFeatureContent(feature,theLayerName,thePromise);
-                        if (str.indexOf(tmpStr) == -1) 
+                        if (str.indexOf(tmpStr) == -1 && tmpStr !== undefined && tmpStr !== "undefined") 
                             str += tmpStr;
                     });
                 }
@@ -1296,7 +1302,9 @@ function handleQueryResults(results,thePromise) {
                 highlightFeature(-1,false);
                 highlightID = -1;
             }
-            accumulateContent(thePromise,str);
+            // If it has database calls, str will be undefined. writeFeatureContent will call accumulateContent.
+            if (tmpStr !== undefined && tmpStr !== "undefined")
+                accumulateContent(thePromise,str);
         } catch (e) {
             alert(e.message + " in javascript/identify.js handleQueryResults().", "Code Error", e);
             hideLoading();
@@ -1316,10 +1324,10 @@ function writeFeatureContent(feature,layerName,thePromise){
             try {
                 createMultiXMLhttpRequest();
                 var url = app + "/" + identifyLayers[identifyGroup][layerName].database + "?v=" + ndisVer + "&key=" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
-                XMLHttpRequestObjects[index].open("GET", url, true); // configure object (method, url, async)
+                XMLHttpRequestObjects[xmlIndex].open("GET", url, true); // configure object (method, url, async)
                 // register a function to run when the state changes, if the request
                 // has finished and the stats code is 200 (OK) write result
-                XMLHttpRequestObjects[index].onreadystatechange = function(arrIndex) {
+                XMLHttpRequestObjects[xmlIndex].onreadystatechange = function(arrIndex) {
                     return function() {
                         if (XMLHttpRequestObjects[arrIndex].readyState == 4) {
                             if (XMLHttpRequestObjects[arrIndex].status == 200) {
@@ -1363,6 +1371,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                                 //view.popup.title = theTitle[identifyGroup];
                                 
                                 for (i = 0; i < identifyLayers[identifyGroup][layerName].displaynames.length; i++) {
+                                    //if ((feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] &&
                                     if ((i > 0 && feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] &&
                                             feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== " " &&
                                             feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] !== "Null" &&
@@ -1372,7 +1381,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                                                 (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) == "http"))
                                             tmpStr += "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a>";
                                         else {
-                                            if ((feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 7) == "<a href") && (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].indexOf("target") == -1))
+                                            if ((typeof(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]) === "string" && feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 7) == "<a href") && (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].indexOf("target") == -1))
                                                 tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ":</span><span class='idSubValue'> " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].replace(">", " target='_blank'>")+"</span>";
                                             else{
                                                 // format numbers to 1 decimal place TODO *******************
@@ -1419,7 +1428,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                                                         tmpStr += "<li class='idSubValue'>" + one2many[h].childNodes[0].nodeValue + "</li>";
                                                     }
                                                 }
-                                                tmpStr += "</ul style='margin-bottom: 0px; margin-top: 0px;'>";
+                                                tmpStr += "</ul>";
                                             }
                                         }
                                     }
@@ -1447,25 +1456,35 @@ function writeFeatureContent(feature,layerName,thePromise){
                                 }
                             }
                             
+                            accumulateContent(thePromise,str);
                             // Check if all have finished
                             var isAllComplete = true;
-                            for (var i = 0; i < numDatabaseCalls; i++) {
+                            // used to be numDatabaseCalls
+                            for (var i = 0; i < XMLHttpRequestObjects.length; i++) {
                                 if ((!XMLHttpRequestObjects[i]) || (XMLHttpRequestObjects[i].readyState !== 4)) {
                                     isAllComplete = false;
                                     break;
                                 }
                             }
                             if (isAllComplete) {
-                                accumulateContent(thePromise,str);
+                                //accumulateContent(thePromise,str);
                                 // highlight first feature if none were specified by pre_title title title_field in IdentifyWidget.xml file
                                 //if (numHighlightFeatures == 0){
                                 //    highlightFeature(0,true);
                                 //}
+
+                                // Clear old database call info
+                                xmlIndex = 0;
+                                if (XMLHttpRequestObjects){
+                                    while (XMLHttpRequestObjects.length > 0) {
+                                        XMLHttpRequestObjects.pop();
+                                    }
+                                }
                             }
                         }
                     };
-                }(index);
-                XMLHttpRequestObjects[index].send();
+                }(xmlIndex);
+                XMLHttpRequestObjects[xmlIndex].send();
             } catch (error) {
                 alert("Identify on " + layerName + " failed with error: " + error.message + " in javascript/identify.js handleQueryResults().", "Data Error");
                 console.log(error.message);
@@ -1477,7 +1496,7 @@ function writeFeatureContent(feature,layerName,thePromise){
             features.push(feature);
             tmpStr = "<span class='idTitle'>"+ layerName + "</span><div style='padding-left: 10px;'>";
             var first = true;
-            // set header with the layer specified in IdentifyWidget.xml file or use first field value
+            // set header with the layer specified in IdentifyWidget.xml file with preTitle, titleField or identifyGroup as title
             if (theTitle[identifyGroup] == identifyGroup){
                 if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
                     numHighlightFeatures=-1;
@@ -1540,6 +1559,9 @@ function writeFeatureContent(feature,layerName,thePromise){
                         else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Segment Length"){
                             tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>";
                             tmpStr +=  feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(1)+"mi</span>";
+                        }
+                        // Name make proper case, some were all upper case
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Name"){                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + toTitleCase(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toLowerCase())+"</span>";
                         }
                         // MVUM Seasonal Roads
                         else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Seasonal"){
@@ -1628,14 +1650,14 @@ function writeFeatureContent(feature,layerName,thePromise){
                         // USFS Ranger District
                         else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "USFS District"){
                             tmpStr += "<ul class='vertical-meta-list'>";
-                            tmpStr += '<li><span class="vertical-meta-list-ico""><img alt="USFS logo" src="./assets/images/usfs_sm.svg" class="fs_blm_icons"></span>';
+                            tmpStr += '<li><span class="vertical-meta-list-ico"><img alt="USFS logo" src="./assets/images/usfs_sm.svg" class="fs_blm_icons"></span>';
                             tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
                             tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
                         }
                         // CPW Field Office
                         else if (layerName === "Contact Info" && identifyLayers[identifyGroup][layerName].displaynames[i] === "Office Name"){
                             tmpStr += "<ul class='vertical-meta-list'>";
-                            tmpStr += '<li><span class="vertical-meta-list-ico""><img alt="CPW logo" src="./assets/images/cpw_sm.svg" class="fs_blm_icons"></span>';
+                            tmpStr += '<li><span class="vertical-meta-list-ico"><img alt="CPW logo" src="./assets/images/cpw_sm.svg" class="fs_blm_icons"></span>';
                             tmpStr += '<dl><dt>'+identifyLayers[identifyGroup][layerName].displaynames[i]+'</dt>';
                             tmpStr += "<dd class='idSubValue'>"+feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</dd></dl></li></ul>";
                         }
@@ -1675,7 +1697,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                 }
             }
             if (minElev !== -1 && maxElev !== -1) {
-                tmpStr += "<br><span class='idSubTitle'>Elevation Gain: </span><span class='idSubValue'>" + (maxElev - minElev).toFixed(1)+"'</span>";
+                tmpStr += "<br/><span class='idSubTitle'>Elevation Gain: </span><span class='idSubValue'>" + (maxElev - minElev).toFixed(1)+"'</span>";
             }
 
             // don't add it twice, but add it to the features geometry array
@@ -1685,9 +1707,9 @@ function writeFeatureContent(feature,layerName,thePromise){
                 // needed if not using highlight
                 str += tmpStr+"</div><br/>";
             }
+            return str;
         }
-    }
-    return str;     
+    }     
 }
 var numHighlightFeatures=0;
 function highlightFeature(id,fade) {
@@ -1815,7 +1837,7 @@ function setIdentifyFooter(clickPt) {
                                 }
 
                             );
-                        }
+                        }else alert("Missing elevation_url in IdentifyWidget.xml file.","Data Error");
                     }
                 }, 100); 
             } catch (e) {
@@ -1848,7 +1870,7 @@ function accumulateContent(thePromise,theContent){
     if(thePromises.length > 0 && thePromises.indexOf(thePromise) === -1) 
         return;
 
-    // Delay showing loading for 1 second
+    // Delay showing loading for 1/2 second
     if (thePromise > -1){
         var loadTimer = setInterval(function() {
             if (document.getElementById('myPopupContent')) {
@@ -1856,13 +1878,13 @@ function accumulateContent(thePromise,theContent){
                 if (document.getElementById("promise"+thePromise))
                     document.getElementById("promise"+thePromise).style.display = "block";
             }
-        },800);
+        },500);
     }
 
     // cache the identify group. Create the array item if it does not exist. Each identify map click will recreate groupObj array.
     let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
     if (obj.length === 0){
-        // cache content
+        // 1st time: cache content in groupObj[identify tab name] and display identify popup
         groupObj.push({
             identifyGroup: identifyGroup,
             title: theTitle[identifyGroup],
@@ -1877,22 +1899,32 @@ function accumulateContent(thePromise,theContent){
     }
     // Accumulate content
     else {
+        // update cached values
         if (features != []) obj[0].features = features; // update features array
         if(highlightID != -1) obj[0].highlightID = highlightID;
         obj[0].promises = thePromises;
                
-            // update view.popup.content by adding to div element. It flashes horribly if call view.popup.content = ....
+            // update view.popup.content by adding to myPopupupContent div element. It flashes horribly if call view.popup.content = ....
             // wait for content to populate
             var existCondition = setInterval(function() {
                 if (document.getElementById('myPopupContent')) {
                     clearInterval(existCondition);
-                    if (document.getElementById("promise"+thePromise))
+                    // each promise will be in a div inside myPopupContent
+                    // Replace loading... message with content
+                    if (document.getElementById("promise"+thePromise) && document.getElementById("promise"+thePromise).innerHTML.indexOf("Loading...") > -1)
                         document.getElementById("promise"+thePromise).innerHTML = theContent;
+                    // Append to existing content but don't add it twice
+                    else if (document.getElementById("promise"+thePromise)) { 
+                        if (document.getElementById("promise"+thePromise).innerHTML.replace(/\<br\>/g,"<br/>").indexOf(theContent.replace(/\'/g,"\"").replace(/\<br\>/g,"<br/>")) == -1)
+                            document.getElementById("promise"+thePromise).innerHTML += theContent;
+                    }
                     // first time add each promise to top level (Loading...)
                     else{
                         document.getElementById("myPopupContent").innerHTML+=theContent; // append new content
                     }
+                    // update cache but make each promise div visible
                     obj[0].content = document.getElementById("myPopupContent").innerHTML.replace(/ style=\'display:none;\'/g,""); // accumulate content
+                    
                     // Check for no data
                     var allPromisesDone = true;
                     var promiseContent = "";
@@ -1910,9 +1942,20 @@ function accumulateContent(thePromise,theContent){
                         if (identifyLayerIds[identifyGroup][0].id_vis_only) visible = "visible "; // 1-10-18 add word visible if identifying visible only
                         document.getElementById("myPopupContent").innerHTML+="<div id='noData'>No " + visible + identifyGroup + " at this point.<br/></div>";
                         obj[0].content = document.getElementById("myPopupContent").innerHTML.replace(/ style=\'display:none;\'/g,""); // accumulate content
+                        obj[0].lastTitle = theTitle[identifyGroup];
                         theTitle[identifyGroup] = "No "+identifyGroup;
                         obj[0].title = "No "+identifyGroup;
                         document.getElementById("identifyTitle").innerHTML="No "+identifyGroup;
+                    }
+                    // a promise returned from the database lookup. It may have assumed that there was not data. Remove this message.
+                    else if (allPromisesDone && promiseContent != "" && document.getElementById("myPopupContent").querySelector("#noData")){
+                        // hide the no data message: No <identifyGroup> at this point.
+                        const noDataDiv = document.getElementById("myPopupContent").querySelector("#noData");
+                        noDataDiv.remove();
+                        obj[0].content = document.getElementById("myPopupContent").innerHTML.replace(/ style=\'display:none;\'/g,""); // accumulate content
+                        theTitle[identifyGroup] = obj[0].lastTitle;
+                        obj[0].title = obj[0].lastTitle;
+                        document.getElementById("identifyTitle").innerHTML=obj[0].lastTitle;
                     }
                 }
             }, 100); // check every 100ms

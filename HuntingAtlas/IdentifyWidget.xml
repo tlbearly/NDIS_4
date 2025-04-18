@@ -36,8 +36,8 @@
 //
 // driving_directions = true/false, true if it should give a link to get driving 
 //		directions at the map click.
-// elevation = true/false, set to true to show elevation in the footer
-// elevation_url = mapservice to get elevation from in feet. Uses Identify and displays Pixel Value. Elevation must be true.
+// elevation = must be true, set to true to show elevation in the footer
+// elevation_url = REQUIRED mapservice to get elevation from in feet. Uses Identify and displays Pixel Value. Elevation must be true.
 //
 // tree = The tree tag defines what layers are available to the user to identify
 // 		under the Settings Widget.  Layers with state set to checked will display
@@ -51,6 +51,10 @@
 //			id_vis_only = For layers in this folder only identify them if they are visible. Values: "true" or "false".
 //						= default is "false" identify all layers in the folder whether they are visible or not.
 //						** if this is set to true, you must have vis_id and vis_url in each layer in the folder.
+//			Set the Identify Popup Title (if these 3 attributes are not set it will use folder name as the title)
+//			pre_title = Set the identify popup title prefix. For example: "GMU Number " 
+//			title_layer = Set the layer name to look up data from. For example: "Big Game GMU Boundaries"
+//			title_field = Set the field to get data from. For example: "GMUID"
 //
 //		desc = an optional description of the layers the folder contains. This is displayed at the top of the identify popup.
 //
@@ -246,13 +250,6 @@
 				<fields>name,type,surface,hiking,horse,dogs,motorcycle,length_mi_,oneway,min_elevat,max_elevat</fields>
 				<displaynames>Name,Type,Surface Type,Allows Hiking,Allows Horses,Allows Dogs,Allows Motorcycles,Segment Length,One Way,Min Elevation,Max Elevation</displaynames>
 			</layer>
-			<!--layer label="Trails Ours">
-				<id>2</id>
-				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer</url>
-				<geometry>line</geometry>
-				<fields>name,surface,hiking,horse,dogs,motorcycle,snowmobile,ski,snowshoe,length_mi_rounded,oneway,min_elevation,max_elevation</fields>
-				<displaynames>Name,Surface type,Allows Hiking,Allows Horses,Allows Dogs,Allows Motorcycles,Allows Snowmobiles,Allows Skiing,Allows snowshoeing,Trail length in miles,One way,Min Elevation,Max Elevation</displaynames>
-			</layer-->
 			<layer label="BLM Colorado Routes">
 				<id>5</id>
 				<url>https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/FeatureServer/5</url>
@@ -263,7 +260,7 @@
 				<displaynames>Allowed Mode of Transportation,Route Name,Route Number,OHV Route Designation Limitation,Explaination,Length in Miles</displaynames>
 			</layer>
 			<!-- Identify.js will display icons and seasonal dates -->
-			<layer label="Motor Vehicle Use Map: Roads"> <!--"Motor_Vehicle_Use_Map_Roads"-->
+			<layer label="Motor Vehicle Use Map: Roads">
 				<id>1</id>
                 <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer</url>
 				<vis_id>4</vis_id>

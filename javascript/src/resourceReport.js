@@ -1361,7 +1361,7 @@ function reportInit(){
 					if (numDatabaseCalls > 0){
 						// Clear old database call info
 						// global variables: index and XMLHttpRequestObjects
-						index = 0; // index for http requests
+						xmlIndex = 0; // index for http requests // changed from index to xmlIndex 4/18/25
 						while (XMLHttpRequestObjects.length > 0) {
 							XMLHttpRequestObjects.pop();
 						}
@@ -1381,7 +1381,7 @@ function reportInit(){
 							if (reports[i].database && reports[i].database != ""){
 								// handle all database calls, then call addReports
 								// createMultiXMLhttpRequest is found in javascript/xmlUtils.js.
-								// It will increment index.
+								// It will increment xmlIndex.
 								createMultiXMLhttpRequest();
 								var keyField = reports[i].keyField;
 								var key = "";
@@ -1403,10 +1403,10 @@ function reportInit(){
 								}
 								var url = reports[i].database+"?v="+ndisVer+"&key="+key;
 								 
-								XMLHttpRequestObjects[index].open("POST",url,true); // configure object (method, url, async)
+								XMLHttpRequestObjects[xmlIndex].open("POST",url,true); // configure object (method, url, async)
 								// register a function to run when the state changes, if the request
 								// has finished and the stats code is 200 (OK) write result
-								XMLHttpRequestObjects[index].onreadystatechange = function(arrIndex){ return function() { 
+								XMLHttpRequestObjects[xmlIndex].onreadystatechange = function(arrIndex){ return function() { 
 									if (XMLHttpRequestObjects[arrIndex].readyState == 4) {
 										if (XMLHttpRequestObjects[arrIndex].status == 200) {
 											var xmlDoc = createXMLdoc(XMLHttpRequestObjects[arrIndex]);
@@ -1527,8 +1527,8 @@ function reportInit(){
 											}
 										}
 									}
-								};}(index);
-								XMLHttpRequestObjects[index].send();
+								};}(xmlIndex);
+								XMLHttpRequestObjects[xmlIndex].send();
 							}
 							r++; // increment results array
 						}
