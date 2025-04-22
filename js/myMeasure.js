@@ -1,5 +1,121 @@
 // -- Measure --
 function addMeasure(graphicsLayer){
+    require(["esri/widgets/Measurement","esri/widgets/Expand","esri/core/reactiveUtils"],function(Measurement,Expand,reactiveUtils){
+        // To create the Measurement widget with SceneView's direct-line tool active.
+        
+        const measure = new Measurement({
+            view: view,
+            activeTool: null,
+            label: "Measure",
+            linearUnit: "imperial",
+            areaUnit: "imperial"
+        });
+        // create div to hold measure buttons: distance, area, clear
+        const measureDiv = document.createElement("div");
+        measureDiv.id = "measureDiv";
+        measureDiv.className = "esri-component esri-widget";
+        measureDiv.style.margin="0px";
+        const header=document.createElement("div");
+        header.className="myHeader";
+        measureDiv.appendChild(header);
+        const measureTitle = document.createElement("h2");
+        measureTitle.style.textAlign="center";
+        measureTitle.style.padding="10px";
+        measureTitle.style.margin="0";
+        measureTitle.innerHTML="Measure";
+        header.appendChild(measureTitle);
+        const btnP = document.createElement("p");
+        btnP.style.padding="0 10px";
+        btnP.style.textAlign="center";
+        
+        // Distance Button
+        var distBtn = document.createElement("button");
+        distBtn.id= "distance";
+        distBtn.className="esri-widget--button esri-interactive esri-icon-measure-line active";
+        distBtn.style.display="inline";
+        distBtn.style.marginRight="5px";
+        distBtn.style.fontSize="24px";
+        distBtn.title = "Distance Measurement Tool";
+        btnP.appendChild(distBtn);
+        // Area Button
+        var areaBtn = document.createElement("button");
+        areaBtn.id="area";
+        areaBtn.className="esri-widget--button esri-interactive esri-icon-measure-area";
+        areaBtn.style.display="inline";
+        areaBtn.style.marginRight="5px";
+        areaBtn.style.fontSize="24px";
+        areaBtn.title = "Area Measurement Tool";
+        btnP.appendChild(areaBtn);
+        // Clear Button
+        var clearBtn = document.createElement("button");
+        clearBtn.id="clear";
+        clearBtn.className="esri-widget--button esri-interactive esri-icon-trash";
+        clearBtn.style.display="inline";
+        clearBtn.style.marginRight="5px";
+        clearBtn.style.fontSize="24px";
+        clearBtn.title = "Clears Measurements";
+        btnP.appendChild(clearBtn);
+        measureDiv.appendChild(btnP);
+
+        distBtn.addEventListener("click", () => {
+            distanceMeasurement();
+        });
+        areaBtn.addEventListener("click", () => {
+            areaMeasurement();
+        });
+        clearBtn.addEventListener("click", () => {
+            clearMeasurements();
+        });
+        function distanceMeasurement() {
+            measure.activeTool = "distance";
+            distBtn.classList.add("active");
+            areaBtn.classList.remove("active");
+        }
+  
+        // Call the appropriate AreaMeasurement2D or AreaMeasurement3D
+        function areaMeasurement() {
+            measure.activeTool = "area";
+            distBtn.classList.remove("active");
+            areaBtn.classList.add("active");
+        }
+  
+        // Clears all measurements
+        function clearMeasurements() {
+            distBtn.classList.remove("active");
+            areaBtn.classList.remove("active");
+            measure.activeTool=null;
+            measure.clear();
+        }
+        measure.container = measureDiv;
+        
+        const measureExpand = new Expand({
+            view,
+            content: measureDiv,
+            expandTooltip: "Measure",
+            expandIconClass: "esri-icon-measure",
+            collapseTooltip: "Close Measure",
+            expandIcon: "measure"
+        });
+        // create a watch to trigger an event whenever expanded value changes.
+        measureExpand.watch("expanded", (expanded) => {
+           if(expanded){
+            drawing = true;
+            distanceMeasurement();
+            closeIdentify();
+            closeHelp();
+           }else{
+            drawing = false;
+            clearMeasurements();
+           }
+        });
+        
+        view.ui.add(measureExpand, "bottom-right");
+        //view.ui.add(measure, "bottom-left");
+    });
+
+    return;
+
+    // old sketch draw and measure
     require(["esri/widgets/Sketch","esri/widgets/Expand","esri/Graphic",
         "esri/geometry/geometryEngine"], function (Sketch,Expand,Graphic,geometryEngine) {
         const sketch = new Sketch({

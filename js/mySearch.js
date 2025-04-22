@@ -89,8 +89,8 @@ function addSearch() {
 }
 
 function createSearchWidget(sources,zoomScale){
-    require(["esri/widgets/Search","esri/geometry/Extent","esri/geometry/Point","esri/geometry/SpatialReference"],
-        function(Search,Extent,Point,SpatialReference){
+    require(["esri/widgets/Search","esri/geometry/Extent","esri/geometry/Point","esri/geometry/SpatialReference","esri/rest/locator"],
+        function(Search,Extent,Point,SpatialReference,locator){
 
         /*var propertyFL = new FeatureLayer({
             url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3"
@@ -168,6 +168,16 @@ function createSearchWidget(sources,zoomScale){
             name: "Counties",
             placeholder: "Search Counties"
         });*/
+
+        /*sources.push({
+            url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/",
+            singleLineFieldName: "SingleLine",
+            outFields: ["*"],
+            name: "Address",
+            placeholder: "Search Address",
+            searchExtent: fullExtent
+        });*/
+  
          // Colorado Place GNIS
         sources.push({
             url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer",
@@ -178,8 +188,22 @@ function createSearchWidget(sources,zoomScale){
         });
         // Address
         sources.push({
+            url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/",
+            singleLineFieldName: "SingleLine",
+            outFields: ["*"],
+            name: "Address",
+            placeholder: "Search Address",
             //limit search to Colorado
-            filter: {
+            searchExtent: fullExtent
+            
+            /*filter: function(response) {
+                // Filter results based on Addr_type
+                return response.results.filter(function(result) {
+                  //return result.feature.attributes.Addr_type === "StreetAddress";
+                  return result.feature.attributes.State === "CO";
+                });
+              }*/
+            /*filter: {
                 geometry: new Extent({
                     //-12350000 4250000 -11150000 5250000
                     xmax: -11359101, //-11150000,
@@ -190,12 +214,7 @@ function createSearchWidget(sources,zoomScale){
                         wkid: 102100
                     }
                 })
-            },
-            url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/",
-            singleLineFieldName: "SingleLine",
-            outFields: ["*"],
-            name: "Address",
-            placeholder: "Search Address"
+            }*/
         });
 
         searchWidget = new Search({
@@ -257,27 +276,15 @@ function createSearchWidget(sources,zoomScale){
 
             // zoom to place or address
             // Find which source layer matches name exactly or up to the comma. eg. Fort Collins, Larimer
-            if (event.results.length == 0){
-                //alert("Unknown search value. Please try again.");
-                document.getElementsByClassName("esri-search__warning-menu")[0].style.visibility="visible";
-                return;
-            }
             var index = 0;
-            var found = false;
             for (var i = 0; i < event.results.length; i++) {
                 if (event.results[i].results.length == 0) continue;
                 var name = event.results[i].results[0].name.toLowerCase();
                 if (event.searchTerm.toLowerCase() === name.substring(0, name.indexOf(",")) ||
                     event.searchTerm.toLowerCase() === name) {
                     index = i;
-                    found = true;
                     break;
                 }
-            }
-            if (!found){
-                //    alert("Unknown search value. Please try again.");
-                document.getElementsByClassName("esri-search__warning-menu")[0].style.visibility="visible";
-                return;
             }
             // highlight, label, and zoom
             const obj = event.results[index];

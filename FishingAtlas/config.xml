@@ -83,14 +83,14 @@
 
     <links>
         <iconsize>30px</iconsize>
-        <helplink label="Use case #1"
+        <!--helplink label="Use case #1"
             text="Video showing how to..."
             url = "https://"
-            icon="./assets/images/star.png"/>
-        <helplink label="Getting Started"
+            icon="./assets/images/star.png"/-->
+        <!--helplink label="Getting Started"
             text="A video highlighting the features of our map atlas"
             url="https://"
-            icon="./assets/images/compass3.png"/>
+            icon="./assets/images/compass3.png"/-->
         <link label="CPW Website"
             url="https://cpw.state.co.us"
             icon="./assets/images/logo.svg"/>

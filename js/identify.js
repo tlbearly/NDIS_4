@@ -404,6 +404,7 @@ function readIdentifyWidget() {
 
 function doIdentify(evt){
     //helpWidget.open = false;
+    if (drawing)return;
     closeHelp();
     showLoading();
     view.graphics.removeAll();//all in closeIdentify() //(view.graphics.items[view.graphics.items.length-1]); // remove last marker symbol

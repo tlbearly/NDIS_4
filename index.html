@@ -20,7 +20,7 @@
   <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
   
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=60" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=61" async="true" />
   <link rel="stylesheet" href="./assets/css/custom-theme.css?v=32" async="true" />
   
   <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
@@ -31,11 +31,11 @@
   <script type="text/javascript" src="js/addMapLayers.js?v=43" async="true"></script> <!-- read config.xml, add links to help -->
   <script type="text/javascript" src="js/myBasemaps.js?v=24" async="true"></script>
   <script type="text/javascript" src="js/myLayerList.js?v=128" async="true"></script>
-  <script type="text/javascript" src="js/mySearch.js?v=12" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=68" async="true"></script> <!-- read IdentifyWidget.xml -->
+  <script type="text/javascript" src="js/mySearch.js?v=13" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=69" async="true"></script> <!-- read IdentifyWidget.xml -->
   <script type="text/javascript" src="js/errorBox.js?v=4" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
-  <script type="text/javascript" src="js/myMeasure.js?v=3" async="true"></script>
+  <script type="text/javascript" src="js/myMeasure.js?v=4" async="true"></script>
 
   <script>
     function closeHelp(){
@@ -107,6 +107,7 @@
     var app = "huntingatlas";
     var map, view, mapLayers = [];
     var  queryObj = {};
+    var drawing=false;
     var gmuFL=null; // big game gmu layer
     const ndisVer = Date.now();
     // this is read from IdentifyWidget.xml file in identify.js readIdentifyWidget()
@@ -365,10 +366,10 @@
             view,
             content: mapScale,
             expandTooltip: "Map Scale",
+            collapseTooltip: "Close Map Scale",
             label: "Map Scale",
             mode: "floating", // small widget on mobile too
             autoCollapse: true, // close widget on map scale change
-            //expandIconClass: "esri-icon-expand",
             expandIcon: "actual-size"
           });
           view.ui.add(mapScaleBtn, "bottom-right");
@@ -442,6 +443,7 @@
             view,
             content: print,
             expandTooltip: "Print",
+            collapseTooltip: "Close Print",
             expandIconClass: "esri-icon-printer"
           });
           view.ui.add(printExpand, "bottom-right");

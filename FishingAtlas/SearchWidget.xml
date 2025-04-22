@@ -54,9 +54,9 @@
 	</layer>
 	<layer>
   		<name>Township Range</name> 
- 		 <url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/14</url> 
- 		<searchFields>TWP,TDIR,RNG,RDIR</searchFields>
-		<displayfield>TWP</displayfield>
-		<placeholder>Search Township Range</placeholder>
+ 		 <url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/99</url> 
+ 		<searchFields>TOWNRANGE</searchFields>
+		<displayfield>TOWNRANGE</displayfield>
+		<placeholder>Search Township Range (1N 73W)</placeholder>
   	</layer>
 </configuration>

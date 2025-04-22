@@ -1422,7 +1422,6 @@ function readConfig(){
                     const linkDiv = document.createElement("div");
                     linkDiv.innerHTML = linkStr;
                     // add links to help
-                    //helpContent.appendChild(linkDiv);
                     document.getElementById("helpContent").appendChild(linkDiv);
 
                     readURLParmeters(); // calls addMapLayers

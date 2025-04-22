@@ -122,6 +122,21 @@ body,
   }
 }
 
+/* myMeasure Buttons */
+.esri-widget--button.active,
+.esri-widget--button.active:hover,
+.esri-widget--button.active:focus {
+    cursor: default;
+    background-color: #999696;
+    color: #fff;
+}
+.esri-widget--button.active path,
+.esri-widget--button.active:hover path,
+.esri-widget--button.active:focus path {
+    fill: #e4e4e4;
+}
+
+
 .esri-layer-list__item-content {
   font-size: 1rem !important;
   padding: 5px 0;

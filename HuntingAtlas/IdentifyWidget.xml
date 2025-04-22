@@ -256,8 +256,8 @@
 				<vis_id>5</vis_id>
 				<vis_url>https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/FeatureServer/5</vis_url>
 				<geometry>line</geometry>
-				<fields>PLAN_ALLOW_MODE_TRNSPRT,ROUTE_PRMRY_NM,ROUTE_PRMRY_NUM,OHV_ROUTE_DSGNTN_LIM,OHV_DSGNTN_LIM_EXPLAIN,BLM_MILES</fields>
-				<displaynames>Allowed Mode of Transportation,Route Name,Route Number,OHV Route Designation Limitation,Explaination,Length in Miles</displaynames>
+				<fields>ROUTE_PRMRY_NM,ROUTE_PRMRY_NUM,OBSRVE_MODE_TRNSPRT,OBSRVE_ROUTE_USE_CLASS,OHV_ROUTE_DSGNTN_LIM,OHV_DSGNTN_LIM_EXPLAIN,BLM_MILES</fields>
+				<displaynames>Route Name,Route Number,Allowed Mode of Transportation,Route Use Class,OHV Route Designation Limitation,Explaination,Segment Length</displaynames>
 			</layer>
 			<!-- Identify.js will display icons and seasonal dates -->
 			<layer label="Motor Vehicle Use Map: Roads">
