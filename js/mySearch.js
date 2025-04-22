@@ -2,13 +2,97 @@
 //   Add Search Widget
 //**********************
 function addSearch() {
-    // Find a Place Widget ESRI default
+    // Find a Place Widget
     //define layers for boundaries
-    require(["esri/layers/FeatureLayer","esri/widgets/Search","esri/geometry/Extent","esri/geometry/Point","esri/geometry/SpatialReference"],
-        function(FeatureLayer,Search,Extent,Point,SpatialReference){
+    require(["esri/layers/FeatureLayer"],
+        function(FeatureLayer){
         var sources = [];
-        
-        var propertyFL = new FeatureLayer({
+        var zoomScale = 72224;
+        // Read the SearchWidget.xml file
+        var xmlhttp = createXMLhttpRequest();
+        var settingsFile = app + "/SearchWidget.xml?v=" + Date.now();
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                try {
+                    var xmlDoc = createXMLdoc(xmlhttp);
+                    var searchLayers = xmlDoc.getElementsByTagName("layer");
+                    for (var f = 0; f < searchLayers.length; f++) {
+                        var layerName = "layer"+(f+1);
+                        if (!searchLayers[f].getElementsByTagName("name")[0]){
+                            alert("Missing name tag for "+layerName+" in "+app+"/SearchWidget.xml file.","Data Error");
+                            continue;
+                        }
+                        layerName = searchLayers[f].getElementsByTagName("name")[0].childNodes[0].data;
+                        if (!searchLayers[f].getElementsByTagName("searchFields")[0]){
+                            alert("Missing searchFields tag for "+layerName+" in "+app+"/SearchWidget.xml file.","Data Error");
+                            continue;
+                        }
+                        if (!searchLayers[f].getElementsByTagName("displayfield")[0]){
+                            alert("Missing displayfield tag for "+layerName+" in "+app+"/SearchWidget.xml file.","Data Error");
+                            continue;
+                        }
+                        if (!searchLayers[f].getElementsByTagName("placeholder")[0]){
+                            alert("Missing placeholder tag for "+layerName+" in "+app+"/SearchWidget.xml file.","Data Error");
+                            continue;
+                        }
+                        if (!searchLayers[f].getElementsByTagName("url")[0]){
+                            alert("Missing url tag for "+layerName+" in "+app+"/SearchWidget.xml file.","Data Error");
+                            continue;
+                        }
+                        const fLayer = new FeatureLayer({
+                            url: searchLayers[f].getElementsByTagName("url")[0].childNodes[0].data
+                        });
+                        sources.push({
+                            layer: fLayer,
+                            searchFields: [searchLayers[f].getElementsByTagName("searchFields")[0].childNodes[0].data],
+                            displayField: searchLayers[f].getElementsByTagName("displayfield")[0].childNodes[0].data,
+                            //exactMatch: false,
+                            //maxSuggestions: 1000,
+                            //outFields: ["PropName"],
+                            name: searchLayers[f].getElementsByTagName("name")[0].childNodes[0].data,
+                            placeholder: searchLayers[f].getElementsByTagName("placeholder")[0].childNodes[0].data
+                        });
+                        if (searchLayers[f].getElementsByTagName("maxSuggestions")[0] && searchLayers[f].getElementsByTagName("maxSuggestions")[0].childNodes[0].data)
+                            sources[sources.length-1].maxSuggestions = parseInt(searchLayers[f].getElementsByTagName("maxSuggestions")[0].childNodes[0].data);
+                        if (searchLayers[f].getElementsByTagName("maxResults")[0] && searchLayers[f].getElementsByTagName("maxResults")[0].childNodes[0].data)
+                            sources[sources.length-1].maxResults = parseInt(searchLayers[f].getElementsByTagName("maxResults")[0].childNodes[0].data);
+                        if (searchLayers[f].getElementsByTagName("suggestionsEnabled")[0] && searchLayers[f].getElementsByTagName("suggestionsEnabled")[0].childNodes[0].data)
+                            sources[sources.length-1].suggestionsEnabled = searchLayers[f].getElementsByTagName("suggestionsEnabled")[0].childNodes[0].data;
+                        if (searchLayers[f].getElementsByTagName("minSuggestCharacters")[0] && searchLayers[f].getElementsByTagName("minSuggestCharacters")[0].childNodes[0].data)
+                            sources[sources.length-1].minSuggestCharacters = parseInt(searchLayers[f].getElementsByTagName("minSuggestCharacters")[0].childNodes[0].data);
+                        if (searchLayers[f].getElementsByTagName("exactMatch")[0] && searchLayers[f].getElementsByTagName("exactMatch")[0].childNodes[0].data)
+                            sources[sources.length-1].exactMatch = parseInt(searchLayers[f].getElementsByTagName("exactMatch")[0].childNodes[0].data);
+                    }
+                    if (!xmlDoc.getElementsByTagName("zoomscale")[0] && !xmlDoc.getElementsByTagName("zoomscale")[0].childNodes[0].data)
+                        alert("Error in "+app+"/SearchWidget.xml file. Tag, zoomscale is missing. Using 72224 scale to zoom to points.","Data Error");
+                    else
+                        zoomScale = parseInt(xmlDoc.getElementsByTagName("zoomscale")[0].childNodes[0].data);
+                
+                    createSearchWidget(sources,zoomScale);
+                }catch (e) {
+                    alert("Error reading " + app + "/SearchWidget.xml in javascript/identify.js readSettingsWidget(): " + e.message, "Data Error", e);
+                    hideLoading();
+                }
+            }
+            // if missing file
+            else if (xmlhttp.status === 404) {
+                alert("Error: Missing " + app + "/SearchWidget.xml file.", "Data Error");
+                hideLoading();
+            } else if (xmlhttp.readyState === 4 && xmlhttp.status === 500) {
+                alert("Error reading " + app + "/SearchWidget.xml.", "Code Error");
+                hideLoading();
+            }
+        };
+        xmlhttp.open("GET", settingsFile, true);
+        xmlhttp.send();
+    });
+}
+
+function createSearchWidget(sources,zoomScale){
+    require(["esri/widgets/Search","esri/geometry/Extent","esri/geometry/Point","esri/geometry/SpatialReference"],
+        function(Search,Extent,Point,SpatialReference){
+
+        /*var propertyFL = new FeatureLayer({
             url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3"
         });
         sources.push({
@@ -38,7 +122,10 @@ function addSearch() {
                 name: "Big Game GMUs",
                 placeholder: "Search GMUs"
             });
-        }
+        }*/
+
+
+
         /*var forestFL = new FeatureLayer({
             url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/5"
         });
@@ -121,7 +208,7 @@ function addSearch() {
             maxResults: 6,
             maxSuggestions: 50,
             suggestionsEnabled: true,
-            minSuggestCharacters: 2,
+            minSuggestCharacters: 1,
             allPlaceholder: "Search",
             sources:sources
         });
@@ -170,16 +257,29 @@ function addSearch() {
 
             // zoom to place or address
             // Find which source layer matches name exactly or up to the comma. eg. Fort Collins, Larimer
+            if (event.results.length == 0){
+                //alert("Unknown search value. Please try again.");
+                document.getElementsByClassName("esri-search__warning-menu")[0].style.visibility="visible";
+                return;
+            }
             var index = 0;
+            var found = false;
             for (var i = 0; i < event.results.length; i++) {
                 if (event.results[i].results.length == 0) continue;
                 var name = event.results[i].results[0].name.toLowerCase();
                 if (event.searchTerm.toLowerCase() === name.substring(0, name.indexOf(",")) ||
                     event.searchTerm.toLowerCase() === name) {
                     index = i;
+                    found = true;
                     break;
                 }
             }
+            if (!found){
+                //    alert("Unknown search value. Please try again.");
+                document.getElementsByClassName("esri-search__warning-menu")[0].style.visibility="visible";
+                return;
+            }
+            // highlight, label, and zoom
             const obj = event.results[index];
             var newExtent = obj.results[0].extent;
             var pt;
@@ -221,7 +321,7 @@ function addSearch() {
             if (obj.results[0].feature.geometry.type === "point")
             view.goTo({
                 target: pt,
-                scale: 100000
+                scale: zoomScale
             });
             else
                 view.extent = newExtent;
@@ -298,28 +398,5 @@ function addSearch() {
             view.goTo(fullExtent);
         });
         view.ui.add(homeWidget, "top-left");
-        
-        /*require(["esri/widgets/Home"], (Home) => { 
-            let homeWidget = new Home({
-                view: view
-            });
-            homeWidget.when(() =>{
-                if (screen.width > 768) {
-                    homeWidget.container.style.position = "absolute";
-                    homeWidget.container.style.left = "285px";
-                    homeWidget.container.style.top = "38px";//-52px";
-                }else {
-                    homeWidget.container.style.position = "absolute";
-                    homeWidget.container.style.left = "209px";
-                    homeWidget.container.style.top = "39px";//-51px";
-                }
-            });
-            
-            // adds the home widget to the top left corner of the MapView
-            view.ui.add(homeWidget, "top-left");
-        });*/
-
-        // Add Help Widget
-        //view.ui.add(helpWidget, "top-left");
     });
 }

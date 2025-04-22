@@ -17,7 +17,7 @@ var identifyGroups = [];
 var identifyLayers = {};
 //var groupContent = {}; // Cache the popup content for each group for a map click
 var groupObj=[]; // Cache the popup content for each group for a map click. Array of objects for each identify tab that has been viewed. title, content, highlightID (features array id), features [], identifyGroup (tab name)
-var highlightID = 0;
+//var highlightID = 0;
 var theTitle = [];
 var identifyLayerIds = []; // handles the identify tasks for each group. [GroupName][{url, layerIds, geometryType}]
 var show_elevation = false;
@@ -47,6 +47,7 @@ require(["esri/rest/identify"
 
 
 function closeIdentify(){
+    view.graphics.removeAll();
     document.getElementById("identifyPopup").style.display = "none";
 }
 
@@ -405,7 +406,7 @@ function doIdentify(evt){
     //helpWidget.open = false;
     closeHelp();
     showLoading();
-    view.graphics.removeAll();//(view.graphics.items[view.graphics.items.length-1]); // remove last marker symbol
+    view.graphics.removeAll();//all in closeIdentify() //(view.graphics.items[view.graphics.items.length-1]); // remove last marker symbol
         
     if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Identify'});
 
@@ -415,7 +416,7 @@ function doIdentify(evt){
     numHighlightFeatures = 0;
     features = [];
     thePromises = [];
-    highlightID = -1;
+    //highlightID = -1;
     theEvt = evt; // Save the click point so we can call this again from changeIdentifyGroup
 
     // Reset array of popupTemplate content for each group to null
@@ -426,6 +427,7 @@ function doIdentify(evt){
         theTitle[identifyGroups[i]] = null;
     }
     clickPoint = evt.mapPoint;
+    addClickPoint();
     theTitle[identifyGroup] = identifyGroup;
     //view.popup.title = identifyGroup;
     document.getElementById("identifyTitle").innerHTML = identifyGroup;
@@ -463,10 +465,12 @@ function displayContent() {
     if (obj.length > 0){
         //view.popup.title = obj[0].title;
         document.getElementById("identifyTitle").innerHTML = obj[0].title;
-        displayInfoWindow(obj[0].content.replace(/ style=\"display:none;\"/g,"")); // do we need featues of highlightID? pass obj
+        displayInfoWindow(obj[0].content.replace(/ style=\"display:none;\"/g,"")); // make data visible
         removeHighlight();
         features = obj[0].features;
-        highlightFeature(obj[0].highlightID,false);
+        // add each highlight
+        for (var i=0; i<features.length; i++)
+            highlightFeature(i,false);
         return;
     }
 
@@ -1007,12 +1011,12 @@ function displayContent() {
                 accumulateContent("");
             }*/
            if (thePromises.length == 0){
-            numDatabaseCalls = 0;
-            processedDatabaseCalls = 0;
-            features = [];
-            theTitle[identifyGroup] = "No "+identifyGroup;
-            document.getElementById("identifyTitle").innerHTML="No "+identifyGroup;
-            accumulateContent(-1,"No visible "+identifyGroup+" at this point.");
+                numDatabaseCalls = 0;
+                processedDatabaseCalls = 0;
+                features = [];
+                theTitle[identifyGroup] = "No "+identifyGroup;
+                document.getElementById("identifyTitle").innerHTML="No "+identifyGroup;
+                accumulateContent(-1,"No visible "+identifyGroup+" at this point.");
            }
         } catch (e){
             alert("Problem trying to identify. Error message: "+e.message,"Warning");
@@ -1029,13 +1033,13 @@ function identifySuccess(response) {
     else return response; // for wildfire
 }*/
 
-function myhandleQueryError(e) {
+/*function myhandleQueryError(e) {
     tooManyRequests = true;
     if (e.message.indexOf("Too many requests") > -1) {
         tooManyRequests = true;
         return;
     }
-    /*if (e.message === "Failed to fetch"){
+    if (e.message === "Failed to fetch"){
         alert("Data not loaded: " +e.details.url, "Data Error");
         accumulateContent("");
     }
@@ -1045,10 +1049,9 @@ function myhandleQueryError(e) {
         alert("Error in identify.js/doIdentify.  " + e.details.raw.message + " for url="+e.details.url+". Check " + app + "/IdentifyWidget.xml urls.", "Data Error");
     else
         alert("Error in identify.js/doIdentify.  " + e.message + " Check " + app + "/IdentifyWidget.xml urls.", "Data Error");
-    */
         hideLoading();
     return;
-}
+}*/
 function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
@@ -1096,6 +1099,7 @@ function handleQueryResults(results,thePromise) {
                         results.features.forEach(function(feature){
                             var r = results;
                             features.push(feature);
+                            highlightFeature(features.length-1,false);
                             var layerName = "Wildfire Incidents";
                             if (feature.geometry.type === "polygon") layerName = "Wildfire Perimeters";
                             if (feature.attributes.IncidentName) {
@@ -1112,8 +1116,8 @@ function handleQueryResults(results,thePromise) {
                                             //view.popup.title = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
                                             document.getElementById("identifyTitle").innerHTML = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
                                             theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+r.feature.attributes[identifyLayers[identifyGroup].titleField];
-                                            highlightFeature(features.length-1,false);
-                                            highlightID = features.length-1;
+                                            //highlightFeature(features.length-1,false);
+                                            //highlightID = features.length-1;
                                             // update groupObj title (cached tab)
                                             let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
                                             if (obj.length != 0){
@@ -1122,8 +1126,8 @@ function handleQueryResults(results,thePromise) {
                                         }
                                     }else {
                                         theTitle[identifyGroup] = feature.attributes.IncidentName;
-                                        highlightFeature(features.length-1,false);
-                                        highlightID = features.length-1;
+                                        //highlightFeature(features.length-1,false);
+                                        //highlightID = features.length-1;
                                     }
                                     //view.popup.title = theTitle[identifyGroup];
                                     document.getElementById("identifyTitle").innerHTML = theTitle[identifyGroup];
@@ -1202,10 +1206,10 @@ function handleQueryResults(results,thePromise) {
                         //});
                     });
                 
-                    if (numHighlightFeatures == 0){
-                        highlightFeature(0,false);
-                        highlightID = 0;
-                    }
+                    //if (numHighlightFeatures == 0){
+                    //    highlightFeature(0,false);
+                    //    highlightID = 0;
+                    //}
                     // add a link to data source
                     if (results.layerName == "Wildfire Incidents") {
                         str += "<span class='idSubTitle'>Inciweb: </span><a href='https://inciweb.wildfire.gov/state/colorado' class='idSubValue' target='_blank'>https://inciweb.wildfire.gov/state/colorado</a><br/>";
@@ -1216,6 +1220,7 @@ function handleQueryResults(results,thePromise) {
                     theTitle[identifyGroup] = "No Wildfires";
                     document.getElementById("identifyTitle").innerHTML = "No Wildfires";
                     //view.popup.title = "No Wildfires";
+                    
                     let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
                     if (obj.length === 0){
                         // cache content
@@ -1223,7 +1228,7 @@ function handleQueryResults(results,thePromise) {
                             identifyGroup: identifyGroup,
                             title: "No Wildfires",
                             content: str,
-                            highlightID: -1,
+                            //highlightID: -1,
                             features: [],
                             promises: [] // array of promise numbers for this tab
                         });
@@ -1293,15 +1298,15 @@ function handleQueryResults(results,thePromise) {
                 str+= "<br/><p>Too many people are requesting this data. Please try again.</p>";
             }
             // highlight first feature if none were specified by pre_title title title_field in IdentifyWidget.xml file
-            if (numHighlightFeatures == 0){
+            /*if (numHighlightFeatures == 0){
                 highlightFeature(0,false);
                 highlightID = 0;
             }
             // preTitle and title used in config.xml but geometry was not clicked on. For example Goat GMU clicked outside gmu polygon
-            else if (numHighlightFeatures == -1){
+            else if (numHighlightFeatures == -1 && highlightID == -1){
                 highlightFeature(-1,false);
-                highlightID = -1;
-            }
+                //highlightID = -1;
+            }*/
             // If it has database calls, str will be undefined. writeFeatureContent will call accumulateContent.
             if (tmpStr !== undefined && tmpStr !== "undefined")
                 accumulateContent(thePromise,str);
@@ -1313,7 +1318,8 @@ function handleQueryResults(results,thePromise) {
 }
 
 function writeFeatureContent(feature,layerName,thePromise){
-
+    // Return a string with the feature attributes
+    // Highlight the features
     var str = "";
     var tmpStr = "";
     feature.attributes.layerName = layerName;
@@ -1334,6 +1340,8 @@ function writeFeatureContent(feature,layerName,thePromise){
                                 tmpStr = "<span class='idTitle'>"+layerName + "</span><div style='padding-left: 10px;'>";
 
                                 features.push(feature);
+                                // highlight all features (polygons are turned off)
+                                highlightFeature(features.length-1,false);
                                 var xmlDoc = createXMLdoc(XMLHttpRequestObjects[arrIndex]);
                                 
                                 // set header with the layer specified in IdentifyWidget.xml file or use first field value
@@ -1341,8 +1349,8 @@ function writeFeatureContent(feature,layerName,thePromise){
                                     if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
                                         if(layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
                                             theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+feature.attributes[identifyLayers[identifyGroup].titleField];
-                                            highlightFeature(features.length-1,false);
-                                            highlightID = features.length-1;
+                                            //highlightFeature(features.length-1,false);
+                                            //highlightID = features.length-1;
                                             // update groupObj title (cached tab)
                                             let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
                                             if (obj.length != 0){
@@ -1352,6 +1360,8 @@ function writeFeatureContent(feature,layerName,thePromise){
                                         // handle Bighorn and Goat GMU
                                         else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1) {
                                             theTitle[identifyGroup] = layerName+" Number "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
+                                            //highlightFeature(features.length-1,false);
+                                            //highlightID = features.length-1;
                                             // update groupObj title (cached tab)
                                             let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
                                             if (obj.length != 0){
@@ -1494,16 +1504,19 @@ function writeFeatureContent(feature,layerName,thePromise){
         // Layer without database call
         else {
             features.push(feature);
+            // highlight all features (polygons are turned off)
+            highlightFeature(features.length-1,false);
             tmpStr = "<span class='idTitle'>"+ layerName + "</span><div style='padding-left: 10px;'>";
             var first = true;
             // set header with the layer specified in IdentifyWidget.xml file with preTitle, titleField or identifyGroup as title
             if (theTitle[identifyGroup] == identifyGroup){
                 if (identifyLayers[identifyGroup].preTitle !== null && identifyLayers[identifyGroup].titleLayer !== null){
-                    numHighlightFeatures=-1;
+                    //numHighlightFeatures=-1;
                     if(layerName.indexOf(identifyLayers[identifyGroup].titleLayer) != -1){
                         theTitle[identifyGroup] = identifyLayers[identifyGroup].preTitle+feature.attributes[identifyLayers[identifyGroup].titleField];
-                        highlightFeature(features.length-1,false);
-                        highlightID = features.length-1;
+                        // only highlight if has feature title
+                        //highlightFeature(features.length-1,false);
+                        //highlightID = features.length-1;
                         // update groupObj title (cached tab)
                         let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
                         if (obj.length != 0){
@@ -1513,8 +1526,9 @@ function writeFeatureContent(feature,layerName,thePromise){
                     // handle Bighorn and Goat GMU
                     else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1){
                         theTitle[identifyGroup] = layerName +" Number "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
-                        highlightFeature(features.length-1,false);
-                        highlightID = features.length-1;
+                        // only highlight if has feature title
+                        //highlightFeature(features.length-1,false);
+                        //highlightID = features.length-1;
                         // update groupObj title (cached tab)
                         let obj = groupObj.filter(item => item.identifyGroup === identifyGroup);
                         if (obj.length != 0){
@@ -1711,28 +1725,9 @@ function writeFeatureContent(feature,layerName,thePromise){
         }
     }     
 }
-var numHighlightFeatures=0;
-function highlightFeature(id,fade) {
-    // highlight geometry, fade: true will fade, false will not fade
-    if (features[id] && features[id].geometry && (features[id].geometry != undefined && features[id].geometry.type)) {
-        //if (features[id].geometry.type === undefined || !features[id].geometry.type) return;
-        if (numHighlightFeatures == -1)numHighlightFeatures = 0;
-        // if id is -1 do not highlight geometry. This had preTitle and title in config.xml but geometry was not clicked on.
-        if (id > -1){
-            if (features[id].geometry.type === "point" ) {
-                addHighlightPoint(features[id],fade);
-                numHighlightFeatures++;
-            }else if (features[id].geometry.type === "polygon" && view.scale <= 4000000) {
-                addTempPolygon(features[id],fade);
-                numHighlightFeatures++;
-            } else if (features[id].geometry.type === "polyline") {
-                console.log("highlight line numHighlight="+numHighlightFeatures);
-                addTempLine(features[id],fade);
-                numHighlightFeatures++;
-            }
-        }
-    }
 
+function addClickPoint(){
+    // Add click point to view.graphics
     // add marker pin at clickpoint
     require(["esri/Graphic"], function ( Graphic) {
         var pinImg;
@@ -1752,10 +1747,29 @@ function highlightFeature(id,fade) {
             geometry: clickPoint,
             symbol: symbol
         });
-
         view.graphics.add(point);
-        numHighlightFeatures++;
     });
+}
+var numHighlightFeatures=0;
+function highlightFeature(id,fade) {
+    // highlight geometry, fade: true will fade, false will not fade
+    // if id is -1 do not highlight geometry.
+    if (id > -1){
+        if (features[id] && features[id].geometry && (features[id].geometry != undefined && features[id].geometry.type)) { 
+            if (features[id].geometry.type === "polyline") {
+                console.log("highlight line numHighlight="+numHighlightFeatures);
+                addTempLine(features[id],fade);
+                numHighlightFeatures++;
+            }
+            //else if (features[id].geometry.type === "point" ) {
+            //    addHighlightPoint(features[id],fade);
+            //    numHighlightFeatures++;
+            //}else if (features[id].geometry.type === "polygon" && view.scale <= 4000000) {
+                //addTempPolygon(features[id],fade);
+                //numHighlightFeatures++;
+            //}
+        }
+    }
 }
 
 function removeHighlight() {
@@ -1765,13 +1779,6 @@ function removeHighlight() {
     numHighlightFeatures=0;
     console.log("remove all highlights");
 }
-
-/*function setIdentifyContentHeader(name) {
-     // tlb 6-8-18 Fix bug on ipad, info window not scrolling. Add <div style='height:100%;'>
-    if (identifyLayers[name].desc) return "<div style='height:100%;'><div class='esriPopupItemTitle'>" + name + " found at map click:</div><br/><p style='font-style:italic;top:-15px;position:relative;'>" + identifyLayers[name].desc + "</p>";
-    else
-        return "<div style='height:100%;'><div class='esriPopupItemTitle'>" + name + " found at map click:</div><br/>";
-}*/
 
 function setIdentifyFooter(clickPt) {
     // Set XY click info
@@ -1854,7 +1861,7 @@ function changeIdentifyGroup(sel) {
     //view.popupEnabled = false;
     features = [];
     thePromises = [];
-    highlightID = -1;
+    //highlightID = -1;
     numDatabaseCalls = 0;
     processedDatabaseCalls = 0;
     theTitle[identifyGroup] = identifyGroup;
@@ -1878,7 +1885,7 @@ function accumulateContent(thePromise,theContent){
                 if (document.getElementById("promise"+thePromise))
                     document.getElementById("promise"+thePromise).style.display = "block";
             }
-        },500);
+        },250);
     }
 
     // cache the identify group. Create the array item if it does not exist. Each identify map click will recreate groupObj array.
@@ -1889,7 +1896,7 @@ function accumulateContent(thePromise,theContent){
             identifyGroup: identifyGroup,
             title: theTitle[identifyGroup],
             content: theContent.replace(/ style=\'display:none;\'/g,""),
-            highlightID: highlightID,
+            //highlightID: highlightID,
             features: features,
             promises: thePromises // array of promise numbers for this tab
         });
@@ -1901,7 +1908,7 @@ function accumulateContent(thePromise,theContent){
     else {
         // update cached values
         if (features != []) obj[0].features = features; // update features array
-        if(highlightID != -1) obj[0].highlightID = highlightID;
+        //if(highlightID != -1) obj[0].highlightID = highlightID;
         obj[0].promises = thePromises;
                
             // update view.popup.content by adding to myPopupupContent div element. It flashes horribly if call view.popup.content = ....
