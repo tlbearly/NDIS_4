@@ -387,6 +387,7 @@ function toTitleCase(str) {
 //*************
 //  Drawing   
 //*************/
+const fadeTimeout = 12000; // 10 seconds
 function addTempLabel(point, label, fontSize, shouldFade) {
     // Add text at a point. Fade out after 10 seconds.
     // point: Point, label: text, fontSize: int
@@ -426,8 +427,8 @@ function addTempLabel(point, label, fontSize, shouldFade) {
               clearTimeout(tim);
               view.graphics.remove(pointText);
             }
-          }, 2000);
-        }, 5000);
+          }, 500);
+        }, fadeTimeout-2000);
       }
     });
   }
@@ -458,7 +459,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
       if (shouldFade == undefined || shouldFade) {
         setTimeout(function () {
           view.graphics.remove(point);
-        }, 13000);
+        }, fadeTimeout);
       }
     });
   }
@@ -492,8 +493,9 @@ function addTempLabel(point, label, fontSize, shouldFade) {
   }
   const polySymbol = {
     type: "simple-fill",
-    color: "#d4dbbe" + "9C", // 40% tranparency
-    style: "solid",
+    //color: "#d4dbbe" + "9C", // 40% tranparency
+    //style: "solid",
+    style: "none",
     outline: {  // autocasts as new SimpleLineSymbol()
       color: "#778743",
       width: 2
@@ -518,7 +520,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
         if (shouldFade == undefined || shouldFade) {
           setTimeout(function () {
             view.graphics.remove(poly);
-          }, 13000);
+          }, fadeTimeout);
         }
       });
   }
@@ -547,7 +549,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
         if (shouldFade == undefined || shouldFade){
             setTimeout(function(){
                 view.graphics.remove(lineGraphic);
-            },13000);
+            },fadeTimeout);
         }
     });
   }
@@ -622,8 +624,8 @@ function addTempLabel(point, label, fontSize, shouldFade) {
 }
 
 //************
-	// Map Scale
-	//************
+// Map Scale
+//************
 	function showMapScale(scale) {
 		const list = document.getElementById("mapscaleList");
     if(!list)return;

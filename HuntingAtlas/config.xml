@@ -149,9 +149,6 @@
                     layerVis="false,true,true,true,true,false,true,false"
                     layerNames="Bighorn Migration Patterns,Bighorn Migration Corridors,Bighorn Winter Severe Range,Bighorn Winter Concentration Area,Bighorn Winter Range,Bighorn Summer Concentration Area,Bighorn Summer Range,Bighorn Overall Range"/>
 
-            <layer label="Base Data" open="true" type="dynamic" visible="true" alpha="1.0" listMode="hide"
-                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer"/>
-
             <!-- layers in groups must be feature services! -->
             <layer group="Transportation" visible="true" alpha="1" radio="false"/>
                 <!-- MVUM Status and Visitor Map Symbology are not used -->
@@ -176,6 +173,9 @@
                     url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
                 <layer parentGroup="Wildfire" label="Wildfire Perimeters" type="dynamic" visible="true" alpha="0.8"
                     url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
+
+            <layer label="Base Data" open="true" type="dynamic" visible="true" alpha="1.0" listMode="hide"
+                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer"/>
         </operationallayers>
 		
 		<hideGroupSublayers>Status,Emergency,Field Office,Chamber of Commerce or Welcome Center,License Agent,Campgrounds and SWA Facilities,GMU boundary (Hunting Units)</hideGroupSublayers>
@@ -195,15 +195,15 @@
         <link label="CPW Website"
             url="https://cpw.state.co.us"
             icon="./assets/images/logo.svg"/>
-        <link label="FishingAtlas"
+        <link label="Colorado Fishing Atlas"
             url="./index.html?app=FishingAtlas"
-            icon="./assets/images/logo.svg"
+            icon="./assets/images/i_fishingatlas.svg"
             extent="true"/>
 		<link label="Big Game Brochure"
     		url="https://cpw.state.co.us/aboutus/Pages/RegulationsBrochures.aspx"
-    		icon="./assets/images/i_documentadd.png"/>
+    		icon="./assets/images/i_brochure.svg"/>
 		<link label="Buy License!"
     		url="https://cpw.state.co.us/BuyApply/pages/hunting.aspx"
-    		icon="./assets/images/i_buylicense.png"/>
+    		icon="./assets/images/i_license.svg"/>
     </links>     
 </configuration>

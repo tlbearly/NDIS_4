@@ -20,19 +20,19 @@
   <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
   
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=61" async="true" />
-  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=32" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=63" async="true" />
+  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=33" async="true" />
   
   <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
 
   <script type="text/javascript" src="js/xmlUtils.js?v=2" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js?v=2" async="true"></script>
-  <script type="text/javascript" src="js/utilFuncs.js?v=23" async="true"></script>
+  <script type="text/javascript" src="js/utilFuncs.js?v=27" async="true"></script>
   <script type="text/javascript" src="js/addMapLayers.js?v=43" async="true"></script> <!-- read config.xml, add links to help -->
   <script type="text/javascript" src="js/myBasemaps.js?v=24" async="true"></script>
   <script type="text/javascript" src="js/myLayerList.js?v=128" async="true"></script>
-  <script type="text/javascript" src="js/mySearch.js?v=13" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=69" async="true"></script> <!-- read IdentifyWidget.xml -->
+  <script type="text/javascript" src="js/mySearch.js?v=15" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=70" async="true"></script> <!-- read IdentifyWidget.xml -->
   <script type="text/javascript" src="js/errorBox.js?v=4" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=4" async="true"></script>
@@ -463,14 +463,14 @@
       <button id="errBtn" class="errorbtn">OK</button>
     </article>
   </div>
-  <div id="disclaimer" class="errorbox" style="display:none;border:2px solid white;margin:auto;width:570px;border-radius:12px;top:20px;height:calc(100vh - 40px);padding-bottom: 10px;">
+  <div id="disclaimer" class="errorbox" style="display:none;border:2px solid white;margin:auto;width:570px;border-radius:12px;top:20px;height:calc(100vh - 40px);">
     <h2 id="disclaimerTitle" style="border-top-left-radius:12px;border-top-right-radius:12px;background-color:var(--background);border-bottom:1px solid #ddd;text-align:center;margin:0;padding:0;"></h2>
-    <div style="border-bottom:1px solid #efefef;overflow-y:auto;overflow-x:hidden;height:calc(100vh - 240px);">
+    <div style="border-bottom:1px solid #efefef;overflow-y:auto;overflow-x:hidden;height:calc(100vh - 230px);">
       <div id="disclaimerContent" style="padding:10px;"></div>
       </div>
-    <div style="height:60px">
+    <div style="height:100px">
       <p><input id="disclaimerBtn" type="checkbox" onclick="setCookie('noDisclaimer','1')"> Do not show again. (This is stored in a cookie in your browser history.)</p>
-		  <p align="center"><button class="myButton" type="button" onclick="javascript:closeDisclaimer()" aria-busy="false" aria-label="Agree to disclaimer, hide disclaimer" aria-pressed="false">Agree</button><a href="https://cpw.state.co.us/"><button class="myButton" type="button" aria-busy="false" aria-label="Disagree with disclaimer, load CPW main site." aria-pressed="false">Disagree</button></a></p>
+		  <p align="center" style="margin:0;"><button class="myButton" type="button" onclick="javascript:closeDisclaimer()" aria-busy="false" aria-label="Agree to disclaimer, hide disclaimer" aria-pressed="false">Agree</button><a href="https://cpw.state.co.us/"><button class="myButton" type="button" aria-busy="false" aria-label="Disagree with disclaimer, load CPW main site." aria-pressed="false">Disagree</button></a></p>
     </div>
   </div>
   <div id="identifyPopup" class="myDialog myIdDialog" style="display:none;">
@@ -486,7 +486,7 @@
       <h2><span id="helpTitle">Help</span><button id="helpClose" class="myCloseButton"  onclick="javascript:closeHelp()" aria-busy="false" aria-label="Close" aria-pressed="false">X</button></h2>
     </header>
     <article>
-      <div id="helpContent" style="max-height: calc(100vh - 210px);padding:10px;overflow-y:auto;">If you are having trouble using or reading this map, plesae contact Colorado Parks and Widllife at (call center #).</div>
+      <div id="helpContent" style="max-height: calc(100vh - 210px);padding:10px;overflow-y:auto;">If you are having trouble using or reading this map, plesae contact Colorado Parks and Widllife at 303-297-1192.</div>
     </article>
   </div>
   <div id="viewDiv"></div>

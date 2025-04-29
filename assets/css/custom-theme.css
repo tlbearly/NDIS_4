@@ -2,12 +2,13 @@
    Then edit identify.js and utilFuncs.js and add this color pin to the if checks. Search for color-pin.png. */
 
 .green-theme {
-  --brand: #d4dbbe;
-  --hover: #aaaf99;
+  --brand: #a1a889;/*#d4dbbe*/
+  --hover: #75873c;/*#aaaf99*/
   --press:  #4e5d2d;
   --underline: #aaaf9966;
   --lightBackground: #eff3e1;
   --background: #d4dbbe;
+  --calcite-color-text-inverse: #000; /* text color on --brand background */
   --calcite-color-brand: var(--brand)!important;
   --calcite-color-brand-press: var(--press);
   --calcite-color-brand-hover: var(--hover);

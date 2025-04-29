@@ -1923,7 +1923,7 @@ function accumulateContent(thePromise,theContent){
                         document.getElementById("promise"+thePromise).innerHTML = theContent;
                     // Append to existing content but don't add it twice
                     else if (document.getElementById("promise"+thePromise)) { 
-                        if (document.getElementById("promise"+thePromise).innerHTML.replace(/\<br\>/g,"<br/>").indexOf(theContent.replace(/\'/g,"\"").replace(/\<br\>/g,"<br/>")) == -1)
+                        if (document.getElementById("promise"+thePromise).innerHTML.replace(/\<br\>/g,"<br/>").indexOf(theContent.replace(/\'/g,"\"").replace(/\<br\>/g,"<br/>").replace(/\&/g,"&amp;")) == -1)
                             document.getElementById("promise"+thePromise).innerHTML += theContent;
                     }
                     // first time add each promise to top level (Loading...)

@@ -127,7 +127,7 @@ body,
 .esri-widget--button.active:hover,
 .esri-widget--button.active:focus {
     cursor: default;
-    background-color: #999696;
+    background-color: var(--brand);
     color: #fff;
 }
 .esri-widget--button.active path,
@@ -244,6 +244,7 @@ calcite-panel,
   text-align: center;
   background-color: var(--brand);
   padding:10px;
+  color:#fff;
   margin:0;
   font-weight: 450;
   font-size: 1.125rem;
@@ -258,7 +259,7 @@ calcite-panel,
   max-height: calc(100% - 140px);
 }
 .errorbtn {
-  color: #fff;
+  color: #fff!important;
     background-color: var(--brand);
     border: 1px solid var(--hover);
     width: 60px;

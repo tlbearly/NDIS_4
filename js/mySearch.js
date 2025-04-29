@@ -245,6 +245,10 @@ function createSearchWidget(sources,zoomScale){
             const regexp = /^-?\d*\.?\d*, *-?\d*\.?\d*$/;
             if (event.searchTerm.match(regexp)){
                 const xy = event.searchTerm.split(",");
+                if (xy.length > 2){
+                    alert("Search point is not valid.","Notice");
+                    return;
+                }
                 var pt;
                 // if decimal degrees Latitude, Longitude
                 var lat, long;
@@ -288,35 +292,44 @@ function createSearchWidget(sources,zoomScale){
             }
             // highlight, label, and zoom
             const obj = event.results[index];
+            if (!obj.results[0]){
+                alert("Search value not found.","Notice");
+                return;
+            }
             var newExtent = obj.results[0].extent;
-            var pt;
+            var pt=null;
             var fontsize = 11;
             for (i = 0; i < obj.results.length; i++) {
+                if (!obj.results[i].feature.geometry)continue;
                 if (obj.results[i].feature.geometry.type === "point") {
-                    require(["esri/geometry/Point"], function (Point) {
-                        pt = new Point(obj.results[i].feature.geometry.x, obj.results[i].feature.geometry.y, obj.results[i].feature.geometry.spatialReference);
-                        addTempPoint(pt, true);
-                        if (labelFromURL) {
-                            addTempLabel(pt, queryObj.get("label"), fontsize, true);
-                            labelFromURL = false;
-                        }
-                        else addTempLabel(pt, obj.results[i].name, fontsize, true);
-                    });
+                    pt = new Point(obj.results[i].feature.geometry.x, obj.results[i].feature.geometry.y, obj.results[i].feature.geometry.spatialReference);
+                    addTempPoint(pt, true);
+                    if (labelFromURL) {
+                        addTempLabel(pt, queryObj.get("label"), fontsize, true);
+                        labelFromURL = false;
+                    }
+                    else addTempLabel(pt, obj.results[i].name, fontsize, true);
                     break;
-                }
-                else if (obj.results[i].feature.geometry.type === "polygon") {
+                }else if (obj.results[i].feature.geometry.type === "polyline") {
+                    pt = new Point(obj.results[i].feature.geometry.extent.center.x, obj.results[i].feature.geometry.extent.center.y, obj.results[i].feature.geometry.spatialReference);
+                    addTempLine(obj.results[i].feature, true);
+                    addTempPoint(pt, true);
+                    break;
+                }else if (obj.results[i].feature.geometry.type === "polygon") {
+                    pt = new Point(obj.results[i].feature.geometry.centroid.x, obj.results[i].feature.geometry.centroid.y, obj.results[i].feature.geometry.centroid.spatialReference);
+                    addTempPoint(pt, true);
                     addTempPolygon(obj.results[i].feature, true);
                     if (labelFromURL) {
-                    addTempLabel(obj.results[i].feature, queryObj.get("label"), fontsize, true);
-                    labelFromURL = false;
+                        addTempLabel(obj.results[i].feature, queryObj.get("label"), fontsize, true);
+                        labelFromURL = false;
                     }
                     else if (obj.results[i].feature.sourceLayer.title.indexOf("GMU") > -1)
-                    addTempLabel(obj.results[i].feature, "GMU " + obj.results[i].name, fontsize, true); // label each GMU polygon
+                        addTempLabel(obj.results[i].feature, "GMU " + obj.results[i].name, fontsize, true); // label each GMU polygon
                     else if (obj.results[i].feature.sourceLayer.title.indexOf("County") > -1) {
-                    var label = obj.results[i].name.toLowerCase();
-                    var ch = label.substring(0, 1).toUpperCase();
-                    label = ch + label.substring(1) + " County";
-                    addTempLabel(obj.results[i].feature, label, fontsize, true); // label each county polygon
+                        var label = obj.results[i].name.toLowerCase();
+                        var ch = label.substring(0, 1).toUpperCase();
+                        label = ch + label.substring(1) + " County";
+                        addTempLabel(obj.results[i].feature, label, fontsize, true); // label each county polygon
                     }
                     else addTempLabel(obj.results[i].feature, obj.results[i].name, fontsize, true); // label each polygon
                     var thisExtent = obj.results[i].feature.geometry.extent;
@@ -325,6 +338,10 @@ function createSearchWidget(sources,zoomScale){
                 }
             }
             this.clear();
+            if (!pt){
+                alert("Search value not found. Please try again.","Notice");
+                return;
+            }
             if (obj.results[0].feature.geometry.type === "point")
             view.goTo({
                 target: pt,
@@ -332,6 +349,7 @@ function createSearchWidget(sources,zoomScale){
             });
             else
                 view.extent = newExtent;
+                view.zoom = view.zoom - 1;
         });
         
         
