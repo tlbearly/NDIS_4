@@ -113,11 +113,11 @@
 	<!--use_map_link>true</use_map_link>
 	<use_get_extent>false</use_get_extent-->
 	<use_gmus>true</use_gmus>
-	<gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2</gmu_url>
+	<gmu_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/14</gmu_url>
 	<gmu_field>GMUID</gmu_field>
-	<sheep_gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/15</sheep_gmu_url>
+	<sheep_gmu_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/15</sheep_gmu_url>
 	<sheep_gmu_field>BSGMU</sheep_gmu_field>
-	<goat_gmu_url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/16</goat_gmu_url>
+	<goat_gmu_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/16</goat_gmu_url>
 	<goat_gmu_field>MGGMU</goat_gmu_field>
 		
 	<driving_directions>true</driving_directions>
@@ -129,20 +129,28 @@
 			<link label="Moon Rise, Sun Rise and Set at click point">https://</link>
 			<link label="Weather at click point">https://</link>
 			<!-- GMU      NOTE: cannot use vis_id with GMU -->
-			<layer label="Big Game GMU Boundaries">
-				<id>2</id>
-	     		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
+			<layer label="Big Game GMU">
+				<id>14</id>
+	     		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
 	     		<geometry>polygon</geometry>
 		   		<fields>GMUID</fields>
 	     		<displaynames>GMU Number</displaynames>
 	   		</layer>
 			<!-- CPW Properties -->
 			<layer label="CPW Public Access Properties">
-				<id>3</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
+				<id>11</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
                 <geometry>polygon</geometry>
 				<fields>PropName,CPW_URL</fields>
 				<displaynames>CPW Property Name,CPW Property Website</displaynames>
+	   		</layer>
+			<!-- Trespassing -->
+			<layer label="Reported Trespassing">
+				<id>5</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
+                <geometry>polygon</geometry>
+				<fields>NOTES</fields>
+				<displaynames>Notes</displaynames>
 	   		</layer>
 			<!-- WIA Small Game ONLY -->
 			<!--
@@ -166,15 +174,15 @@
 			-->
 			<!-- COMaP v8 -->
 			<layer label="Land Management (COMaP v20240702)">
-		   		<id>4</id>
-	     		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
+		   		<id>12</id>
+	     		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
       			<geometry>polygon</geometry>
 		   		<fields>NAME,MANAGER</fields>
 		   		<displaynames>Property Name,Land Manager</displaynames>
 	   		</layer>
 			<!-- BLM Field Office with link -->
 			<layer label="BLM Field Office">
-				<id>0</id>
+				<id>6</id>
 				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
 				<geometry>polygon</geometry>
 				<fields>ADMU_NAME,ADMU_ST_UR</fields>
@@ -182,7 +190,7 @@
 			</layer>
 			<!-- US Forest Service Ranger District Boundaries -->
 			<layer label="USFS Ranger District">
-				<id>1</id>
+				<id>7</id>
 				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
 				<geometry>polygon</geometry>
 				<fields>DISTRICTNA,FOR_URL,MVUM_URL</fields>
@@ -191,31 +199,31 @@
 			<!-- Campground  -->
 			<layer label="Campground">
 				<!--buffer>10</buffer--><!-- list campgrounds within 10 miles of click point? hold off -->
-	    		<id>6</id>
-				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer/</url>
+	    		<id>3</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
 				<geometry>point</geometry>
 				<fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
 				<displaynames>Name,Manager,Property Name,Reservable,Campground Website</displaynames>
 	   		</layer>
 			<!-- License Agent  -->
 			<layer label="License Agent">
-				<id>5</id>
-				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer/</url>
+				<id>2</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
 				<geometry>point</geometry>
 				<fields>Name,Address,City,Phone</fields>
 				<displaynames>Name,Address,City,Phone</displaynames>
 	   		</layer>
 			<!-- Field Office -->
 			<layer label="Field Office">
-				<id>15</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/</url>
+				<id>0</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
 				<geometry>point</geometry>
 				<fields>Name,Address,City,Phone</fields>
 				<displaynames>Name,Address,City,Phone</displaynames>
 	   		</layer>
-			<layer label="Contact Info">
-				<id>1</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/</url>
+			<layer label="CPW Contact Info">
+				<id>20</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
 				<geometry>polygon</geometry>
 				<fields>CDOW_FOName,COUNTYNAME,CDOW_Area,CDOW_AWM,CDOW_FOAddress,CDOW_FOCity,CDOW_FOPhone,CDOW_District,CDOW_DWM</fields>
 				<displaynames>Office Name,County,CPW Area,Area Manager,Address,City,Phone,CPW District,District Manager</displaynames>

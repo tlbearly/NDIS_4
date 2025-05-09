@@ -13,8 +13,10 @@ function addMeasure(graphicsLayer){
         // create div to hold measure buttons: distance, area, clear
         const measureDiv = document.createElement("div");
         measureDiv.id = "measureDiv";
-        measureDiv.className = "esri-component esri-widget";
+        measureDiv.className = "myDialog";//"esri-component esri-widget";
         measureDiv.style.margin="0px";
+        measureDiv.style.position="absolute";
+        measureDiv.style.display="none";
         const header=document.createElement("div");
         header.className="myHeader";
         measureDiv.appendChild(header);
@@ -22,7 +24,17 @@ function addMeasure(graphicsLayer){
         measureTitle.style.textAlign="center";
         measureTitle.style.padding="10px";
         measureTitle.style.margin="0";
-        measureTitle.innerHTML="Measure";
+        measureTitle.innerHTML='<span id="helpTitle">Measure</span>';
+        const measureClose = document.createElement("button");
+        measureClose.id = "measureClose";
+        measureClose.className = "myCloseButton";
+        measureClose.setAttribute("aria-busy",false);
+        measureClose.setAttribute("aria-label","Close");
+        measureClose.setAttribute("aria-pressed","false");
+        measureClose.innerHTML = "X";
+        measureClose.addEventListener("click",closeMeasure);
+
+        measureTitle.appendChild(measureClose);
         header.appendChild(measureTitle);
         const btnP = document.createElement("p");
         btnP.style.padding="0 10px";
@@ -81,14 +93,50 @@ function addMeasure(graphicsLayer){
   
         // Clears all measurements
         function clearMeasurements() {
+            //var active = measure.activeTool;
+            distBtn.classList.remove("active");
+            areaBtn.classList.remove("active");
+            measure.activeTool=null;
+            measure.clear();
+            //if (active == "distance") distanceMeasurement();
+            //else areaMeasurement();
+        }
+
+        //view.ui.add(measure, "bottom-left");
+        measure.container = measureDiv;
+
+        const measureBtn = document.createElement("button");
+        measureBtn.className = "esri-widget--button";
+        measureBtn.style.border = "none";
+        measureBtn.style.boxShadow = "1px 1px 1px #ccc";
+        
+        const icon = document.createElement("calcite-icon");
+        icon.id = "measureIcon";
+        icon.icon = "measure";
+        measureBtn.appendChild(icon);
+        function closeMeasure(){
+            if (document.getElementById("measureDiv"))
+                document.getElementById("measureDiv").style.display = "none";
+            drawing = false;
             distBtn.classList.remove("active");
             areaBtn.classList.remove("active");
             measure.activeTool=null;
             measure.clear();
         }
-        measure.container = measureDiv;
-        
-        const measureExpand = new Expand({
+        measureBtn.addEventListener("click",function(){
+            document.getElementById("measureDiv").style.display = "block";
+            drawing = true;
+            distanceMeasurement();
+            closeIdentify();
+            closeHelp();
+            //document.getElementById("measureIcon").icon = "chevrons-right";
+        });
+       
+        measureBtn.setAttribute("aria-label","Measure");
+
+        view.ui.add(measureBtn, "bottom-right");
+        view.ui.add(measureDiv,"top-left");
+       /* const measureExpand = new Expand({
             view,
             content: measureDiv,
             expandTooltip: "Measure",
@@ -109,7 +157,7 @@ function addMeasure(graphicsLayer){
            }
         });
         
-        view.ui.add(measureExpand, "bottom-right");
+        view.ui.add(measureExpand, "bottom-right");*/
         //view.ui.add(measure, "bottom-left");
     });
 

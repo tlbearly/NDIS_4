@@ -374,7 +374,7 @@ function createSearchWidget(sources,zoomScale){
             searchWidget.container.children[0].querySelector("input").parentNode.parentNode.style.borderRadius  = "12px";
             searchWidget.container.children[0].querySelector("input").parentNode.parentNode.style.paddingRight  = "12px";
 
-            if (screen.width > 768) {
+            if (window.innerWidth > 768) {
                 searchWidget.container.style.left = "85px";
                 searchWidget.container.style.position = "relative";
                 searchWidget.container.style.top = "-20px";
@@ -404,7 +404,7 @@ function createSearchWidget(sources,zoomScale){
         homeWidget.className="esri-widget--button";
         homeWidget.style.border="1px solid #6e6e6e77";
         homeWidget.type="button";
-        if (screen.width > 768) {
+        if (window.innerWidth > 768) {
             homeWidget.style.position = "absolute";
             homeWidget.style.left = "285px";
             homeWidget.style.top = "38px";//-52px";

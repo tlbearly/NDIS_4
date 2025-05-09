@@ -1345,7 +1345,7 @@ function readConfig(){
                         alert("Warning: Missing title tag in " + app + "/config.xml file. " + e.message, "Data Error");
                     }
                     try {
-                        if (screen.width <= 768)
+                        if (window.innerWidth <= 768)
                             title = title.replace("Colorado","CO");
                         document.getElementById("title").innerHTML = title;
                         

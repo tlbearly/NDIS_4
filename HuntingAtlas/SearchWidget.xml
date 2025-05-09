@@ -26,7 +26,7 @@
 	<zoomscale>72224</zoomscale>
 	<layer>
 		<name>CPW Properties (STL, SWA, SFU, or WWA)</name>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3</url>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/11</url>
 		<searchFields>PropName</searchFields>
 		<displayfield>PropName</displayfield>
 		<exactMatch>false</exactMatch>
@@ -35,7 +35,7 @@
 	</layer>
 	<layer>
 		<name>Big Game GMUs</name>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2</url>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/14</url>
 		<searchFields>GMUID</searchFields>
 		<displayfield>GMUID</displayfield>
 		<exactMatch>false</exactMatch>
@@ -46,7 +46,7 @@
 	</layer>
 	<layer>
   		<name>Township Range</name> 
- 		 <url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/99</url> 
+ 		 <url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/19</url> 
  		<searchFields>TOWNRANGE</searchFields>
 		<displayfield>TOWNRANGE</displayfield>
 		<placeholder>Search Township Range (1N 73W)</placeholder>

@@ -2049,7 +2049,7 @@ function customStuff(theContent){
             
             // Footer
             // XY point
-            content += "<div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='m' style='color:var(--press);vertical-align:middle;'></calcite-icon> <span class='idTitle'>Location:</span> <input type='text' value='Loading XY...' id='idXY' disabled='true'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;color:var(--press)'><calcite-icon aria-hidden='true' icon='copy' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon></a> <span id='copyNote'></span>";
+            content += "<div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'><calcite-icon aria-hidden='true' icon='pin-tear-f' scale='m' style='color:var(--press);vertical-align:middle;'></calcite-icon> <span class='idTitle' style='margin-right:-20px;'>Location:</span> <span style='white-space:nowrap;margin-left:25px;'><input type='text' value='Loading XY...' id='idXY' disabled='true'> <a href=\"javascript:copyText('idXY')\" style='font-weight:bold;margin-left:0;padding-left:0;font-size:1.1em;text-decoration:none;color:var(--press)'><calcite-icon aria-hidden='true' icon='copy' scale='m' style='vertical-align:middle;margin-right: 5px;'></calcite-icon></a></span> <span id='copyNote'></span>";
             content += '<div id="xycoordsDialog" title="Change Display Format" style="margin-left:25px;margin-top:10px;">';
             content += '    <label for="idxycoords" class="idSubValue">Format: </label><select id="idxycoords" size="1" onChange="setPrj()">';
             // XY point format
@@ -2070,11 +2070,11 @@ function customStuff(theContent){
             content += "<div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'><calcite-icon aria-hidden='true' icon='altitude' scale='l' style='color:var(--press);vertical-align:middle;'></calcite-icon> <span id='idElevation'>Loading elevation...</span></div>"
             
             // Zoom To
-            content += "<div style='padding:12px;'><a href='javascript:zoomToPt()' style='float:left;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='color:var(--press);vertical-align:middle;margin-right: 5px;'></calcite-icon><span style='color:var(--press)'> Zoom To</span></a> ";
+            content += "<div style='padding:12px;'><a href='javascript:zoomToPt()' style='float:left;font-weight:600;margin-right:20px;'><calcite-icon aria-hidden='true' icon='magnifying-glass-plus' scale='s' style='color:var(--press);vertical-align:middle;margin-right: 5px;'></calcite-icon><span style='color:var(--press)'> Zoom To</span></a> ";
             
             // Get Directions
             if (driving_directions){
-                content += "<a href='javascript:getDirections()' style='float:left;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='color:var(--press);vertical-align:middle;margin-right: 5px;'></span><span style='color:var(--press)'> Get Directions</span></a></div>";
+                content += "<a href='javascript:getDirections()' style='float:left;font-weight:600;'><span aria-hidden='true' class='esri-features__icon esri-icon-directions2' style='color:var(--press);vertical-align:middle;margin-right: 5px;'></span><span style='color:var(--press)'> Get Directions</span></a></div>";
             }
         } else {
             content += "><div style='border-bottom: 1px solid var(--calcite-color-border-3);padding:12px;'></div>";

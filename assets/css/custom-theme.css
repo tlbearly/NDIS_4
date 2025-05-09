@@ -6,6 +6,7 @@
   --hover: #75873c;/*#aaaf99*/
   --press:  #4e5d2d;
   --underline: #aaaf9966;
+  --link-hover: #758b45;
   --lightBackground: #eff3e1;
   --background: #d4dbbe;
   --calcite-color-text-inverse: #000; /* text color on --brand background */
@@ -13,14 +14,22 @@
   --calcite-color-brand-press: var(--press);
   --calcite-color-brand-hover: var(--hover);
   --calcite-color-brand-underline: var(--underline);
+  --calcite-dialog-background-color: #fff; /* background color of Layer List */
 }
 .orange-theme{
     --brand: #e0dec8;
     --hover: #f8b944;
     --press: orange;
     --underline: #f8b94466;
+    --link-hover: #f8b944;
     --lightBackground: #f3f3e1;
     --background: #e0dec8;
+    --calcite-color-text-inverse: #000; /* text color on --brand background */
+    --calcite-color-brand: var(--brand)!important;
+    --calcite-color-brand-press: var(--press);
+    --calcite-color-brand-hover: var(--hover);
+    --calcite-color-brand-underline: var(--underline);
+    --calcite-dialog-background-color: #fff; /* background color of Map Layers */
 }
 
 /* link colors */
@@ -29,9 +38,9 @@ a:-webkit-any-link, .link {
     text-decoration: underline;
 }
 a:-webkit-any-link:hover, .link:hover {
-    color: #758b45!important;
+    color: var(--link-hover)!important;
 }
-/* identify marker symbol color */
+/* identify marker symbol color NOT WORKING change themeColor.png in assests/images */
 .markerColor {
     fill: var(--press);
 }

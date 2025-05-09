@@ -74,10 +74,11 @@ body,
   border-radius:12px;
   z-index:2;
   background-color:white;
-  border:1px solid lightgray;
+  border: 2px solid white;
 }
+
 .myHeader{
-  background-color: #f3f3f3;
+  background-color: var(--background);
   border-top-left-radius:12px;
   border-top-right-radius:12px;
 }
@@ -88,20 +89,22 @@ body,
   border-bottom:1px solid lightgray;
 }
 .myCloseButton{
-  background-color: #f3f3f3;
+  background-color: var(--background);
   border-radius:12px;
   float:right;
   box-shadow:none;
   border: none;
   padding:15px;
   margin:-9px;
+  cursor: pointer;
 }
 .myCloseButton:hover{
-  background-color: #e4e4e4;
+  background-color: var(--brand);
+  color:#fff;
 }
 .myIdDialog{
   position:absolute;
-  top:120px;
+  top:118px;
   left:15px;
   max-height:calc(100vh - 115px);
   width:500px;
@@ -165,23 +168,33 @@ calcite-dialog,
   border-top-left-radius: 12px !important;
   border-radius: 0.75rem !important;
 }
-@media screen and (max-width: 768px) {
-  calcite-dialog,
-  .dialog {
-    --calcite-dialog-max-size-y: 40vh;
-  }
-  /* not working!!!!!! */
-  calcite-dialog catcite-panel {
-    max-height: 50vh;
-    margin-left: 10px;
-  }
-}
 
 calcite-panel,
 .panel {
   border-radius: 12px !important;
 }
 
+/* expand buttons: measure, print, map scale */
+.button{
+  background-color: #f3f3f3;
+}
+.button:hover{
+  background-color: #ddd;
+}
+
+/* Measurement widget - hide units drop down */
+.esri-measurement-widget-content__settings {
+  display: none;
+}
+/* Measurement widget - area, perimeter in a row instead of column */
+.esri-measurement-widget-content__measurement, .esri-measurement-widget-content__measurement-item {
+  flex-direction: row;
+}
+
+/* on mobile the scale bar goes in front of expand buttons */
+.esri-scale-bar__line {
+  z-index: 0;
+}
 .esri-expand--auto .esri-expand__container--expanded {
   z-index: 2 !important;
   /* hide map scale behind panel */
@@ -206,6 +219,11 @@ calcite-panel,
   max-height: calc(100% - 110px);
   margin-top: 110px;
 }
+.helpContent{
+  max-height: calc(100vh - 210px);
+  padding: 10px;
+  overflow-y: auto;
+}
 @media screen and (max-width: 768px) {
   .esri-popup--is-docked-top-left .esri-popup__main-container, .esri-popup--is-docked-top-right .esri-popup__main-container, .esri-popup--is-docked-bottom-left .esri-popup__main-container, .esri-popup--is-docked-bottom-right .esri-popup__main-container {
     max-height: calc(50%);
@@ -216,10 +234,49 @@ calcite-panel,
     margin-top: 10px!important;
     margin-left: 0px!important;
   }
+  .helpContent{
+    max-height: calc(50vh - 70px);
+  }
 }
 
-/* error box */
-.errorbox {
+/* modal popup, disclaimer and error message */
+.modalBkg {
+  display: none; /* Hidden by default */
+  position: absolute; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+.modalContent {
+  background-color: white;
+  border:2px solid white;
+  border-radius:12px;
+  box-shadow: 0 1px 4px #000c;
+  margin:0;
+  width:550px;
+  max-width: 90vw;
+  max-height:100vh;
+  position: absolute;
+  top:18px;
+  margin-bottom:20px;
+  left: calc(50% - 275px);
+  z-index: 2;
+}
+.modalTitle{
+  border-top-left-radius:12px;
+  border-top-right-radius:12px;
+  background-color:var(--background);
+  border-bottom:1px solid #ddd;
+  text-align:center;
+  margin:0;
+  padding:0;
+}
+/*.errorbox {
   background-color: white;
   width: 400px;
   max-width: 90vw;
@@ -233,14 +290,18 @@ calcite-panel,
   box-shadow: 0 1px 4px #000c; 
   max-height: calc(100% - 60px);
   margin:0;
-}
+}*/
 @media screen and (max-width: 768px) {
-  .errorbox {
-    top: 20px;
-    left: calc(50% - 45vw);
+  /*.errorbox {
+    left: 5vw;
+    min-width: 90vw;
+  }*/
+  .modalContent{
+    left: 5vw;
+    min-width: 90vw;
   }
 }
-.errortitle {
+/*.errortitle {
   text-align: center;
   background-color: var(--brand);
   padding:10px;
@@ -250,7 +311,7 @@ calcite-panel,
   font-size: 1.125rem;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
-}
+}*/
 .errormsg{
   padding:10px;
   margin:0;
@@ -269,6 +330,7 @@ calcite-panel,
     position: absolute;
     bottom: 20px;
     right: 20px;
+    cursor:pointer;
 }
 .errorbtn:hover{
   background-color: var(--hover);
@@ -309,6 +371,7 @@ calcite-panel,
     background-color: white;
     box-shadow: 2px 2px 2px #ccc;
     margin:10px;
+    cursor: pointer;
 }
 .myButton:hover {
   background-color: #f3f3f3;
@@ -404,11 +467,23 @@ input[type="checkbox"]:checked {
   min-height: 200px;
   text-align: center;
 }
-
 @media only screen and (min-width: 1200px) {
   #bmGallery {
     /*height: 300px;*/
     min-width: 280px;
+  }
+}
+
+.disclaimerScrolling{
+  border-bottom:1px solid #efefef;
+  overflow-y:auto;
+  overflow-x:hidden;
+  height:calc(100vh - 230px);
+}
+
+@media only screen and (max-width: 768px) {
+  .disclaimerScrolling{
+    height:calc(100vh - 260px);/*buttons were off the bottom edge */
   }
 }
 

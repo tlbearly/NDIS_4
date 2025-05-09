@@ -11,10 +11,8 @@ function myLayerList() {
         mapLayersWidget.placement = "top-end";
         mapLayersWidget.overlayPositioning = "absolute";
         mapLayersWidget.offsetDistance = "15px";
-        //mapLayersWidget.style.borderRadius = "12px!important";
-        //mapLayersWidget.style.marginRight = "-10px!important";
-        //mapLayersWidget.style.marginTop = "-10px!important";
         mapLayersWidget.style.maxWidth = "350px!important";
+        // set border radius and max-height for mobile in index.html
 
         // Tabs
         tabs.style.padding = "10px";
@@ -58,7 +56,7 @@ function myLayerList() {
         const rootlayer = mapLayers[i]; // rootLayers
         
         const listItem = document.createElement("tr");
-        listItem.style.borderBottom = "1px solid #efefef";
+        if (i != mapLayers.length-1) listItem.style.borderTop = "1px solid #efefef";
         listItem.style.cursor = "pointer"; // hand
         try {
             // layers that should not be included in the layer list
@@ -222,7 +220,7 @@ function myLayerList() {
     layerListExpand.style.marginTop = "-10px";
     layerListExpand.setAttribute("aria-label","Open the layer list dialog box to set visibility of map layers, set basemap, or show legend.");
     layerListExpand.setAttribute("aria-selected","false");
-    if (screen.width > 768){
+    if (window.innerWidth > 768){
         const layerListLabel = document.createElement("span");
         layerListLabel.innerHTML = "Map Layers";
         layerListLabel.style.fontSize = "medium";
@@ -630,6 +628,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             block = document.createElement("calcite-block");
             block.headingLevel = hLevel;
             block.heading = "Visibility:";
+            block.style.border = "none";
             block.setAttribute("collapsible", false);
             block.setAttribute("open",true);
 
@@ -695,7 +694,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                         //speciesSubArr.items.forEach(item => {
                         for (var i=item.length-1; i>-1; i--) {
                             subLayerListItem = document.createElement("tr");
-                            subLayerListItem.style.borderBottom = "1px solid #efefef";
+                            if (i != item.length-1)
+                                subLayerListItem.style.borderTop = "1px solid #efefef";
 
                             // Add legend 
                             // TODO add picture of legend ??????? Maybe **********************
@@ -828,6 +828,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 block = document.createElement("calcite-block");
                 block.heading = "Visibility:";
                 block.headingLevel = hLevel;
+                block.style.border = "none";
                 block.setAttribute("collapsible", false);
                 block.setAttribute("open",true);
 
@@ -891,6 +892,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                             // if it has sublayers make it an expandable block
                             if (hideGroupSublayers.indexOf(element[i].title) == -1 && (element[i].layers || element[i].sublayers)){
                                 let blockRow = document.createElement("tr");
+                                if (i != element.length-1)
+                                    blockRow.style.borderTop = "1px solid #efefef";
                                 let blockCol = document.createElement("td");
                                 blockCol.colSpan = "3";
                                 blockRow.appendChild(blockCol);
@@ -899,6 +902,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 subLayerGroup.value = element[i].title;
                                 subLayerGroup.headingLevel = hLevel;
                                 subLayerGroup.style.fontWeight = "normal";
+                                subLayerGroup.style.border = "none";
                                 subLayerGroup.setAttribute("collapsible", true);
                                 subLayerGroup.setAttribute("open",false);
                                 subLayerGroup.style.marginLeft = "-12px";
@@ -1069,7 +1073,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                             // <tr (subLayerListItem)><td (subLayerListHeader)>layer title</td><td (subLayerVisibility)><calcite-switch (subLayerVisibility)></td></tr>
                             else {  
                                 subLayerListItem = document.createElement("tr");
-                                subLayerListItem.style.borderBottom = "1px solid #efefef";
+                                if (i != element.length-1)
+                                    subLayerListItem.style.borderTop = "1px solid #efefef";
                                 subLayerListItem.style.fontSize=listFontSize;
                                 subLayerListItem.style.margin="0";
                                 let subLayerListHeader = document.createElement("td");

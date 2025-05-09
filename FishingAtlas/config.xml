@@ -70,7 +70,7 @@
                     layerVis="true,true"
                     layerNames="Trailheads,Trails"
                     minScale="144448"/>
-            <layer group="Wildfire" label="Wildfire" open="true" type="dynamic" visible="true" alpha="0.8"/>
+            <layer group="Wildfire" label="Wildfire" open="true" type="dynamic" visible="false" alpha="0.8"/>
 			    <layer parentGroup="Wildfire" label="Wildfire Perimeters" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
 			    <layer parentGroup="Wildfire" label="Wildfire Incidents" open="true" type="dynamic" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
             <!--layer label="Wildfire Perimeters" open="false" type="dynamic" visible="false" alpha="0.8"
