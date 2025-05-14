@@ -17,6 +17,10 @@
 //  suggestionsEnabled: true
 //  minSuggestCharacters: 1
 //  exactMatch: false
+//  definitionExpression: The SQL where clause used to filter features on the client.
+//     Only the features that satisfy the definition expression are displayed in the 
+//     View. Setting a definition expression is useful when the dataset is large and 
+//     you don't want to bring all features to the client for analysis.
 //
 //
 // zoomscale: Scale to zoom to for points.
@@ -51,20 +55,23 @@
 		<displayfield>TOWNRANGE</displayfield>
 		<placeholder>Search Township Range (1N 73W)</placeholder>
   	</layer>
-	<!--layer>
+	<layer>
 		<name>MVUM Road Names</name>
         <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1</url>
 		<searchFields>NAME</searchFields>
 		<displayfield>NAME</displayfield>
 		<placeholder>MVUM Road Name</placeholder>
-	</layer-->
-	<!--layer>
+		<outFields>["NAME","FORESTNAME"]</outFields>
+		<suggestionTemplate>{NAME}, {FORESTNAME}</suggestionTemplate>
+	</layer>
+	<layer>
 		<name>MVUM Road #</name>
         <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1</url>
 		<searchFields>ID</searchFields>
 		<displayfield>ID</displayfield>
 		<placeholder>MVUM Road #</placeholder>
-	</layer-->
+		<suggestionTemplate>{ID}, {FORESTNAME}</suggestionTemplate>
+	</layer>
 	<!--layer>
 		<name>Counties</name>
 		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1</url>
