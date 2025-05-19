@@ -14,8 +14,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 -->
 <configuration xmlns:xsi="//www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
-    <title>Hunting Atlas</title>
-    <subtitle>Colorado Parks and Wildlife</subtitle>
+    <title>Colorado Hunting Atlas</title>
+    <!--subtitle>Colorado Parks and Wildlife</subtitle-->
     <app>huntingatlas</app>
     <!-- logo in header bar-->
     <logo>assets/images/logo.svg</logo>

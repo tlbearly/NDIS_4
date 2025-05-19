@@ -9,7 +9,8 @@
 // name: The display name for the layer.
 // url: The url for the layer in the mapservice or featureservice. Must include the id.
 // searchFields: The field to search on
-// displayField: 
+// displayField: The field that is displayed
+// placeholder: displayed before the user types it this layer is the only one selected
 //
 // Default values:
 //	maxResults: 6
@@ -17,7 +18,6 @@
 //  suggestionsEnabled: true
 //  minSuggestCharacters: 1
 //  exactMatch: false
-//
 //
 // zoomscale: Scale to zoom to for points.
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,6 +44,15 @@
 		<searchFields>Name</searchFields>
 		<displayfield>Name</displayfield>
 		<placeholder>Search Campgrounds</placeholder>
+	</layer>
+	<layer>
+		<name>CPW Properties (STL, SWA, SFU, or WWA)</name>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/11</url>
+		<searchFields>PropName</searchFields>
+		<displayfield>PropName</displayfield>
+		<exactMatch>false</exactMatch>
+		<maxSuggestions>10</maxSuggestions>
+		<placeholder>Search CPW Properties</placeholder>
 	</layer>
 	<layer>
 		<name>USGS topo map quadrangle</name>

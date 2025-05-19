@@ -4,8 +4,20 @@
 function addSearch() {
     // Find a Place Widget
     //define layers for boundaries
-    require(["esri/layers/FeatureLayer"],
-        function(FeatureLayer){
+    require(["esri/layers/FeatureLayer","esri/geometry/Extent"],
+     function(FeatureLayer,Extent){
+        const coloExtent = new Extent({
+            "xmin": -12138858,
+            "ymin": 4438140,
+            "xmax": -11359258,
+            "ymax": 5012442,
+            "spatialReference": {
+                "wkid": 102100
+            }   
+        });
+        const searchExtent = {
+            geometry: coloExtent
+        };
         var sources = [];
         var zoomScale = 72224;
         // Read the SearchWidget.xml file
@@ -39,19 +51,20 @@ function addSearch() {
                             alert("Missing url tag for "+layerName+" in "+app+"/SearchWidget.xml file.","Data Error");
                             continue;
                         }
-                        const fLayer = new FeatureLayer({
+                        var fLayer = new FeatureLayer({
                             url: searchLayers[f].getElementsByTagName("url")[0].childNodes[0].data
                         });
                         sources.push({
                             layer: fLayer,
                             searchFields: [searchLayers[f].getElementsByTagName("searchFields")[0].childNodes[0].data],
                             displayField: searchLayers[f].getElementsByTagName("displayfield")[0].childNodes[0].data,
-                            //exactMatch: false,
-                            //maxSuggestions: 1000,
-                            //outFields: ["PropName"],
+                            // limit to Colorado
+                            //filter: searchExtent, do this last
                             name: searchLayers[f].getElementsByTagName("name")[0].childNodes[0].data,
                             placeholder: searchLayers[f].getElementsByTagName("placeholder")[0].childNodes[0].data
                         });
+                        if (searchLayers[f].getElementsByTagName("suggestionTemplate")[0] && searchLayers[f].getElementsByTagName("suggestionTemplate")[0].childNodes[0].data)
+                            sources[sources.length-1].suggestionTemplate = searchLayers[f].getElementsByTagName("suggestionTemplate")[0].childNodes[0].data;
                         if (searchLayers[f].getElementsByTagName("maxSuggestions")[0] && searchLayers[f].getElementsByTagName("maxSuggestions")[0].childNodes[0].data)
                             sources[sources.length-1].maxSuggestions = parseInt(searchLayers[f].getElementsByTagName("maxSuggestions")[0].childNodes[0].data);
                         if (searchLayers[f].getElementsByTagName("maxResults")[0] && searchLayers[f].getElementsByTagName("maxResults")[0].childNodes[0].data)
@@ -62,6 +75,13 @@ function addSearch() {
                             sources[sources.length-1].minSuggestCharacters = parseInt(searchLayers[f].getElementsByTagName("minSuggestCharacters")[0].childNodes[0].data);
                         if (searchLayers[f].getElementsByTagName("exactMatch")[0] && searchLayers[f].getElementsByTagName("exactMatch")[0].childNodes[0].data)
                             sources[sources.length-1].exactMatch = parseInt(searchLayers[f].getElementsByTagName("exactMatch")[0].childNodes[0].data);
+                        // outFields caused errors
+                        //if (searchLayers[f].getElementsByTagName("outFields")[0] && searchLayers[f].getElementsByTagName("outFields")[0].childNodes[0].data){
+                            //fLayer.outFields = "*";//searchLayers[f].getElementsByTagName("outFields")[0].childNodes[0].data;
+                        //    sources[sources.length-1].outFields = searchLayers[f].getElementsByTagName("outFields")[0].childNodes[0].data;
+                        //}
+                        // limit to Colorado
+                        sources[sources.length-1].filter = searchExtent;
                     }
                     if (!xmlDoc.getElementsByTagName("zoomscale")[0] && !xmlDoc.getElementsByTagName("zoomscale")[0].childNodes[0].data)
                         alert("Error in "+app+"/SearchWidget.xml file. Tag, zoomscale is missing. Using 72224 scale to zoom to points.","Data Error");
@@ -91,7 +111,9 @@ function addSearch() {
 function createSearchWidget(sources,zoomScale){
     require(["esri/widgets/Search","esri/geometry/Extent","esri/geometry/Point","esri/geometry/SpatialReference","esri/rest/locator"],
         function(Search,Extent,Point,SpatialReference,locator){
-
+        const searchExtent = {
+            geometry: fullExtent
+        };
         /*var propertyFL = new FeatureLayer({
             url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/3"
         });
@@ -192,29 +214,9 @@ function createSearchWidget(sources,zoomScale){
             singleLineFieldName: "SingleLine",
             outFields: ["*"],
             name: "Address",
-            placeholder: "Search Address",
             //limit search to Colorado
-            searchExtent: fullExtent
-            
-            /*filter: function(response) {
-                // Filter results based on Addr_type
-                return response.results.filter(function(result) {
-                  //return result.feature.attributes.Addr_type === "StreetAddress";
-                  return result.feature.attributes.State === "CO";
-                });
-              }*/
-            /*filter: {
-                geometry: new Extent({
-                    //-12350000 4250000 -11150000 5250000
-                    xmax: -11359101, //-11150000,
-                    xmin: -12140593, //-12350000,
-                    ymax: 5012943, //5250000,
-                    ymin: 443828, //4250000,
-                    spatialReference: {
-                        wkid: 102100
-                    }
-                })
-            }*/
+            filter: searchExtent,
+            placeholder: "Search Address"
         });
 
         searchWidget = new Search({
@@ -359,6 +361,8 @@ function createSearchWidget(sources,zoomScale){
             searchWidget.container.addEventListener("click", function(event) {
                 //view.closePopup();
                 closeIdentify();
+                closeMeasure();
+                closeHelp();
             });
 
             // change filter icon from down arrow to filter

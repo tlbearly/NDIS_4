@@ -14,7 +14,7 @@
 -->
 <configuration xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
     <title>Colorado Fishing Atlas</title>
-    <subtitle>Colorado Parks and Wildlife</subtitle>
+    <!--subtitle>Colorado Parks and Wildlife</subtitle-->
     <app>fishingatlas</app>
     <!-- logo in header bar-->
     <logo>assets/images/logo.svg</logo>
@@ -52,7 +52,7 @@
          <!--     example: open="true" opensublayer="Places of Interest,Township Range Sections" --> 
         <!-- operationallayers:  Note: Displays in reverse order. -->
         <operationallayers>
-            <layer label="Reference" open="false" type="dynamic" visible="false" alpha="0.85"
+            <layer label="Reference" open="false" type="dynamic" visible="true" alpha="0.85"
             		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Base_Map/MapServer"/>
 			<layer label="Fishing Info" open="true" opensublayer="Recommended opportunties" type="dynamic" visible="true" alpha="0.9"
             		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Main_Map/MapServer"/>

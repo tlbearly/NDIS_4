@@ -1,9 +1,20 @@
 // -- Measure --
+var measure,areaBtn,distBtn;
+function closeMeasure(){
+    if (document.getElementById("measureDiv")){
+        document.getElementById("measureDiv").style.display = "none";
+        drawing = false;
+        distBtn.classList.remove("active");
+        areaBtn.classList.remove("active");
+        measure.activeTool=null;
+        measure.clear();
+    }
+}
 function addMeasure(graphicsLayer){
     require(["esri/widgets/Measurement","esri/widgets/Expand","esri/core/reactiveUtils"],function(Measurement,Expand,reactiveUtils){
         // To create the Measurement widget with SceneView's direct-line tool active.
         
-        const measure = new Measurement({
+        measure = new Measurement({
             view: view,
             activeTool: null,
             label: "Measure",
@@ -41,7 +52,7 @@ function addMeasure(graphicsLayer){
         btnP.style.textAlign="center";
         
         // Distance Button
-        var distBtn = document.createElement("button");
+        distBtn = document.createElement("button");
         distBtn.id= "distance";
         distBtn.className="esri-widget--button esri-interactive esri-icon-measure-line active";
         distBtn.style.display="inline";
@@ -50,7 +61,7 @@ function addMeasure(graphicsLayer){
         distBtn.title = "Distance Measurement Tool";
         btnP.appendChild(distBtn);
         // Area Button
-        var areaBtn = document.createElement("button");
+        areaBtn = document.createElement("button");
         areaBtn.id="area";
         areaBtn.className="esri-widget--button esri-interactive esri-icon-measure-area";
         areaBtn.style.display="inline";
@@ -59,14 +70,14 @@ function addMeasure(graphicsLayer){
         areaBtn.title = "Area Measurement Tool";
         btnP.appendChild(areaBtn);
         // Clear Button
-        var clearBtn = document.createElement("button");
+        /*var clearBtn = document.createElement("button");
         clearBtn.id="clear";
         clearBtn.className="esri-widget--button esri-interactive esri-icon-trash";
         clearBtn.style.display="inline";
         clearBtn.style.marginRight="5px";
         clearBtn.style.fontSize="24px";
         clearBtn.title = "Clears Measurements";
-        btnP.appendChild(clearBtn);
+        btnP.appendChild(clearBtn);*/
         measureDiv.appendChild(btnP);
 
         distBtn.addEventListener("click", () => {
@@ -75,31 +86,47 @@ function addMeasure(graphicsLayer){
         areaBtn.addEventListener("click", () => {
             areaMeasurement();
         });
-        clearBtn.addEventListener("click", () => {
-            clearMeasurements();
-        });
+        //clearBtn.addEventListener("click", () => {
+        //    clearMeasurements();
+        //});
         function distanceMeasurement() {
             measure.activeTool = "distance";
+            measure.active = true;
             distBtn.classList.add("active");
             areaBtn.classList.remove("active");
+            // Add double click to end to instructions
+            const tim = setInterval(function (){
+                if (document.querySelector(".esri-measurement-widget-content__hint-text") != undefined){
+                    clearTimeout(tim);
+                    document.querySelector(".esri-measurement-widget-content__hint-text").innerHTML = "Start to measure by clicking in the map to place your first point. Double click to end.";
+                }
+            },500);
         }
   
         // Call the appropriate AreaMeasurement2D or AreaMeasurement3D
         function areaMeasurement() {
             measure.activeTool = "area";
+            measure.active = true;
             distBtn.classList.remove("active");
             areaBtn.classList.add("active");
+            // Add double click to end to instructions
+            const tim = setInterval(function (){
+                if (document.querySelector(".esri-measurement-widget-content__hint-text") != undefined){
+                    clearTimeout(tim);
+                    document.querySelector(".esri-measurement-widget-content__hint-text").innerHTML = "Start to measure by clicking in the map to place your first point. Double click to end.";
+                }
+            },500);
         }
   
         // Clears all measurements
         function clearMeasurements() {
-            //var active = measure.activeTool;
+            var active = measure.activeTool;
             distBtn.classList.remove("active");
             areaBtn.classList.remove("active");
             measure.activeTool=null;
             measure.clear();
-            //if (active == "distance") distanceMeasurement();
-            //else areaMeasurement();
+            if (active == "distance") distanceMeasurement();
+            else areaMeasurement();
         }
 
         //view.ui.add(measure, "bottom-left");
@@ -114,15 +141,7 @@ function addMeasure(graphicsLayer){
         icon.id = "measureIcon";
         icon.icon = "measure";
         measureBtn.appendChild(icon);
-        function closeMeasure(){
-            if (document.getElementById("measureDiv"))
-                document.getElementById("measureDiv").style.display = "none";
-            drawing = false;
-            distBtn.classList.remove("active");
-            areaBtn.classList.remove("active");
-            measure.activeTool=null;
-            measure.clear();
-        }
+        
         measureBtn.addEventListener("click",function(){
             document.getElementById("measureDiv").style.display = "block";
             drawing = true;
@@ -135,30 +154,7 @@ function addMeasure(graphicsLayer){
         measureBtn.setAttribute("aria-label","Measure");
 
         view.ui.add(measureBtn, "bottom-right");
-        view.ui.add(measureDiv,"top-left");
-       /* const measureExpand = new Expand({
-            view,
-            content: measureDiv,
-            expandTooltip: "Measure",
-            expandIconClass: "esri-icon-measure",
-            collapseTooltip: "Close Measure",
-            expandIcon: "measure"
-        });
-        // create a watch to trigger an event whenever expanded value changes.
-        measureExpand.watch("expanded", (expanded) => {
-           if(expanded){
-            drawing = true;
-            distanceMeasurement();
-            closeIdentify();
-            closeHelp();
-           }else{
-            drawing = false;
-            clearMeasurements();
-           }
-        });
-        
-        view.ui.add(measureExpand, "bottom-right");*/
-        //view.ui.add(measure, "bottom-left");
+        view.ui.add(measureDiv,"top-right");
     });
 
     return;

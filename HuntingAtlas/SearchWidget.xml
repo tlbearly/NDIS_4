@@ -9,7 +9,8 @@
 // name: The display name for the layer.
 // url: The url for the layer in the mapservice or featureservice. Must include the id.
 // searchFields: The field to search on
-// displayField: 
+// displayField: The field to display
+// placeholder: displayed before the user types it this layer is the only one selected
 //
 // Default values:
 //	maxResults: 6
@@ -17,11 +18,6 @@
 //  suggestionsEnabled: true
 //  minSuggestCharacters: 1
 //  exactMatch: false
-//  definitionExpression: The SQL where clause used to filter features on the client.
-//     Only the features that satisfy the definition expression are displayed in the 
-//     View. Setting a definition expression is useful when the dataset is large and 
-//     you don't want to bring all features to the client for analysis.
-//
 //
 // zoomscale: Scale to zoom to for points.
 ////////////////////////////////////////////////////////////////////////////////
@@ -34,7 +30,7 @@
 		<searchFields>PropName</searchFields>
 		<displayfield>PropName</displayfield>
 		<exactMatch>false</exactMatch>
-		<maxSuggestions>100</maxSuggestions>
+		<maxSuggestions>10</maxSuggestions>
 		<placeholder>Search CPW Properties</placeholder>
 	</layer>
 	<layer>
@@ -42,9 +38,9 @@
 		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/14</url>
 		<searchFields>GMUID</searchFields>
 		<displayfield>GMUID</displayfield>
-		<exactMatch>false</exactMatch>
+		<exactMatch>true</exactMatch>
 		<maxResults>6</maxResults>
-		<maxSuggestions>100</maxSuggestions>
+		<maxSuggestions>10</maxSuggestions>
 		<minSuggestCharacters>1</minSuggestCharacters>
 		<placeholder>Search GMUs</placeholder>
 	</layer>
@@ -61,8 +57,7 @@
 		<searchFields>NAME</searchFields>
 		<displayfield>NAME</displayfield>
 		<placeholder>MVUM Road Name</placeholder>
-		<outFields>["NAME","FORESTNAME"]</outFields>
-		<suggestionTemplate>{NAME}, {FORESTNAME}</suggestionTemplate>
+		<suggestionTemplate>{NAME}, #{ID}, {FORESTNAME}</suggestionTemplate>
 	</layer>
 	<layer>
 		<name>MVUM Road #</name>
@@ -70,7 +65,7 @@
 		<searchFields>ID</searchFields>
 		<displayfield>ID</displayfield>
 		<placeholder>MVUM Road #</placeholder>
-		<suggestionTemplate>{ID}, {FORESTNAME}</suggestionTemplate>
+		<suggestionTemplate>#{ID}, {FORESTNAME}</suggestionTemplate>
 	</layer>
 	<!--layer>
 		<name>Counties</name>

@@ -31,11 +31,11 @@
   <script type="text/javascript" src="js/addMapLayers.js?v=44" async="true"></script> <!-- read config.xml, add links to help -->
   <script type="text/javascript" src="js/myBasemaps.js?v=24" async="true"></script>
   <script type="text/javascript" src="js/myLayerList.js?v=131" async="true"></script>
-  <script type="text/javascript" src="js/mySearch.js?v=16" async="true"></script>
+  <script type="text/javascript" src="js/mySearch.js?v=18" async="true"></script>
   <script type="text/javascript" src="js/identify.js?v=72" async="true"></script> <!-- read IdentifyWidget.xml -->
   <script type="text/javascript" src="js/errorBox.js?v=4" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
-  <script type="text/javascript" src="js/myMeasure.js?v=8" async="true"></script>
+  <script type="text/javascript" src="js/myMeasure.js?v=12" async="true"></script>
 
   <script>
     function closeHelp(){
@@ -65,6 +65,7 @@
       // close error box
       document.getElementById("errBtn").addEventListener("click",function() {
 		    document.getElementById("errBox").style.display = "none";
+        document.getElementById("errMsg").innerHTML = "";
 	    });
       
       // Add rounded corners to layer list
@@ -152,7 +153,7 @@
     // for multiple httprequests. Used in identify.js and resourceReport.js
     var xmlIndex = 0;
     var XMLHttpRequestObjects = []; // holds database call object
-
+    var initExtent,fullExtent;
     var gmu = "Big Game GMU";
     var searchWidget;
     var hideGroupSublayers = ["Emergency", "Field Office", "Chamber of Commerce or Welcome Center", "License Agent", "Campgrounds and SWA Facilities", "GMU boundary (Hunting Units)"];
@@ -300,6 +301,7 @@
           logo.addEventListener("click",function(){
             //view.closePopup();
             closeIdentify();
+            closeMeasure();
             openHelp();
             //helpWidget.open = true;
           });
@@ -308,6 +310,7 @@
           helpLink.addEventListener("click",function(){
             //view.closePopup();
             closeIdentify();
+            closeMeasure();
             openHelp();
             //helpWidget.open = true;
           });
