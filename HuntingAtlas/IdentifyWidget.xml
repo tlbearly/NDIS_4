@@ -53,7 +53,7 @@
 //						** if this is set to true, you must have vis_id and vis_url in each layer in the folder.
 //			Set the Identify Popup Title (if these 3 attributes are not set it will use folder name as the title)
 //			pre_title = Set the identify popup title prefix. For example: "GMU Number " 
-//			title_layer = Set the layer name to look up data from. For example: "Big Game GMU Boundaries"
+//			title_layer = Set the layer name to look up data from. For example: "Big Game GMU"
 //			title_field = Set the field to get data from. For example: "GMUID"
 //
 //		desc = an optional description of the layers the folder contains. This is displayed at the top of the identify popup.
@@ -125,7 +125,7 @@
 	<elevation_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Elevation/MapServer</elevation_url>
 	
 	<tree>
-		<folder label="Hunter Resources" pre_title="GMU Number " title_layer="Big Game GMU Boundaries" title_field="GMUID">
+		<folder label="Hunter Resources" pre_title="GMU Number " title_layer="Big Game GMU" title_field="GMUID">
 			<link label="Moon Rise, Sun Rise and Set at click point">https://</link>
 			<link label="Weather at click point">https://</link>
 			<!-- GMU      NOTE: cannot use vis_id with GMU -->

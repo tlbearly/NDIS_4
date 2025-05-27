@@ -26,6 +26,7 @@ function addMeasure(graphicsLayer){
         measureDiv.id = "measureDiv";
         measureDiv.className = "myDialog";//"esri-component esri-widget";
         measureDiv.style.margin="0px";
+        measureDiv.style.width="300px";
         measureDiv.style.position="absolute";
         measureDiv.style.display="none";
         const header=document.createElement("div");

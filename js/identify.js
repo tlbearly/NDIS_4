@@ -27,6 +27,7 @@ var tooManyRequests = false;
 var firstClick = false; // 4-1-22
 var secondClick = false; // 4-1-22
 var lastIdentifyTime=0; // 4-1-22
+var alllayers=null; // layers that has a minscale or maxscale set. Used to identify a layer if it is visible
 //"esri/rest/support/IdentifyParameters",
 require(["esri/rest/identify"
 ], function(Identify) {
@@ -362,7 +363,7 @@ function readIdentifyWidget() {
                                     identifyLayers[identifyGroups[f]][label].displaynames = layer[i].getElementsByTagName("displaynames")[0].childNodes[0].nodeValue.split(",");
 
                                 // Add ability to identify sheep and goat GMUs. 4-18-18 change label to Big Game GMU Boundaries for use with AssetReport_Data mapservice
-	                              if (label == "Big Game GMU Boundaries") {
+	                              if (label == "Big Game GMU") {
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"] = {};
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"].url = settings.sheepUrl.slice(0, settings.sheepUrl.length - 2);
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"].id = settings.sheepUrl.slice(settings.sheepUrl.length - 1);
@@ -489,84 +490,86 @@ function displayContent() {
                 count++;
             }
 
-            // Get array of all layers -- MOVE THIS TO TOP only do once
-            var alllayers=[];
-            for (var k=0; k<map.layers.items.length; k++){
-                var items=null;
-                if (map.layers.items[k].sublayers) items = map.layers.items[k].sublayers.items;
-                else if (map.layers.items[k].layers !== undefined) items = map.layers.items[k].layers.items;
-                if (items){
-                    for(var m=0; m<items.length; m++){
-                        var items2=null;
-                        if(items[m].layers !== undefined) items2 = items[m].layers.items;
-                        else if (items[m].sublayers) items2 = items[m].sublayers.items;
-                        if (items2){
-                            for(var n=0; n<items2.length; n++){
-                                var items3=null;
-                                if(items2[n].layers !== undefined) items3 = items2[n].layers.items;
-                                else if( items2[n].sublayers) items3 = items2[n].sublayers.items;
-                                if (items3){
-                                    for(var p=0; p<items3.length; p++){
-                                        if(items3[p].layers !== undefined || items3[p].sublayers){
-                                            //alert("Need to add code to identify.js line 490 to check for visible layers to identify.");
-                                            console.log("Identify visible only layers is ignoring "+items3[p].title+" Need to add code to identify.js line 490 to check for visible layers to identify.");
-                                        }else{
-                                            //console.log(items3[p].title);
-                                            if (items3[p].url.toLowerCase().indexOf("featureserver") > -1){
-                                                if (items3[p].url !== undefined && items3[p].url !== null && isMapLayerInIdentify(items3[p].url,items3[p].layerId)){
-                                                    if (items3[p].minScale == 0 && items3[p].parent.parent.minScale != 0){
-                                                        console.log ("set minScale of "+items3[p].title+" "+items3[p].minScale+" to minScale of "+items3[p].parent.parent.title+" "+items3[p].parent.parent.minScale);
-                                                        items3[p].minScale = items3[p].parent.parent.minScale;
-                                                    }
-                                                    alllayers.push(items3[p]);
-                                                }
+            if (alllayers == null){
+                alllayers = [];
+                // Get array of all layers that have a minscale or maxscale set -- MOVE THIS TO TOP only do once
+                for (var k=0; k<map.layers.items.length; k++){
+                    var items=null;
+                    if (map.layers.items[k].sublayers) items = map.layers.items[k].sublayers.items;
+                    else if (map.layers.items[k].layers !== undefined) items = map.layers.items[k].layers.items;
+                    if (items){
+                        for(var m=0; m<items.length; m++){
+                            var items2=null;
+                            if(items[m].layers !== undefined) items2 = items[m].layers.items;
+                            else if (items[m].sublayers) items2 = items[m].sublayers.items;
+                            if (items2){
+                                for(var n=0; n<items2.length; n++){
+                                    var items3=null;
+                                    if(items2[n].layers !== undefined) items3 = items2[n].layers.items;
+                                    else if( items2[n].sublayers) items3 = items2[n].sublayers.items;
+                                    if (items3){
+                                        for(var p=0; p<items3.length; p++){
+                                            if(items3[p].layers !== undefined || items3[p].sublayers){
+                                                //alert("Need to add code to identify.js line 490 to check for visible layers to identify.");
+                                                console.log("Identify visible only layers is ignoring "+items3[p].title+" Need to add code to identify.js line 490 to check for visible layers to identify.");
                                             }else{
-                                                if (items3[p].url !== undefined && items3[p].url !== null && isMapLayerInIdentify(items3[p].url,items3[p].id)){
-                                                    if (items3[p].minScale == 0 && items3[p].parent.parent.minScale != 0){
-                                                        console.log ("set minScale of "+items3[p].title+" "+items3[p].minScale+" to minScale of "+items3[p].parent.parent.title+" "+items3[p].parent.parent.minScale);
-                                                        items3[p].minScale = items3[p].parent.parent.minScale;
+                                                //console.log(items3[p].title);
+                                                if (items3[p].url.toLowerCase().indexOf("featureserver") > -1){
+                                                    if (items3[p].url !== undefined && items3[p].url !== null && isMapLayerInIdentify(items3[p].url,items3[p].layerId)){
+                                                        if (items3[p].minScale == 0 && items3[p].parent.parent.minScale != 0){
+                                                            console.log ("set minScale of "+items3[p].title+" "+items3[p].minScale+" to minScale of "+items3[p].parent.parent.title+" "+items3[p].parent.parent.minScale);
+                                                            items3[p].minScale = items3[p].parent.parent.minScale;
+                                                        }
+                                                        alllayers.push(items3[p]);
                                                     }
-                                                    alllayers.push(items3[p]);
+                                                }else{
+                                                    if (items3[p].url !== undefined && items3[p].url !== null && isMapLayerInIdentify(items3[p].url,items3[p].id)){
+                                                        if (items3[p].minScale == 0 && items3[p].parent.parent.minScale != 0){
+                                                            console.log ("set minScale of "+items3[p].title+" "+items3[p].minScale+" to minScale of "+items3[p].parent.parent.title+" "+items3[p].parent.parent.minScale);
+                                                            items3[p].minScale = items3[p].parent.parent.minScale;
+                                                        }
+                                                        alllayers.push(items3[p]);
+                                                    }
                                                 }
                                             }
-                                        }
-                                    }      
-                                }else{
-                                    //console.log(items2[n].title);
-                                    if (items2[n].url.toLowerCase().indexOf("featureserver") > -1){
-                                        if (items2[n].url !== undefined && items2[n].url !== null && isMapLayerInIdentify(items2[n].url,items2[n].layerId)){
-                                            if (items2[n].minScale == 0 && items2[n].parent.minScale != 0){
-                                                console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
-                                                items2[n].minScale = items2[n].parent.minScale;
-                                            }
-                                            alllayers.push(items2[n]);
-                                        }
+                                        }      
                                     }else{
-                                        if (items2[n].url !== undefined && items2[n].url !== null && isMapLayerInIdentify(items2[n].url,items2[n].id)){
-                                            if (items2[n].minScale == 0 && items2[n].parent.minScale != 0){
-                                                console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
-                                                items2[n].minScale = items2[n].parent.minScale;
+                                        //console.log(items2[n].title);
+                                        if (items2[n].url.toLowerCase().indexOf("featureserver") > -1){
+                                            if (items2[n].url !== undefined && items2[n].url !== null && isMapLayerInIdentify(items2[n].url,items2[n].layerId)){
+                                                if (items2[n].minScale == 0 && items2[n].parent.minScale != 0){
+                                                    console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
+                                                    items2[n].minScale = items2[n].parent.minScale;
+                                                }
+                                                alllayers.push(items2[n]);
                                             }
-                                            alllayers.push(items2[n]);
+                                        }else{
+                                            if (items2[n].url !== undefined && items2[n].url !== null && isMapLayerInIdentify(items2[n].url,items2[n].id)){
+                                                if (items2[n].minScale == 0 && items2[n].parent.minScale != 0){
+                                                    console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
+                                                    items2[n].minScale = items2[n].parent.minScale;
+                                                }
+                                                alllayers.push(items2[n]);
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        }else{
-                            //console.log(items[m].title);
-                            if (items[m].url.toLowerCase().indexOf("featureserver") > -1){
-                                if (items[m].url !== undefined && items[m].url !== null && isMapLayerInIdentify(items[m].url,items[m].layerId))
-                                    alllayers.push(items[m]);
                             }else{
-                                if (items[m].url !== undefined && items[m].url !== null && isMapLayerInIdentify(items[m].url,items[m].id))
-                                    alllayers.push(items[m]);
+                                //console.log(items[m].title);
+                                if (items[m].url.toLowerCase().indexOf("featureserver") > -1){
+                                    if (items[m].url !== undefined && items[m].url !== null && isMapLayerInIdentify(items[m].url,items[m].layerId))
+                                        alllayers.push(items[m]);
+                                }else{
+                                    if (items[m].url !== undefined && items[m].url !== null && isMapLayerInIdentify(items[m].url,items[m].id))
+                                        alllayers.push(items[m]);
+                                }
                             }
                         }
+                    }else{
+                        //console.log(map.layers.items[k].title);
+                        if (map.layers.items[k].url !== undefined && map.layers.items[k].url !== null && isMapLayerInIdentify(map.layers.items[k].url))
+                            alllayers.push(map.layers.items[k]);
                     }
-                }else{
-                    //console.log(map.layers.items[k].title);
-                    if (map.layers.items[k].url !== undefined && map.layers.items[k].url !== null && isMapLayerInIdentify(map.layers.items[k].url))
-                        alllayers.push(map.layers.items[k]);
                 }
             }
 
@@ -889,128 +892,52 @@ function displayContent() {
                         // Find the index to the layerId for Big Game GMU and remove it from the layer ids.
                         var elkID = parseInt(settings.elkUrl.slice(settings.elkUrl.lastIndexOf("/") +1));
                         var index = identifyParams.layerIds.indexOf(elkID);
-                        if (index > -1) identifyParams.layerIds.splice(index, 1);
-                        if (gmu == "Bighorn GMU") {
-                            identifyParams.layerIds.push(settings.sheepUrl.slice(settings.sheepUrl.lastIndexOf("/") + 1));
-                        }
-                        else if (gmu == "Goat GMU") {
-                            identifyParams.layerIds.push(settings.goatUrl.slice(settings.goatUrl.lastIndexOf("/") + 1));
+                        if (index > -1) {
+                            identifyParams.layerIds.splice(index, 1);
+                            if (gmu == "Bighorn GMU") {
+                                identifyParams.layerIds.push(parseInt(settings.sheepUrl.slice(settings.sheepUrl.lastIndexOf("/") + 1)));
+                            }
+                            else if (gmu == "Goat GMU") {
+                                identifyParams.layerIds.push(parseInt(settings.goatUrl.slice(settings.goatUrl.lastIndexOf("/") + 1)));
+                            }
                         }
                     }
                     if (identifyParams.layerIds.length == 0) skip = true;
                     if (!skip){
-
-                        //debug
-                        //var e = {details: {url: url},
-                        //    message:"Failed to fetch"};
-                        //myhandleQueryError(e);
-                        //deferreds.push(new Promise((handleQueryResults, handleQueryError) => {
-                        //new Promise((handleQueryResults, handleQueryError) => {
-                            promiseNumber++;
-                            const thePromise=promiseNumber;
-                            const theLayerNames = item.labels;
-                            // first time add div with promise number
-                            var str = "<div id='promise"+thePromise+"' style='display:none;'>";
-                            for (var k=0;k<theLayerNames.length;k++){
-                               // console.log("Identify "+theLayerNames[k]+" loading  - promise #"+thePromise+" tolerance="+identifyParams.tolerance);    
-                                str += "<span class='idTitle'>"+theLayerNames[k]+"</span><div style='padding: 0 0 20px 10px;'><calcite-icon class='waitingForConnection' title='Loading' aria-hidden='true' icon='offline' scale='m' calcite-hydrated='' style='margin-right: 5px;'></calcite-icon><span style='vertical-align:text-top;'>Loading...</span></div>";
+                        promiseNumber++;
+                        const thePromise=promiseNumber;
+                        const theLayerNames = item.labels;
+                        // first time add div with promise number
+                        var str = "<div id='promise"+thePromise+"' style='display:none;'>";
+                        for (var k=0;k<theLayerNames.length;k++){
+                            // console.log("Identify "+theLayerNames[k]+" loading  - promise #"+thePromise+" tolerance="+identifyParams.tolerance);    
+                            str += "<span class='idTitle'>"+theLayerNames[k]+"</span><div style='padding: 0 0 20px 10px;'><calcite-icon class='waitingForConnection' title='Loading' aria-hidden='true' icon='offline' scale='m' calcite-hydrated='' style='margin-right: 5px;'></calcite-icon><span style='vertical-align:text-top;'>Loading...</span></div>";
+                        }
+                        str += "</div>";
+                        accumulateContent(thePromise,str);
+                        Identify.identify(url,identifyParams)
+                        .then((response) => {
+                            //for (var k=0;k<theLayerNames.length;k++)
+                            // console.log("Identify "+theLayerNames[k]+" response - promise #"+thePromise+" tolerance="+identifyParams.tolerance);
+                            if (response.results){
+                                handleQueryResults(response.results,thePromise);
                             }
-                            str += "</div>";
-                            accumulateContent(thePromise,str);
-                            Identify.identify(url,identifyParams)
-                            .then((response) => {
-                                for (var k=0;k<theLayerNames.length;k++)
-                                   // console.log("Identify "+theLayerNames[k]+" response - promise #"+thePromise+" tolerance="+identifyParams.tolerance);
-                                if (response.results){
-                                    handleQueryResults(response.results,thePromise);
-                                    //identifySuccess(response.results);
-                                }
-                                else{
-                                    handleQueryResults(response,thePromise);
-                                    //identifySuccess(response);
-                                }
-                            })
-                            .catch((e) => {
-                                var str = ""; //"<div id='promise"+thePromise+"'>";
-                                for (var k=0;k<theLayerNames.length;k++){
-                                    //console.log("Identify "+theLayerNames[k]+" failed  - promise #"+thePromise+" tolerance="+identifyParams.tolerance+" Error="+e.message);    
-                                    str += "<span class='idTitle'>"+theLayerNames[k]+"</span><div style='padding: 0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubValue'>External map service is unavailable.</span><br/></div></div>";
-                                }
-                                //str += "</div>";
-                                accumulateContent(thePromise,str);
-                                //myhandleQueryError(e);
-                            });
-                        //});
-                        //deferreds.push(Identify.identify(url,identifyParams).then(identifySuccess).catch(handleQueryError)); // new 6-13-24
+                            else{
+                                handleQueryResults(response,thePromise);
+                            }
+                        })
+                        .catch((e) => {
+                            var str = ""; //"<div id='promise"+thePromise+"'>";
+                            for (var k=0;k<theLayerNames.length;k++){
+                                //console.log("Identify "+theLayerNames[k]+" failed  - promise #"+thePromise+" tolerance="+identifyParams.tolerance+" Error="+e.message);    
+                                str += "<span class='idTitle'>"+theLayerNames[k]+"</span><div style='padding: 0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubValue'>External map service is unavailable.</span><br/></div></div>";
+                            }
+                            accumulateContent(thePromise,str);                                
+                        });
                     }     
                 }
             }
-            // Add goat and sheep gmus
-            /*if (identifyGroup === "Hunter Resources") { // ***************** TODO which group is GMU in?????? GMU and Land Management") {
-                if (gmu == "Bighorn GMU") {
-                    let identifyParams = new IdentifyParameters();
-                    identifyParams.returnGeometry = true;
-                    identifyParams.layerOption = "all"; // top, visible, all, popup
-                    identifyParams.geometry = clickPoint; 
-                    identifyParams.mapExtent = view.extent;
-                    identifyParams.width = view.width;
-                    identifyParams.height = view.height;
-                    identifyParams.tolerance = 1;
-                    identifyParams.layerIds = [settings.sheepUrl.slice(settings.sheepUrl.lastIndexOf("/") + 1)];
-                    //deferreds.push(new Promise((handleQueryResults, handleQueryError) => {
-                        Identify.identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams)
-                        .then((response) => {
-                            if (response.results){
-                                handleQueryResults(response.results);
-                                //identifySuccess(response.results);
-                            }
-                            else{
-                                handleQueryResults(response);
-                                //identifySuccess(response);
-                            }
-                        })
-                        .catch((e) => {
-                            myhandleQueryError(e);
-                        });
-                    //}));
-                    //deferreds.push(Identify.identify(settings.sheepUrl.slice(0, settings.sheepUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
-                } else if (gmu == "Goat GMU") {
-                    let identifyParams = new IdentifyParameters();
-                    identifyParams.returnGeometry = true;
-                    identifyParams.layerOption = "all"; // top, visible, all, popup
-                    identifyParams.geometry = clickPoint; 
-                    identifyParams.mapExtent = view.extent;
-                    identifyParams.width = view.width;
-                    identifyParams.height = view.height;
-                    identifyParams.tolerance = 1;
-                    identifyParams.layerIds = [settings.goatUrl.slice(settings.goatUrl.lastIndexOf("/") + 1)];
-                    //deferreds.push(new Promise((handleQueryResults, handleQueryError) => {
-                        Identify.identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams)
-                        .then((response) => {
-                            if (response.results)
-                                handleQueryResults(response.results);
-                            else
-                            handleQueryResults(response);
-                        })
-                        .catch((e) => {
-                            myhandleQueryError(e);
-                        });
-                    //}));
-                    //deferreds.push(Identify.identify(settings.goatUrl.slice(0, settings.goatUrl.lastIndexOf("/") + 1),identifyParams).then(identifySuccess).catch(handleQueryError));
-                }
-            }*/
 
-            /*if (deferreds && deferreds.length > 0) {
-                Promise.all(deferreds).then((response) => {
-                   handleQueryResults(response);
-                  });
-            } else {
-                // display empty info popup
-                numDatabaseCalls = 0;
-                processedDatabaseCalls = 0;
-                features = [];
-                accumulateContent("");
-            }*/
            if (thePromises.length == 0){
                 numDatabaseCalls = 0;
                 processedDatabaseCalls = 0;
@@ -1026,33 +953,6 @@ function displayContent() {
     });
 }
 
-/* moved to promise
-function identifySuccess(response) {
-    console.log("identifySuccess");
-    if (response.results)
-        return response.results;
-    else return response; // for wildfire
-}*/
-
-/*function myhandleQueryError(e) {
-    tooManyRequests = true;
-    if (e.message.indexOf("Too many requests") > -1) {
-        tooManyRequests = true;
-        return;
-    }
-    if (e.message === "Failed to fetch"){
-        alert("Data not loaded: " +e.details.url, "Data Error");
-        accumulateContent("");
-    }
-    else if (e.details && e.details.messages && e.details.messages[0] && e.details.url)
-        alert("Error in identify.js/doIdentify.  " + e.details.messages[0] + " for url="+e.details.url+". Check " + app + "/IdentifyWidget.xml urls.", "Data Error");
-    else if (e.details && e.details.raw.messages && e.details.message && e.details.url)
-        alert("Error in identify.js/doIdentify.  " + e.details.raw.message + " for url="+e.details.url+". Check " + app + "/IdentifyWidget.xml urls.", "Data Error");
-    else
-        alert("Error in identify.js/doIdentify.  " + e.message + " Check " + app + "/IdentifyWidget.xml urls.", "Data Error");
-        hideLoading();
-    return;
-}*/
 function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
@@ -1416,6 +1316,14 @@ function writeFeatureContent(feature,layerName,thePromise){
                                                         tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].one2one_display[j] + ": </span>";
                                                         tmpStr += "<a href='" + one2one_field.getElementsByTagName("linkurl")[0].firstChild.nodeValue + "' class='idSubValue'>" + one2one_field.getElementsByTagName("linkname")[0].firstChild.nodeValue + "</a>";
                                                         tmpStr += "<br/>";
+                                                    }
+                                                    // Make regulation title bold and values not bold 
+                                                    else if (one2one_field.childNodes.length > 0 && (identifyLayers[identifyGroup][layerName].one2one_display[j].toLowerCase().indexOf("regulations")>-1 ||
+                                                        identifyLayers[identifyGroup][layerName].one2one_display[j].toLowerCase().indexOf("specific area")>-1)) {
+                                                        tmpStr += "<span class='idSubValue'>"+identifyLayers[identifyGroup][layerName].one2one_display[j] + ": </span>";
+                                                        tmpStr += "<span class='idSubTitle'>"+one2one_field.childNodes[0].nodeValue+"</span>";
+                                                        tmpStr += "<br/>";
+
                                                     } else if (one2one_field.childNodes.length > 0) {
                                                         tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].one2one_display[j] + ": </span>";
                                                         tmpStr += "<span class='idSubValue'>"+one2one_field.childNodes[0].nodeValue+"</span>";
@@ -1428,7 +1336,11 @@ function writeFeatureContent(feature,layerName,thePromise){
                                         if (typeof identifyLayers[identifyGroup][layerName].one2many_fields != "undefined") {
                                             for (j = 0; j < identifyLayers[identifyGroup][layerName].one2many_fields.length; j++) {
                                                 var one2many = xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2many_fields[j]);
-                                                tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[0] + ":</span><ul style='margin-top: 0px; margin-bottom: 0px;'>";
+                                                // Make regulation title bold and values not bold
+                                                if (identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("regulations")>-1)
+                                                    tmpStr += "<span class='idSubValue'>"+identifyLayers[identifyGroup][layerName].displaynames[0] + ":</span><ul style='margin-top: 0px; margin-bottom: 0px;'>";
+                                                else
+                                                    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[0] + ":</span><ul style='margin-top: 0px; margin-bottom: 0px;'>";
                                                 for (var h = 0; h < one2many.length; h++) {
                                                     //if (typeof one2many[h].children[0] != "undefined" && one2many[h].children[0].nodeName == "linkname" && one2many[h].children[1].nodeName == "linkurl") {
                                                     if ((one2many[h].getElementsByTagName("linkname").length > 0) && (one2many[h].getElementsByTagName("linkurl").length > 0)) {
@@ -1436,7 +1348,11 @@ function writeFeatureContent(feature,layerName,thePromise){
                                                     }
                                                     // No html links, linkname and linkurl tags not used in returned XML
                                                     else {
-                                                        tmpStr += "<li class='idSubValue'>" + one2many[h].childNodes[0].nodeValue + "</li>";
+                                                        // Make regulation title bold and values not bold
+                                                        if (identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("regulations")>-1)
+                                                            tmpStr += "<li class='idSubTitle'>" + one2many[h].childNodes[0].nodeValue + "</li>";
+                                                        else
+                                                            tmpStr += "<li class='idSubValue'>" + one2many[h].childNodes[0].nodeValue + "</li>";
                                                     }
                                                 }
                                                 tmpStr += "</ul>";
@@ -1724,7 +1640,8 @@ function writeFeatureContent(feature,layerName,thePromise){
             }
             return str;
         }
-    }     
+    }
+    else if (layerName.indexOf("GMU") > -1) alert("In IdentifyWidget.xml, Big Game GMU layer label must be equal to 'Big Game GMU', or else Bighorn and Mountain Goat will not identify.","Data Error")    
 }
 
 function addClickPoint(){
