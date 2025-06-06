@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+
+  <!-- never load from cache -->
+  <meta http-equiv="cache-control" content="no-cache, must-revalidate, post-check=0, pre-check=0" />
+  <meta http-equiv="cache-control" content="max-age=0" />
+  <meta http-equiv="expires" content="0" />
+  <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+  <meta http-equiv="pragma" content="no-cache" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9,IE=10,IE=11" />
+
+  <script src="https://js.arcgis.com/4.31/"></script>
+  <!-- download a copy of calcite -->
+  <!--script type="module" src="./calcite-components/2.13.0/calcite.esm.js"></script-->
+  <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
+  
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=79" async="true" />
+  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=37" async="true" />
+  
+  <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
+
+  <script type="text/javascript" src="js/xmlUtils.js?v=2" async="true"></script>
+  <script type="text/javascript" src="js/disclaimer.js?v=2" async="true"></script>
+  <script type="text/javascript" src="js/utilFuncs.js?v=27" async="true"></script>
+  <script type="text/javascript" src="js/addMapLayers.js?v=49" async="true"></script> <!-- read config.xml, add links to help -->
+  <script type="text/javascript" src="js/myBasemaps.js?v=24" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=134" async="true"></script>
+  <script type="text/javascript" src="js/mySearch.js?v=18" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=78" async="true"></script> <!-- read IdentifyWidget.xml -->
+  <script type="text/javascript" src="js/errorBox.js?v=4" async="true"></script>
+  <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
+  <script type="text/javascript" src="js/myMeasure.js?v=13" async="true"></script>
+
+  <script>
+    function closeHelp(){
+        document.getElementById("help").style.display = "none";
+      }
+      function openHelp(){
+        view.graphics.removeAll(); // clear identify graphics
+        document.getElementById("help").style.display = "block";
+      }
+    // force rounded corners
+    window.onload = (event) => {
+      // Watch for map scale change
+      // Providing `initial: true` in ReactiveWatchOptions
+      // checks immediately after initialization
+      // Equivalent to watchUtils.init()
+      require(["esri/core/reactiveUtils"],function(reactiveUtils){
+        reactiveUtils.watch(
+          () => view.zoom,
+          () => {
+            showMapScale(parseInt(view.scale));
+            //console.log(`zoom ${view.zoom} scale ${view.scale}`);
+          },
+          {
+            initial: true
+        });
+      });
+      // close error box
+      document.getElementById("errBtn").addEventListener("click",function() {
+		    document.getElementById("errBox").style.display = "none";
+        document.getElementById("errMsg").innerHTML = "";
+	    });
+      
+      // Add rounded corners to layer list
+      const tim = setInterval(function () {
+        if (!document.querySelector("#layerlist")) return;
+        if (!document.querySelector("#layerlist").shadowRoot) return;
+        if (!document.querySelector("#layerlist").shadowRoot.children) return;
+        if (document.querySelector("#layerlist").shadowRoot.children.length < 1) return;
+        if (!document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel")) return;
+        if (!document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").shadowRoot) return;
+        if (!document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").shadowRoot.children) return;
+        if (!document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").shadowRoot.children.length < 0) return;
+        if (!document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").shadowRoot.querySelector("header")) return;
+        //if (!document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").shadowRoot.querySelector("#close")) return;
+        if (!document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").shadowRoot.querySelector("#close").shadowRoot.querySelector("button")) return;
+        clearInterval(tim);
+        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").style.borderRadius = "0.75rem";
+        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").style.border = "2px solid white";
+        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").style.boxShadow = "2px 2px 2px rgba(0, 0, 0, 0.2), 6px 6px 5px rgba(0, 0, 0, 0.1)";
+        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").style.marginLeft = "3px";
+        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").parentNode.parentNode.style.marginRight = "10px";
+        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").parentNode.parentNode.style.marginTop = "10px";
+        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").shadowRoot.querySelector("header").style.backgroundColor="var(--background)";
+        document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").shadowRoot.querySelector("#close").shadowRoot.querySelector("button").style.backgroundColor="var(--background)";
+        if (window.matchMedia("(max-width: 767px)").matches){
+          document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").style.maxHeight = "50vh";
+        }
+        // help border radius and position
+        //document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.borderRadius = "0.75rem";
+        // mobile
+        /*if (window.matchMedia("(max-width: 767px)").matches){
+          document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.marginTop = "10px";
+        document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.marginLeft = "0px";
+        }else {
+          document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.marginTop = "95px";
+          document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.marginLeft = "-10px";
+        }*/
+
+        // layer list sub dialogs 
+        setTimeout(function(){
+          // layer list sub-dialogs for each root layer in the map
+          for (var i = 0; i < mapLayers.length; i++) {
+            if (document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog") &&
+              document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot &&
+              document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel") &&
+              document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").shadowRoot.querySelector("#close").shadowRoot.querySelector("button")){
+                document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").style.borderRadius = "0.75rem";
+                document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").style.border = "2px solid white";
+                document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").style.boxShadow = "2px 2px 2px rgba(0, 0, 0, 0.2), 6px 6px 5px rgba(0, 0, 0, 0.1)";
+                document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").style.marginLeft = "3px";
+                document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").parentNode.parentNode.style.marginRight = "10px";
+                document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").parentNode.parentNode.style.marginTop = "10px";
+                document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").shadowRoot.querySelector(".header").style.backgroundColor="var(--background)";
+                document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").shadowRoot.querySelector("#close").shadowRoot.querySelector("button").style.backgroundColor="var(--background)";
+
+                // set max height on mobile
+                if (window.matchMedia("(max-width: 767px)").matches){
+                  document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-panel").style.maxHeight = "50vh";
+                }
+                // round corners for Game Species drop down NOT FOUND!
+                //if (document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-combo") &&
+                //  document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-combo").shadowRoot.querySelector(".wrapper"))
+                //  document.querySelector("#" + mapLayers[i].title.replace(/ /g, "_") + "_dialog").shadowRoot.querySelector("calcite-combo").shadowRoot.querySelector(".wrapper").style.borderRadius = "7px";
+              }
+          }
+        },1000);
+      }, 500);
+    };
+ 
+    var app = "huntingatlas";
+    var map, view, mapLayers = [];
+    var  queryObj = {};
+    var drawing=false;
+    var gmuFL=null; // big game gmu layer
+    const ndisVer = Date.now();
+    // this is read from IdentifyWidget.xml file in identify.js readIdentifyWidget()
+    var settings = {
+      //elkField: "GMUID",
+      //elkUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2",
+      //sheepField: "BSGMU",
+      //sheepUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/15",
+      //goatField: "MGGMU",
+      //goatUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/16"
+    };
+    // for multiple httprequests. Used in identify.js and resourceReport.js
+    var xmlIndex = 0;
+    var XMLHttpRequestObjects = []; // holds database call object
+    var initExtent,fullExtent;
+    var gmu = "Big Game GMU";
+    var searchWidget;
+    var hideGroupSublayers = ["Emergency", "Field Office", "Chamber of Commerce or Welcome Center", "License Agent", "Campgrounds and SWA Facilities", "GMU boundary (Hunting Units)"];
+    var radioLayers = null;
+    var labelFromURL = false;
+    //var helpWidget;
+    //var helpContent;
+    // Protect against XSS attacks
+    // preserve new lines in way point descriptions (For future changes, if we decide to add them like the Mobile version.)
+    //var location = document.location.search.replace(/\%0D/g,"newline");
+    var queryObjParams = new URL(window.location.toLocaleString()).searchParams;
+    app = queryObjParams.get("app");
+    if (!app)
+        app = "HuntingAtlas";
+    else {
+        regexp=/([^a-zA-Z])/g; // only allow letters in the app name
+        if (regexp.test(app)) alert("Illegal characters were removed from the application name. Only letters allowed.","Warning");
+        app = app.replace(regexp,""); // clean it
+    }
+    require([
+      // -- map, basemaps layers --
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/GraphicsLayer",
+      "esri/core/reactiveUtils",
+      // -- Geomtry --
+      "esri/geometry/Extent",
+
+
+      // -- widgets --
+      "esri/widgets/Expand",
+      "esri/widgets/Locate",
+      "esri/widgets/ScaleBar",
+      "esri/widgets/Print"],
+      function (Map, MapView, GraphicsLayer, reactiveUtils, Extent, Expand, Locate, ScaleBar, Print) {
+
+        //esriConfig.apiKey = "YOUR_API_KEY";
+
+        // Add map layers in reversion order top most will be on bottom of TOC!!!
+        map = new Map({
+          spatialReference: {
+            wkid: 102100
+          },
+          basemap:"streets"
+          //layers: mapLayers
+        });
+        var openTOCgroups = ["Elk"]; // which group layers should be open in TOC
+        //#endregion
+        const graphicsLayer = new GraphicsLayer();
+        graphicsLayer.title = "Graphics Layer";
+        map.add(graphicsLayer);
+        /*let initExtent = new Extent({
+          "xmin": -12350000,
+          "ymin": 4250000,
+          "xmax": -11150000,
+          "ymax": 5250000,
+          "spatialReference": {
+            "wkid": 102100
+          }
+        });*/
+        view = new MapView({
+          map: map,
+          //extent: initExtent,
+          container: "viewDiv", // Div element
+          highlightOptions: { // for Identify not working!!!!!
+            color: [255, 255, 0, 1],
+            haloOpacity: 0.9,
+            fillOpacity: 0.2
+          },
+          popup: {
+            dockEnabled: true,
+            //collapseEnabled: false,
+            dockOptions: {
+              // Disables the dock button from the popup
+              buttonEnabled: false,
+              // Ignore the default sizes that trigger responsive docking
+              breakpoint: false,
+              position: "top-left"
+            },
+            highlightEnabled:true, // not working!!!!!!
+            visibleElements: {
+              collapseButton: false,
+              actionBar: false // hide zoom in button
+              //closeButton: true
+            }
+          }
+        });
+
+        const nonLayers = ["Graphics Layer", "World Hillshade", "World Imagery", "USGSTopo", "USA Topo Maps", "USGSImageryTopo", "", "World Topo Map", "World Basemap", "World Basemap v2"];
+
+        // Handle Filling Identify Content Here
+        var IdentifyPt;
+        view.on("click", function (event) {
+          IdentifyPt = event.mapPoint;
+          doIdentify(event);
+        });
+
+        var popupOpenCount = 0;
+        view.when(() => {
+          // Hide graphic pin when identify closes
+          /*reactiveUtils.watch(
+            () => view.popup.visible,
+            (visible) => {
+              if (!visible){
+                view.graphics.removeAll();
+              }
+              else {
+                popupOpenCount++;
+              }
+            }
+          );*/
+        
+          // test using esri layerlist
+          //myMapLayers();
+
+          // Add title, logo, and search
+          const titlediv=document.createElement("div");
+          titlediv.style.padding="5px";
+          titlediv.style.borderRadius="12px";
+          titlediv.style.margin="0 0 -45px 0px";
+          titlediv.id = "titleDiv";
+          if (window.innerWidth > 768)
+            titlediv.style.minWidth="320px";
+          else
+            titlediv.style.minWidth="244px";
+          titlediv.style.height="90px";
+          titlediv.style.border="2px solid white";
+          const title=document.createElement("span");
+          title.style.fontSize="1.4em";
+          title.style.lineHeight="1.3em";
+          title.style.position="relative";
+          title.id = "title";
+          
+          const logo = document.createElement("img");
+          logo.id = "logo";
+          logo.src = "./assets/images/logo.svg";
+          logo.setAttribute("title", "Help");
+          if (window.innerWidth <= 768)
+            logo.setAttribute("width","30");
+          else
+            logo.setAttribute("width","70");
+          logo.style.float="left";
+          logo.style.marginRight="10px";
+          logo.setAttribute("align","middle");
+          logo.addEventListener("click",function(){
+            //view.closePopup();
+            closeIdentify();
+            closeMeasure();
+            openHelp();
+            //helpWidget.open = true;
+          });
+          const helpLink = document.createElement("button");
+          helpLink.className="help_button";
+          helpLink.addEventListener("click",function(){
+            //view.closePopup();
+            closeIdentify();
+            closeMeasure();
+            openHelp();
+            //helpWidget.open = true;
+          });
+          if (window.innerWidth > 768) {
+            helpLink.innerHTML="Help";
+          } else {
+            helpLink.innerHTML="?";
+            titlediv.style.height="70px";
+          }
+          titlediv.appendChild(logo);
+          titlediv.appendChild(helpLink);
+          titlediv.appendChild(title);
+          view.ui.add(titlediv,"top-left");
+
+          // add help
+          /*helpWidget = document.createElement("calcite-dialog");
+          helpWidget.id = "help";
+          helpWidget.className = "help";
+          helpWidget.heading = "Help";
+          helpWidget.label = "Help";
+          helpWidget.placement = "top-start";
+          helpWidget.overlayPositioning = "absolute";
+          helpContent = document.createElement("div");
+          helpContent.style.padding = "10px";
+          helpContent.style.fontSize = "medium";
+          helpContent.id = "helpContent";
+          // help message
+          const call = document.createElement("p");
+          call.style.paddingTop = "0";
+          call.style.marginTop = "0";
+          call.innerText = "If you are having trouble using or reading this map, plesae contact Colorado Parks and Widllife at (call center # maybe?).";
+          helpContent.appendChild(call);
+          helpWidget.appendChild(helpContent);*/
+
+          // + - zoom buttons
+          view.ui.move("zoom", "bottom-right");
+
+          // This Identify action button event fires for each click on any action
+          // This event fires for each click on any action
+            /*reactiveUtils.on(()=>view.popup, "trigger-action", (event)=>{
+              if(event.action.id === "zoom-to-feature"){
+                  zoomToPt();
+              }
+              else if(event.action.id === "directions"){
+                  getDirections();
+              }
+              else if(event.action.id === "input-area"){
+                  getInputArea();
+              }
+          });*/
+          // just capture when it closes
+        
+          
+          // add Scale Bar
+          let scaleBar = new ScaleBar({
+            view: view,
+            unit: "imperial"
+          });
+          // Add widget to the bottom left corner of the view
+          view.ui.add(scaleBar, {
+            position: "bottom-left"
+          });
+
+          // add scale 1:24000
+          let mapScale = document.createElement("div");
+          mapScale.style.padding = "10px";
+          mapScale.id="mapscale";
+          let mapScaleTitle = document.createElement("label");
+          mapScaleTitle.innerHTML="Map scale 1:";
+          mapScaleTitle.setAttribute("for","mapscaleList");
+          mapScale.appendChild(mapScaleTitle);
+          let mapScaleList = document.createElement("select");
+          mapScaleList.id = "mapscaleList";
+          mapScaleList.setAttribute("onchange","setMapScale()");
+          mapScale.appendChild(mapScaleList);
+          let scales = ["9M","4M","2M","1M","500k","250k","100k","50k","24k","10k","2k","1k"];
+          let values = ["9244649","4622324","2311162","1155581","577791","288895","144448","72224","36112","9028","2257","1128"];
+          //<span id="mapscale" style="display:block; z-index: 3; position:relative; float:left; width: 200px; color:#FFF; text-shadow: 0 0 .1em #000; text-shadow: -.1em -.1em .2em #000; text-shadow: .1em .1em .1em #000;">Map Scale 1: 
+          for (var i=0;i<scales.length;i++){
+            let option = document.createElement("option");
+            option.innerHTML=scales[i];
+            option.value=values[i];
+            mapScaleList.appendChild(option);
+          }
+          mapScaleBtn = new Expand({
+            view,
+            content: mapScale,
+            expandTooltip: "Map Scale",
+            collapseTooltip: "Close Map Scale",
+            label: "Map Scale",
+            mode: "floating", // small widget on mobile too
+            autoCollapse: true, // close widget on map scale change
+            expandIcon: "actual-size"
+          });
+          view.ui.add(mapScaleBtn, "bottom-right");
+          
+
+          readIdentifyWidget(); // in identify, calls addSearch which needs elkUrl
+          
+          addMeasure(graphicsLayer);
+
+
+          // MARK: -- Location --
+          const locateBtn = new Locate({
+            view: view
+          });
+          // Add the locate widget to the top left corner of the view
+          view.ui.add(locateBtn, "bottom-right");
+
+
+          // MARK: -- Print -- 
+          printInit();
+
+          // in addMapLayers.js
+          readConfig();
+        }); // view.when
+
+        function printInit() {
+          // Read the PrintPdfWidget.xml file
+          var xmlhttp = createXMLhttpRequest();
+          var xmlFile = app+"/PrintPdfWidget.xml?v="+ndisVer;
+          xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState===4 && xmlhttp.status === 200) {
+              var xmlDoc=createXMLdoc(xmlhttp);
+              if (xmlDoc.getElementsByTagName("disclaimer")[0]){
+                prtDisclaimer=xmlDoc.getElementsByTagName("disclaimer")[0].firstChild.nodeValue;
+                createPrintWidget(prtDisclaimer);
+              }
+              else
+                alert("Missing tag, disclaimer, in "+app+"/PrintPdfWidget.xml file.","Data Error");
+            }
+            else if (xmlhttp.status === 404) {
+              alert("Error: Missing "+app+"/PrintPdfWidget.xml file.","Data Error");
+              hideLoading();
+            }
+            else if (xmlhttp.readyState===4 && xmlhttp.status===500) {
+              alert("Missing "+app+"/PrintPdfWidget.aspx file.","Data Error");
+              hideLoading();
+            }
+          };
+          xmlhttp.open("GET",xmlFile,true);
+          xmlhttp.send();
+        }
+
+        function createPrintWidget(prtDisclaimer) {
+          const print = new Print({
+            view: view,
+            // specify your own print service
+            //printServiceUrl: printServiceUrl, // our print service does not print wildfire icons correctly (visual variables)
+            allowedFormats: ["pdf", "jpg"],
+            allowedLayouts: ["Letter ANSI A landscape", "Letter ANSI A portrait", "Tabloid ANSI B landscape", "Tabloid ANSI B portrait"],
+            templateOptions: {
+              copyright: prtDisclaimer,
+              title: "Colorado "+app,
+              legendEnabled: true,
+              dpi: 300
+            },
+            templateCustomTextElements: {
+              "Subtitle": "subtitle"
+            }
+          });
+          const printExpand = new Expand({
+            view,
+            content: print,
+            expandTooltip: "Print",
+            collapseTooltip: "Close Print",
+            expandIconClass: "esri-icon-printer"
+          });
+          view.ui.add(printExpand, "bottom-right");
+        }
+      });
+  </script>
+</head>
+
+<body class="green-theme">
+  <calcite-loader id="loadingImg" label="Loading..." style="display:none;position:absolute;top:calc(50% - 90px);left:50%;z-index:4;"></calcite-loader>
+  <div id="errBox" class="modalBkg">
+  <div class="modalContent">
+      <header>
+        <h2 id="errTitle" class="modalTitle"></h2>
+      </header>
+      <article>
+        <div id="errMsg" class="errormsg"></div>
+        <button id="errBtn" class="errorbtn">OK</button>
+      </article>
+    </div>
+  </div>
+  <!--class="errorbox" style="display:none;border:2px solid white;margin:auto;width:570px;border-radius:12px;top:20px;height:calc(100vh - 40px);"-->
+  <div id="disclaimer" class="modalBkg">
+    <div class="modalContent">
+      <h2 id="disclaimerTitle" class="modalTitle"></h2>
+      <div class="disclaimerScrolling">
+        <div id="disclaimerContent" style="padding:10px;"></div>
+        </div>
+      <div style="padding:10px;">
+        <p><input id="disclaimerBtn" type="checkbox" onclick="setCookie('noDisclaimer','1')" style="cursor:pointer"><span style="position:absolute;left:50px;">Do not show again. (This is stored in a cookie in your browser history.)</span></p>
+        <p align="center" style="margin:0;"><button class="myButton" type="button" onclick="javascript:closeDisclaimer()" aria-busy="false" aria-label="Agree to disclaimer, hide disclaimer" aria-pressed="false">Agree</button><a href="https://cpw.state.co.us/"><button class="myButton" type="button" aria-busy="false" aria-label="Disagree with disclaimer, load CPW main site." aria-pressed="false">Disagree</button></a></p>
+      </div>
+    </div>
+  </div>
+  <div id="identifyPopup" class="myDialog myIdDialog" style="display:none;">
+    <header class="myHeader">
+      <h2><span id="identifyTitle">Identify</span><button id="identifyClose" class="myCloseButton"  onclick="javascript:closeIdentify()" aria-busy="false" aria-label="Close" aria-pressed="false">X</button></h2>
+    </header>
+    <article>
+      <div id="identifyContent" style="padding:10px;overflow-y:auto;"></div>
+    </article>
+  </div>
+  <div id="help" class="myDialog myIdDialog" style="display:none;">
+    <header class="myHeader">
+      <h2><span id="helpTitle">Help</span><button id="helpClose" class="myCloseButton"  onclick="javascript:closeHelp()" aria-busy="false" aria-label="Close" aria-pressed="false">X</button></h2>
+    </header>
+    <article>
+      <div id="helpContent" class="helpContent">If you are having trouble using or reading this map, plesae contact Colorado Parks and Widllife at 303-297-1192.</div>
+    </article>
+  </div>
+  <div id="viewDiv"></div>
+    <!-- XY Coordinate Format Dialog ***** MOVE TO IDENTIFY??? ******-->
+    <div id="xycoordsDialog" title="Change Display Format" style="display:none;width:210px;">
+        <select id="xycoords_combo" size="4" onChange="xycoordsDialog.hide();setCookie('xycoords',document.getElementById('xycoords_combo').value);" style="position: absolute;bottom:0">
+            <option value="mercator">WGS84 Web Mercator</option>
+            <option value="geo">Decimal Degrees</option>
+            <option value="dms" selected>Degrees, Minutes, Seconds</option>
+            <option value="dm">Degrees, Decimal Minutes</option>
+        </select>
+    </div>
+</body>
+
+</html>

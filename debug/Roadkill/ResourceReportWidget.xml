@@ -1,0 +1,225 @@
+<?xml version="1.0" ?>
+<!--
+// Resource Report XML
+//
+// Generate a PDF Report of Hunter Resources and or Custom Reports
+//
+// Select area to query by: NEW added 1/11/23
+//    selectby: point or polygon. "point" is a buffered point and requires buffer to be defined.
+//
+//	  buffer: is used to define distances in miles to buffer around the user defined point.
+//        default: the default value to be selected in the buffer radius pulldown. It must be included in "list" attribute
+//        list:	comma separated list of integers as buffer radius distances
+//        units: units of measure. See //help.arcgis.com/en/webapi/flex/apiref/com/esri/ags/tasks/GeometryService.html#constantSummary
+//        unitslabel: the label displayed on the UI
+//    Polygon example:
+//    <selectby>polygon</selectby>
+//
+//    Buffered point example:
+//    <selectby>point</selectby>
+//    <buffer default="25" list="5,10,25,50,100" units="9093" unitslabel="mile" />
+//
+// <reporttitle> - The main title on the PDF file.
+//
+// Hunter Resource Reports: 
+// <hunter_resource_report>
+//		<pointsofinterest name="Points of Interest" url="http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0" />
+//    	<contactinfo name="Contact Boundaries" url="http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/1" />
+//	    <gameunits name="Game Boundaries" url="http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2" />
+// </hunter_resource_report>
+//
+// Custom Reports:
+// The custom_reports section specifies the format of each part of the custom report.  Two types of reports are available:
+// 1) List - Uses the point at the map click or polygon center. Examples:
+//    	County:			Larimer
+//      or
+//		BLM (underlined sub title)
+//		BLM District:		Colorado River Valley
+//		BLM Field Office:	Colorado River Valley BLM Field Office
+// 		etc.
+//
+// 2) Table - Uses all values found in the polygon or buffered point. Multiple values for each field.  All of the data comes from one map service.  Example:
+//		Header Row
+//		followed by rows and columns
+//
+// <custom_reports>
+//	 <report
+//      url=mapservice url ** NEW ** 1/17/23
+//      id=mapservice name
+//      type=list or table
+//          Type list will use only one value per field at the map click or polygon center. ** NEW list option ** 1/17/23
+//          Type table will show all values found in the selected area.
+//		title=the title for this mini report or leave blank. If not blank, it will generate a page break unless it is the first one. 
+//           Use "_distance_" to insert the buffer distance from the map click. If using type="list" it will append 
+//           "(at polygon center)" or "(at map click)" to the end of this title.
+//		subtitle=the underlined title for this section. 
+//		displayfields=comma delimited display names. Include display names for database fields. Do not put a space after the comma. It will be displayed: eg. " GMU". Should be displaynames="item1,item2"
+//		fields=comma delimited field names.  Include fields from a database.
+//		where_field=the field name to use to make a where clause
+//		where_inequality="equal", "not_equal", "less_than", or "greater_than"
+//		where_value=a value
+//		where_type="string" or "number"
+//		sortfields=Comma delimited list of the field names to sort the table on.  Must use names from fields tag above.
+//      sortorder="ascending" or "descending" The default is ascending. ** NEW ** 1-12-23
+//		key=the field name in the mapservice that links to the database
+//		database=the url to the asp.net file that queries the database
+//		filename=the table in the database to query
+//		one2onefields=comma delimited list of field names containing one value for each key
+//		one2manyfields=comma delimited list of field names where each key has many values
+//
+//	... Repeat report tags.
+// </custom_reports>
+//
+// Example Custom Report:
+//  <custom_reports>
+//      <report id="Contact Info" url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/1" type="list" title="Contact Information" subtitle="" displayfields="County,CPW Area,CPW District,Field Office Phone" fields="COUNTYNAME,CDOW_Area,CDOW_District,CDOW_FOPhone" />
+//      <report id="Amphibian/Reptile" url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/3" type="table" title="Road Kill" subtitle="Amphibian/Reptile" displayfields="Year,Month,Species,Sex,Age" fields="rkYear,rKMonth,Species,Sex,Age" sortfields="rkYear,Species"/>
+//      <report id="Small Mammal" url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/4" type="table" title="" subtitle="Small Mammals" displayfields="Year,Month,Species,Sex,Age" fields="rkYear,rKMonth,Species,Sex,Age" sortfields="rkYear,Species,Sex" sortorder="descending"/>
+//      <report id="Large Mammal" url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/5" type="table" title="" subtitle="Large Mammals" displayfields="Year,Month,Species,Sex,Age" fields="rkYear,strMonth,Species,Sex,Age" sortfields="rkYear,Species,strMonth,Sex" sortorder="ascending"/>
+//  </custom_reports>
+//
+// NEW on 10/23/23
+// Download CSV files (comma delimited text files). Add a button to download at the bottom of the Resource Report Widget and use label
+//    for button title.
+// <download_buttons>
+//    <button
+//      label=button label
+//      onlyIfVisible=Set this to "true" if you want this button to create a file of only visible data. This field is not required.
+//      url=mapservice url without the id
+//      ids=comma delimited list or range of url ids to use that all have the same data fields. ex. 2-5,7,9-11
+//		fields=comma delimited field names. To include Web Mercator coordinates use field names: "WGS84X, WGS94Y" and label them in display fields
+//      displayfields=comma delimited display names. Do not put a space after the comma. Should be displaynames="item1,item2"
+//		sortfields=Comma delimited list of the field names to sort the table on.  Must use names from fields tag above.
+//      sortorder="ascending" or "descending" The default is ascending.
+// Example download buttons
+//    <download_buttons>
+//        <button label="Download Roadkill"
+//            ids=4,5
+//            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer"
+//            fields="rkYear,strMonth,Species,Sex,Age"
+//            displayfields="Year,Month,Species,Sex,Age"
+//            sortfields="rkYear,Species,strMonth,Sex"
+//            sortorder="ascending"/>
+//        <button label="Download Amphibian/Reptile"
+//            ids=3
+//            onlyIfVisible="true"
+//            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer"
+//            fields="rkYear,strMonth,Species,Sex,Age"
+//            displayfields="Year,Month,Species,Sex,Age"
+//            sortfields="rkYear,Species,strMonth,Sex"
+//            sortorder="ascending"/>
+//    </download_buttons>
+//
+// Map Title, Subtitle, and Disclaimer
+// <title>map title here</title>
+// <subtitle>map subtitle here</subtitle>
+// <disclaimer>map disclaimer here</disclaimer>
+-->
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/ResourceReportWidget.xsd">
+    <reporttitle>Colorado Roadkill Report</reporttitle>
+    
+    <selectby>polygon</selectby>
+    <!--selectby>point</selectby>
+    <buffer default="5" list="5,10,25" units="9093" unitslabel="mile" /-->
+
+    <hunter_resource_report>
+		<!-- These 3 layers are for the Hunter Resource Report, can use 1, 2, or all 3 -->
+		<!-- <pointsofinterest name="Points of Interest" url="http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/0" /> -->
+        <!-- <contactinfo name="Contact Boundaries" url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/1" /> -->
+        <!-- <gameunits name="Game Boundaries" url="http://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2" /> -->
+    </hunter_resource_report>
+
+    <!-- Custom Reports -->
+    <custom_reports>
+        <report id="Big Game GMU Boundaries"
+            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2"
+            type="list"
+            title="Location and Contact Info"
+            subtitle="Game Management Units"
+            displayfields="GMU County(s),GMU"
+            fields="COUNTY,GMUID" />
+        <report id="Contact Info" 
+            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/1"
+            type="list"
+            title=""
+            subtitle="Contact Info"
+            displayfields="County,CPW Area,CPW District,Field Office Phone"
+            fields="COUNTYNAME,CDOW_Area,CDOW_District,CDOW_FOPhone" />
+        <report id="Amphibian/Reptile"
+            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/3"
+            type="table"
+            title="Road Kill"
+            subtitle="Amphibian/Reptile"
+            displayfields="Year,Month,Species,Sex,Age"
+            fields="rkYear,strMonth,Species,Sex,Age"
+            sortfields="rkYear,Species,strMonth,Sex"/>
+        <report id="Small Mammal"
+            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/4"
+            type="table"
+            title=""
+            subtitle="Small Mammals"
+            displayfields="Year,Month,Species,Sex,Age"
+            fields="rkYear,strMonth,Species,Sex,Age"
+            sortfields="rkYear,Species,strMonth,Sex"
+            sortorder="ascending"/>
+        <report id="Large Mammal"
+            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer/5"
+            type="table"
+            title=""
+            subtitle="Large Mammals"
+            displayfields="Year,Month,Species,Sex,Age"
+            fields="rkYear,strMonth,Species,Sex,Age"
+            sortfields="rkYear,Species,strMonth,Sex"
+            sortorder="ascending"/>
+    </custom_reports>
+    
+    <!-- Add buttons at the bottom of the Resource Report Widget to download CSV, comma delimited text files-->
+    <!--
+//  <download_buttons>
+//    <button
+//      label=button label
+//      onlyIfVisible=Set this to "true" if you want this button to create a file of only visible data. This field is not required.
+//      url=mapservice url without the id
+//      ids=comma delimited list or range of url ids to use that all have the same data fields. 2-4,6,9-11
+//		fields=comma delimited field names. To include Web Mercator coordinates use field names: "WGS84X, WGS94Y" and label them in display fields
+//      displayfields=comma delimited display names. Do not put a space after the comma. Should be displaynames="item1,item2"
+//		sortfields=Comma delimited list of the field names to sort the table on.  Must use names from fields tag above.
+//      sortorder="ascending" or "descending" The default is ascending.
+    -->
+    <download_buttons>
+        <button label="All Species"
+            url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer"
+            ids="1-6"
+            fields="rkYear,strMonth,Species,Sex,Age,WGS84X,WGS84Y"
+            displayfields="Year,Month,Species,Sex,Age,Web Mercator E, Web Mercator N"
+            sortfields="rkYear,Species,strMonth,Sex"
+            sortorder="ascending"/>
+        <button label="Visible Species"
+            onlyIfVisible="true"
+            url="https://ndismaps.nrel.colostate.edu/ARCGIS/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer"
+            ids="1-6"
+            fields="rkYear,strMonth,Species,Sex,Age,WGS84X,WGS84Y"
+            displayfields="Year,Month,Species,Sex,Age,Web Mercator E, Web Mercator N"
+            
+            sortfields="rkYear,Species,strMonth,Sex"
+            sortorder="ascending"/>
+    </download_buttons>
+
+	<!-- The base map to use in the report map -->
+	<!-- Available basemaps:  streets, satellite, hybrid, topo, gray, and national_geographic-->
+	<basemapurl>streets</basemapurl>
+
+    <!-- 
+    	NOT USED REST endpoint to a map service that will be displayed in the report print window and included in the printed report
+     -->    
+    <!--reportserviceurl>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Testing/CPW_Roadkill_Base_Map/MapServer</reportserviceurl-->
+	
+	<!-- NOT USED GPService for printing -->
+    <!--printserviceurl>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task</printserviceurl-->
+
+    <!-- the map title, subtitle, and disclaimer -->
+	<title>Colorado RoadKill</title>
+	<subtitle>Roadkill Report</subtitle>
+	<disclaimer>This map was generated by the Colorado Hunting Atlas (http://ndismaps.nrel.colostate.edu/huntingatlas). Information depicted is for reference purposes only and is compiled from the best available sources. Reasonable efforts have been made to ensure accuracy. The Colorado Parks and Wildlife is not responsible for damages that may arise from the use of this map. Mapped property boundaries may or may not reflect actual legal holdings. It is the hunter's responsibility to know where private property exists. Colorado law does NOT require landowners to fence or mark property boundaries. For more detailed or missing information, please contact the Colorado Parks and Wildlife at (303)297-1192 (M-F 8am-5pm MST).</disclaimer>
+</configuration>
