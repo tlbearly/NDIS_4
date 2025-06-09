@@ -575,6 +575,8 @@ function addMapLayers(){
                     });
                 }
             }
+            if (minScale != 0) groupLayer.minScale = minScale;
+            if (maxScale != 0) groupLayer.maxScale = maxScale;
             if (!featureservice) return groupLayer;
 
             // add / to end of feature service
@@ -1438,6 +1440,19 @@ function readConfig(){
                     linkDiv.innerHTML = linkStr;
                     // add links to help
                     document.getElementById("helpContent").appendChild(linkDiv);
+
+                    // add extra widgets like filter opportunies
+                    var widgets = xmlDoc.getElementsByTagName("extra_widgets")[0];
+                    if (widgets) {
+                        var widget = xmlDoc.getElementsByTagName("extra_widgets")[0].getElementsByTagName("widget");
+                        for (var i = 0; i < widget.length; i++) {
+                            var name = widget[i].getAttribute("name");
+                            if (name.toLowerCase() === "filter"){
+                                var title = widget[i].getAttribute("title");
+                                myFilter(title);
+                            }
+                        }
+                    }
 
                     readURLParmeters(); // calls addMapLayers
                 } 

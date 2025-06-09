@@ -200,12 +200,19 @@
                 <fields>NAME,CONDITION1</fields>
                 <displaynames>Name,Condition</displaynames>
             </layer>
-            <layer label="PublicWID">
+            <layer label="Boat Check Station">
                 <id>0</id>
                 <url>https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/PublicWID/FeatureServer/0</url>
                 <geometry>point</geometry>
                 <fields>AuthLoc,GeneralStationType,Status,Hours_of_O,Phone,Restrictio,Spec_Consi,Known_Inva,Website_UR</fields>
                 <displaynames>Inspection Station,Type,Status,Hours,Phone,Restrictions,Special Considerations,Known Invasives,Website</displaynames>
+            </layer>
+            <layer label="Stream Gage">
+                <id>4</id>
+                <url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer</url>
+                <geometry>point</geometry>
+                <fields>NAME,HTMLLINK</fields>
+                <displaynames>Station Name,Realtime data</displaynames>
             </layer>
         </folder>
         <folder label="Resources">
@@ -273,22 +280,6 @@
 				<displaynames>USFS District,USFS District Website,MVUM Website</displaynames>
 			</layer>
         </folder>
-        <folder label="Nearby Water">
-            <layer label="All Lakes">
-                <id>11</id>
-                <url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer</url>
-                <geometry>polygon</geometry>
-                <fields>Search_Name</fields>
-                <displaynames>Water Body</displaynames>
-            </layer>
-            <layer label="All Streams">
-                <id>10</id>
-                <url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer</url>
-                <geometry>line</geometry>
-                <fields>Search_Nam</fields>
-                <displaynames>Stream Name</displaynames>
-            </layer>
-        </folder>
         <folder label="Roads and Trails" id_vis_only="true">
 			<layer label="Trails">
 				<id>15</id>
@@ -336,14 +327,5 @@
 				<displaynames>Name,Road AKA,Segment Length,Vehicle Type,Road Type,Surface Type</displaynames>
 			</layer>
 		</folder>
-        <folder label="Stream Gage">
-            <layer label="Stream Gage">
-                <id>4</id>
-                <url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer</url>
-                <geometry>point</geometry>
-                <fields>NAME,HTMLLINK</fields>
-                <displaynames>Station Name,Realtime data</displaynames>
-            </layer>
-        </folder>
     </tree>
 </configuration>

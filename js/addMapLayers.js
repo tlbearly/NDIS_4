@@ -575,6 +575,8 @@ function addMapLayers(){
                     });
                 }
             }
+            if (minScale != 0) groupLayer.minScale = minScale;
+            if (maxScale != 0) groupLayer.maxScale = maxScale;
             if (!featureservice) return groupLayer;
 
             // add / to end of feature service

@@ -157,7 +157,7 @@
 					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1"/>
                 <layer  parentGroup="Transportation" label="BLM Colorado Routes" open="true" visible="true" alpha="1" minScale="144448"
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/FeatureServer/5" />
-                <layer parentGroup="Transportation" label="Colorado State Parks Roads" visible="true" minScale="144448"
+                <layer parentGroup="Transportation" label="Colorado State Parks Roads" visible="false" minScale="144448"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1" />
                 <layer parentGroup="Transportation" group="Trails" visible="true" open="false"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/"
@@ -178,7 +178,7 @@
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer"/>
         </operationallayers>
 		
-		<hideGroupSublayers>Status,Emergency,Field Office,Chamber of Commerce or Welcome Center,License Agent,Campgrounds and SWA Facilities,GMU boundary (Hunting Units)</hideGroupSublayers>
+		<hideGroupSublayers>Trails,Status,Emergency,Field Office,Chamber of Commerce or Welcome Center,License Agent,Campgrounds and SWA Facilities,GMU boundary (Hunting Units)</hideGroupSublayers>
 		<radiolayers>Game Species</radiolayers>
     </map>	 
     

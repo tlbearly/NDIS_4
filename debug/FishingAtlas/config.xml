@@ -66,7 +66,7 @@
 					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1"/>
                 <layer  parentGroup="Transportation" label="BLM Colorado Routes" open="true" visible="true" alpha="1" minScale="144448"
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/FeatureServer/5" />
-                <layer parentGroup="Transportation" label="Colorado State Parks Roads" visible="true" minScale="144448"
+                <layer parentGroup="Transportation" label="Colorado State Parks Roads" visible="false" minScale="144448"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1" />
                 <layer parentGroup="Transportation" group="Trails" visible="true" open="false"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/"
@@ -82,7 +82,7 @@
            
        </operationallayers>
 		
-		<hideGroupSublayers>Fishing License Agent,Family friendly,More remote fly fishing,Ice fishing,Special Fishing Regulations,Fishing Information Point,Stocked with catchables (~10 inches),Emergency,Field Office,Chamber of Commerce or Welcome Center,Campgrounds and SWA Facilities</hideGroupSublayers>
+		<hideGroupSublayers>Trails,Fishing License Agent,Family friendly,More remote fly fishing,Ice fishing,Special Fishing Regulations,Fishing Information Point,Stocked with catchables (~10 inches),Emergency,Field Office,Chamber of Commerce or Welcome Center,Campgrounds and SWA Facilities</hideGroupSublayers>
 		<radiolayers>Recommended opportunties</radiolayers>
     </map>
 
@@ -112,5 +112,12 @@
 		<link label="Stocking Report"
     		url="https://cpw.state.co.us/thingstodo/Pages/StockingReport.aspx"
     		icon="assets/images/i_documentadd2.png"/>
-    </links>    
+    </links>
+    <extra_widgets>
+        <widget name="filter" title="Display Fishing Opportunities">
+            <butten title="Family Friendly"
+                url=""
+                where=""/>
+        </widget>
+    </extra_widgets> 
 </configuration>

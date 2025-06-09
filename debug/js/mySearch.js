@@ -403,7 +403,8 @@ function createSearchWidget(sources,zoomScale){
         // esri/widgets/Home is deprecated!!!
         let homeWidget = document.createElement("button");
         homeWidget.setAttribute("aria-busy","false");
-        homeWidget.setAttribute("aria-label","Home");
+        homeWidget.setAttribute("aria-label","Zoom out to Colorado");
+        homeWidget.setAttribute("title","Zoom out to Colorado");
         homeWidget.setAttribute("aria-live","polite");
         homeWidget.className="esri-widget--button";
         homeWidget.style.border="1px solid #6e6e6e77";

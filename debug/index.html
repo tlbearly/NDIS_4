@@ -28,7 +28,7 @@
   <script type="text/javascript" src="js/xmlUtils.js?v=2" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js?v=2" async="true"></script>
   <script type="text/javascript" src="js/utilFuncs.js?v=27" async="true"></script>
-  <script type="text/javascript" src="js/addMapLayers.js?v=49" async="true"></script> <!-- read config.xml, add links to help -->
+  <script type="text/javascript" src="js/addMapLayers.js?v=51" async="true"></script> <!-- read config.xml, add links to help -->
   <script type="text/javascript" src="js/myBasemaps.js?v=24" async="true"></script>
   <script type="text/javascript" src="js/myLayerList.js?v=134" async="true"></script>
   <script type="text/javascript" src="js/mySearch.js?v=18" async="true"></script>
@@ -36,6 +36,7 @@
   <script type="text/javascript" src="js/errorBox.js?v=4" async="true"></script>
   <!--script type="text/javascript" src="js/myMapLayers.js?v=13" async="true"></script-->
   <script type="text/javascript" src="js/myMeasure.js?v=13" async="true"></script>
+  <script type="text/javascript" src="js/filter.js?v=0" async="true"></script>
 
   <script>
     function closeHelp(){
@@ -510,6 +511,14 @@
         <p align="center" style="margin:0;"><button class="myButton" type="button" onclick="javascript:closeDisclaimer()" aria-busy="false" aria-label="Agree to disclaimer, hide disclaimer" aria-pressed="false">Agree</button><a href="https://cpw.state.co.us/"><button class="myButton" type="button" aria-busy="false" aria-label="Disagree with disclaimer, load CPW main site." aria-pressed="false">Disagree</button></a></p>
       </div>
     </div>
+  </div>
+  <div id="filterPopup" class="myDialog myIdDialog" style="display:none; width:280px;">
+     <header class="myHeader">
+      <h2><span id="filterTitle">Filter</span><button id="filterClose" class="myCloseButton"  onclick="javascript:closeFilter()" aria-busy="false" aria-label="Close" aria-pressed="false">X</button></h2>
+    </header>
+    <article>
+      <div id="filterContent" style="padding:10px;overflow-y:auto;"></div>
+    </article>
   </div>
   <div id="identifyPopup" class="myDialog myIdDialog" style="display:none;">
     <header class="myHeader">
