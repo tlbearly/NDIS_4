@@ -444,7 +444,7 @@ function addTempLabel(point, label, fontSize, shouldFade) {
       else alert("Missing picture marker symbol assets/images/color-pin.png where color is the color-theme specified in the body tag of index.html.","Error");
       const symbol = {
         type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-        url: "./assets/images/"+pinImg, // svg does not work in FireFox!!!!!
+        url: "./assets/images/"+pinImg, // SVG documents must include a definition for width and height to load properly in Firefox. svg does not work in FireFox!!!!!
         size: 24,
         width: 24,
         height: 24,

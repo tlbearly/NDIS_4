@@ -52,12 +52,15 @@
          <!--     example: open="true" opensublayer="Places of Interest,Township Range Sections" --> 
         <!-- operationallayers:  Note: Displays in reverse order. -->
         <operationallayers>
-            <layer label="Reference" open="false" visible="true" alpha="0.85"
-            		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Base_Map/MapServer"/>
+            <!-- Note: if parentGroup is the same as the label it will put the layers at the top level instead of in an expandable block -->
+            <!--Land and Access-->
+            <layer label="Land and Access" visible="true" alpha="1" symbol_icon="./assets/images/boat_inspection.png"
+                    url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/LandAccess2025/MapServer"/>
             <layer group="Fishing Info" visible="true"/>
-                <layer parentGroup="Fishing Info" label="PublicWID" visible="true" alpha="1" minScale="144448" url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/PublicWID/FeatureServer/0"/>
-			    <layer parentGroup="Fishing Info" label="Fishing Info" open="true" opensublayer="Recommended opportunties" visible="true" alpha="0.9"
-            		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Main_Map/MapServer"/>
+                <layer parentGroup="Fishing Info" label="Watercraft Inspection Stations" visible="true" alpha="1" minScale="144448" url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/PublicWID/FeatureServer/0"/>
+			    <layer parentGroup="Fishing Info" label="Fishing Info" visible="true" alpha="0.9"
+            		url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/FishingInfo2025/MapServer"/>
+                    <!--url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Main_Map/MapServer"/-->
             <!--layer label="Fishing Info" open="true" opensublayer="Recommended opportunties" visible="true" alpha="0.9"
             		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Main_Map/MapServer"/-->
 			<!-- layers in groups must be feature services! -->
@@ -79,10 +82,11 @@
 			    <layer parentGroup="Wildfire" label="Wildfire Incidents" open="true" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
             <!--layer label="Wildfire Perimeters" open="false" visible="false" alpha="0.8"
 					url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0"/-->
-           
+            <layer label="Base Data" visible="true" alpha="0.85" listMode="hide"
+                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/BaseData2025/MapServer"/>
        </operationallayers>
 		
-		<hideGroupSublayers>Trails,Fishing License Agent,Family friendly,More remote fly fishing,Ice fishing,Special Fishing Regulations,Fishing Information Point,Stocked with catchables (~10 inches),Emergency,Field Office,Chamber of Commerce or Welcome Center,Campgrounds and SWA Facilities</hideGroupSublayers>
+		<hideGroupSublayers>Gold Medal Water,Trails,Fishing License Agent,Family friendly,More remote fly fishing,Ice fishing,Special Fishing Regulations,Fishing Information Point,Stocked with catchables (~10 inches),Emergency,Field Office,Chamber of Commerce or Welcome Center,Campgrounds and SWA Facilities</hideGroupSublayers>
 		<radiolayers>Recommended opportunties</radiolayers>
     </map>
 
@@ -112,5 +116,12 @@
 		<link label="Stocking Report"
     		url="https://cpw.state.co.us/thingstodo/Pages/StockingReport.aspx"
     		icon="assets/images/i_documentadd2.png"/>
-    </links>    
+    </links>
+    <extra_widgets>
+        <widget name="filter" title="Display Fishing Opportunities">
+            <butten title="Family Friendly"
+                url=""
+                where=""/>
+        </widget>
+    </extra_widgets> 
 </configuration>

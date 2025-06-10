@@ -1186,12 +1186,27 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                         }
                         // is it a 2nd level expandable block?
                         if (hideGroupSublayers.indexOf(item[j].title) == -1 && (item[j].layers || item[j].sublayers)){
-                            addBlock(row,item[j],listFontSize,hLevel);
-                            if (lastRow)
-                                lastRow.after(row);
-                            lastRow = row;
-                            row = null;
-                            continue;
+                            //if (item[j].loaded){
+                                addBlock(row,item[j],listFontSize,hLevel);
+                                if (lastRow)
+                                    lastRow.after(row);
+                                lastRow = row;
+                                row = null;
+                                continue;
+                            /*// layer never loads!!!! }else {
+                                // wait for layer to load
+                                var tim1 = setInterval(function(layer,lastRow,row){
+                                    if (layer.loaded){
+                                        addBlock(row,layer,listFontSize,hLevel);
+                                        if (lastRow)
+                                            lastRow.after(row);
+                                        lastRow = row;
+                                        row = null;
+                                        clearInterval(tim1);
+                                    }  
+                                },500,item[j],lastRow,row);
+                                continue;
+                            }*/
                         }
                         row.style.fontSize=listFontSize;
                         row.style.margin="0";

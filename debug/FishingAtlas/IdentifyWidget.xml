@@ -200,7 +200,7 @@
                 <fields>NAME,CONDITION1</fields>
                 <displaynames>Name,Condition</displaynames>
             </layer>
-            <layer label="Boat Check Station">
+            <layer label="Watercraft Inspection Stations">
                 <id>0</id>
                 <url>https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/PublicWID/FeatureServer/0</url>
                 <geometry>point</geometry>

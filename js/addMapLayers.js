@@ -88,7 +88,7 @@ function addMapLayers(){
         "esri/layers/FeatureLayer","esri/layers/GroupLayer",], (MapImageLayer, FeatureLayer, GroupLayer) => {
         // Create Layer 3-21-22
         // Get layers from url of config.xml
-        function createLayer(layer){
+        function createLayer(layer,symbol_icon=null){
             // layer could be the operational layer read from config.xml as an xml document (need to use getAttribute)
             // or event.layer (need to use layer.element)
             //console.log("Creating layer: ");
@@ -120,6 +120,7 @@ function addMapLayers(){
                 alert("Failed to load layer. layer.id and layer.getAttribute do not exist.", "Error");
                 return;
             }
+            if (alpha === null) alpha = 1;
             //console.log(id);
             
             // if already loaded return
@@ -247,6 +248,21 @@ function addMapLayers(){
             if (maxScale !== null) myLayer.maxScale = maxScale;
 
             // set Symbols
+            if (symbol_icon){
+                const symbol = {
+                    type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
+                    url: symbol_icon, // SVG documents must include a definition for width and height to load properly in Firefox. svg does not work in FireFox!!!!!
+                    size: 32,
+                    width: 32,
+                    height: 32,
+                    xoffset: 0,
+                    yoffset: 0
+                };
+                myLayer.renderer = {
+                    type: "simple",
+                    symbol: symbol
+                }
+            }
             // TODO: testing adding symbols
             /*if (myLayer.url.indexOf("CPWAdminData")>0 && id == 15){
                 myLayer.renderer = {
@@ -952,11 +968,13 @@ function addMapLayers(){
         var regexp = /([^a-zA-Z0-9 \-,\._\/:])/g;
         var popupFields = [];
         var popupLabels = [];
+        var symbol_icon;
         var listMode = "show";
         var legendEnabled = true;
         for (i = 0; i < layer.length; i++) {
             minScale=0;
             maxScale=0;
+            symbol_icon = null;
             var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null,portal=null;	
             if (layer[i].getAttribute("maxScale"))
                 maxScale = layer[i].getAttribute("maxScale").replace(regexp,"");
@@ -968,7 +986,10 @@ function addMapLayers(){
             }
             if (layer[i].getAttribute("opensublayer")){
                 openTOCgroups.push(layer[i].getAttribute("opensublayer").replace(regexp,""));
-            }		
+            }
+            if (layer[i].getAttribute("symbol_icon")){
+                symbol_icon = layer[i].getAttribute("symbol_icon");
+            }
             // group layer with or without sub layers
             if (layer[i].getAttribute("group") && layer[i].getAttribute("group") != ""){
                 //console.log("loading group "+layer[i].getAttribute("group")+" i="+i);
@@ -987,6 +1008,7 @@ function addMapLayers(){
                     
                     if (layer[i].getAttribute("alpha"))
                         groupOpacity = layer[i].getAttribute("alpha").replace(regexp,"");
+                    else groupOpacity = 1;
                     if (layer[i].getAttribute("radio"))
                         radio = layer[i].getAttribute("radio").replace(regexp,"") === "true";
                     
@@ -1063,6 +1085,7 @@ function addMapLayers(){
                 }
                 if (layer[i].getAttribute("alpha"))
                     var opacity = layer[i].getAttribute("alpha").replace(regexp,"");
+                else opacity = 1;
                 if (layer[i].getAttribute("visible"))
                     layerVis = layer[i].getAttribute("visible").replace(regexp,"");//.split(","); // array of visibility
                 else {
@@ -1107,6 +1130,21 @@ function addMapLayers(){
             
                 
                 // set Symbols
+                if (symbol_icon){
+                    const symbol = {
+                        type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
+                        url: symbol_icon, // svg does not work in FireFox!!!!!
+                        size: 24,
+                        width: 24,
+                        height: 24,
+                        xoffset: 0,
+                        yoffset: 0
+                    };
+                    fsLayer.renderer = {
+                        type: "simple",
+                        symbol: symbol
+                    }
+                }
                 // TODO: testing adding symbols
                 /*if (fsLayer.url.indexOf("CPWAdminData")>-1 && url.indexOf(15) > -1){
                     fsLayer.renderer = {
@@ -1171,7 +1209,7 @@ function addMapLayers(){
                 // DEBUG make it fail
                 //layer[i].setAttribute("url",layer[i].getAttribute("url")+"oooo");
                 //console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);				
-                createLayer(layer[i]);
+                createLayer(layer[i],symbol_icon);
             }		
         }
         // -- Layer List --
@@ -1440,6 +1478,19 @@ function readConfig(){
                     linkDiv.innerHTML = linkStr;
                     // add links to help
                     document.getElementById("helpContent").appendChild(linkDiv);
+
+                    // add extra widgets like filter opportunies
+                    var widgets = xmlDoc.getElementsByTagName("extra_widgets")[0];
+                    if (widgets) {
+                        var widget = xmlDoc.getElementsByTagName("extra_widgets")[0].getElementsByTagName("widget");
+                        for (var i = 0; i < widget.length; i++) {
+                            var name = widget[i].getAttribute("name");
+                            if (name.toLowerCase() === "filter"){
+                                var title = widget[i].getAttribute("title");
+                                myFilter(title);
+                            }
+                        }
+                    }
 
                     readURLParmeters(); // calls addMapLayers
                 } 
