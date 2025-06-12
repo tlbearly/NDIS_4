@@ -88,7 +88,7 @@ function addMapLayers(){
         "esri/layers/FeatureLayer","esri/layers/GroupLayer",], (MapImageLayer, FeatureLayer, GroupLayer) => {
         // Create Layer 3-21-22
         // Get layers from url of config.xml
-        function createLayer(layer,symbol_icon=null){
+        function createLayer(layer,symbol_icon=null,filter=null){
             // layer could be the operational layer read from config.xml as an xml document (need to use getAttribute)
             // or event.layer (need to use layer.element)
             //console.log("Creating layer: ");
@@ -247,14 +247,16 @@ function addMapLayers(){
             if (minScale !== null) myLayer.minScale = minScale;
             if (maxScale !== null) myLayer.maxScale = maxScale;
 
+            // filter on where expression from config.xml
+            if (filter) myLayer.definitionExpression = filter;
             // set Symbols
             if (symbol_icon){
                 const symbol = {
                     type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
                     url: symbol_icon, // SVG documents must include a definition for width and height to load properly in Firefox. svg does not work in FireFox!!!!!
-                    size: 32,
-                    width: 32,
-                    height: 32,
+                    size: 20,
+                    width: 20,
+                    height: 20,
                     xoffset: 0,
                     yoffset: 0
                 };
@@ -969,12 +971,14 @@ function addMapLayers(){
         var popupFields = [];
         var popupLabels = [];
         var symbol_icon;
+        var filter;
         var listMode = "show";
         var legendEnabled = true;
         for (i = 0; i < layer.length; i++) {
             minScale=0;
             maxScale=0;
             symbol_icon = null;
+            filter = null;
             var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null,portal=null;	
             if (layer[i].getAttribute("maxScale"))
                 maxScale = layer[i].getAttribute("maxScale").replace(regexp,"");
@@ -987,8 +991,13 @@ function addMapLayers(){
             if (layer[i].getAttribute("opensublayer")){
                 openTOCgroups.push(layer[i].getAttribute("opensublayer").replace(regexp,""));
             }
+            // picture marker symbol file svg or png
             if (layer[i].getAttribute("symbol_icon")){
                 symbol_icon = layer[i].getAttribute("symbol_icon");
+            }
+            // filter: where expression to apply
+            if (layer[i].getAttribute("filter")){
+                filter = layer[i].getAttribute("filter");
             }
             // group layer with or without sub layers
             if (layer[i].getAttribute("group") && layer[i].getAttribute("group") != ""){
@@ -1134,9 +1143,9 @@ function addMapLayers(){
                     const symbol = {
                         type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
                         url: symbol_icon, // svg does not work in FireFox!!!!!
-                        size: 24,
-                        width: 24,
-                        height: 24,
+                        size: 20,
+                        width: 20,
+                        height: 20,
                         xoffset: 0,
                         yoffset: 0
                     };
@@ -1144,6 +1153,7 @@ function addMapLayers(){
                         type: "simple",
                         symbol: symbol
                     }
+                    if (filter) fsLayer.definitionExpression = filter;
                 }
                 // TODO: testing adding symbols
                 /*if (fsLayer.url.indexOf("CPWAdminData")>-1 && url.indexOf(15) > -1){
@@ -1209,7 +1219,7 @@ function addMapLayers(){
                 // DEBUG make it fail
                 //layer[i].setAttribute("url",layer[i].getAttribute("url")+"oooo");
                 //console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);				
-                createLayer(layer[i],symbol_icon);
+                createLayer(layer[i],symbol_icon,filter);
             }		
         }
         // -- Layer List --

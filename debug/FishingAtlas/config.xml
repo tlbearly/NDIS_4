@@ -54,11 +54,16 @@
         <operationallayers>
             <!-- Note: if parentGroup is the same as the label it will put the layers at the top level instead of in an expandable block -->
             <!--Land and Access-->
-            <layer label="Land and Access" visible="true" alpha="1" symbol_icon="./assets/images/boat_inspection.png"
+            <layer label="Land and Access" visible="true" alpha="1"
                     url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/LandAccess2025/MapServer"/>
             <layer group="Fishing Info" visible="true"/>
-                <layer parentGroup="Fishing Info" label="Watercraft Inspection Stations" visible="true" alpha="1" minScale="144448" url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/PublicWID/FeatureServer/0"/>
-			    <layer parentGroup="Fishing Info" label="Fishing Info" visible="true" alpha="0.9"
+                <layer parentGroup="Fishing Info" label="Watercraft Inspection Stations" visible="true" alpha="1" minScale="144448"
+                    symbol_icon="./assets/images/boat_inspection.png"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/PublicWID/FeatureServer/0"/>
+			    <layer parentGroup="Fishing Info" label="Stream Guage" visible="true" alpha="1"
+                    symbol_icon="./assets/images/water_20dp.svg" minScale="72224" filter="governing_location = 'CO, USA'"
+                    url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/Live_Stream_Gauges_v1/FeatureServer/0"/>
+                <layer parentGroup="Fishing Info" label="Fishing Info" visible="true" alpha="0.9"
             		url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/FishingInfo2025/MapServer"/>
                     <!--url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Main_Map/MapServer"/-->
             <!--layer label="Fishing Info" open="true" opensublayer="Recommended opportunties" visible="true" alpha="0.9"
@@ -87,7 +92,6 @@
        </operationallayers>
 		
 		<hideGroupSublayers>Gold Medal Water,Trails,Fishing License Agent,Family friendly,More remote fly fishing,Ice fishing,Special Fishing Regulations,Fishing Information Point,Stocked with catchables (~10 inches),Emergency,Field Office,Chamber of Commerce or Welcome Center,Campgrounds and SWA Facilities</hideGroupSublayers>
-		<radiolayers>Recommended opportunties</radiolayers>
     </map>
 
     <links>

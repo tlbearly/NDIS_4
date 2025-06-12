@@ -52,6 +52,13 @@
 		<placeholder>Search Township Range (1N 73W)</placeholder>
   	</layer>
 	<layer>
+		<name>Campground</name>
+		<url>hhttps://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/3</url>
+		<searchFields>Name</searchFields>
+		<displayfield>Name</displayfield>
+		<placeholder>Search Campgrounds</placeholder>
+	</layer>
+	<layer>
 		<name>MVUM Road Names</name>
         <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1</url>
 		<searchFields>NAME</searchFields>

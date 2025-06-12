@@ -26,21 +26,21 @@
 	<zoomscale>72224</zoomscale>	
 	<layer>
 		<name>All lakes</name>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/11</url>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/NonDisplay2025/MapServer/11</url>
 		<searchFields>Search_Name</searchFields>
 		<displayfield>Search_Name</displayfield>
 		<placeholder>Search Lakes</placeholder>
 	</layer>
 	<layer>
 		<name>All streams</name>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer/10</url>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/NonDisplay2025/MapServer/10</url>
 		<searchFields>Search_Nam</searchFields>
 		<displayfield>Search_Nam</displayfield>
 		<placeholder>Search Streams</placeholder>
 	</layer>
 	<layer>
 		<name>Campground</name>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/13</url>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/3</url>
 		<searchFields>Name</searchFields>
 		<displayfield>Name</displayfield>
 		<placeholder>Search Campgrounds</placeholder>
@@ -55,17 +55,26 @@
 		<placeholder>Search CPW Properties</placeholder>
 	</layer>
 	<layer>
-		<name>USGS topo map quadrangle</name>
-		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/6</url>
-		<searchFields>QUADNAME</searchFields>
-		<displayfield>QUADNAME</displayfield>
-		<placeholder>Search USGS Topo</placeholder>
-	</layer>
-	<layer>
   		<name>Township Range</name> 
- 		 <url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/99</url> 
+ 		 <url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/19</url> 
  		<searchFields>TOWNRANGE</searchFields>
 		<displayfield>TOWNRANGE</displayfield>
 		<placeholder>Search Township Range (1N 73W)</placeholder>
   	</layer>
+	<layer>
+		<name>MVUM Road Names</name>
+        <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1</url>
+		<searchFields>NAME</searchFields>
+		<displayfield>NAME</displayfield>
+		<placeholder>MVUM Road Name</placeholder>
+		<suggestionTemplate>{NAME}, #{ID}, {FORESTNAME}</suggestionTemplate>
+	</layer>
+	<layer>
+		<name>MVUM Road #</name>
+        <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1</url>
+		<searchFields>ID</searchFields>
+		<displayfield>ID</displayfield>
+		<placeholder>MVUM Road #</placeholder>
+		<suggestionTemplate>#{ID}, {FORESTNAME}</suggestionTemplate>
+	</layer>
 </configuration>

@@ -60,7 +60,8 @@
 //
 //		layer = a layer in a mapserviced
 //			layer parameters:
-//			label = The name of the layer in the mapservice.  Case sensitive!
+//			label = The name of the layer in the mapserviceor featureservice.  Case sensitive! Featureservice must
+//              contain the id if only using one layer.
 //
 //			layer tags:
 //			id = the layer id number in the mapservice
@@ -165,8 +166,8 @@
 			<!-- WIA Small Game ONLY -->
 			<!--
 			<layer label="Small Game AND Big Game">
-				<id>98</id>
-				<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map/MapServer/</url>
+				<id>8</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer</url>
 				<geometry>polygon</geometry>
 				<fields>COVER,URL</fields>
 				<displaynames>Cover,CPW Walk-in website</displaynames>

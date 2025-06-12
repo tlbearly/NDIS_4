@@ -211,6 +211,10 @@ function readIdentifyWidget() {
                                     alert("Error in " + app + "/IdentifyWidget.xml. When vis_id_only is set in a folder, every layer in the folder must have a vis_id and vis_url tag for the layer that is in the map to check if it is visible or not. Missing vis_url and vis_id tags in folder: " + identifyGroups[f] + ".", "Data Error");
                             }
                             identifyLayers[identifyGroups[f]][label] = {};
+                            // label to display, if display_label attribute is not found use label
+                            if (layer[i].getAttribute("display_label")) 
+                                identifyLayers[identifyGroups[f]][label].display_label = layer[i].getAttribute("display_label");
+                            else identifyLayers[identifyGroups[f]][label].display_label = label;
 
                             // Create list of ids for this layer
                             var found = false;
@@ -706,7 +710,9 @@ function displayContent() {
                             const thePromise = promiseNumber;
                             // console.log("Query "+theLayerName+" loading  - promise #"+thePromise+" distance="+params.distance);
                             // first time add div with promise number
-                            accumulateContent(thePromise,"<div id='promise"+thePromise+"' style='display:none;'><span class='idTitle'>"+theLayerName+"</span><div style='padding: 0 0 20px 10px;'><calcite-icon class='waitingForConnection' title='Loading' aria-hidden='true' icon='offline' scale='m' calcite-hydrated='' style='margin-right: 5px;'></calcite-icon><span style='vertical-align:text-top;'>Loading...</span></div></div>");
+                            //accumulateContent(thePromise,"<div id='promise"+thePromise+"' style='display:none;'><span class='idTitle'>"+theLayerName+"</span><div style='padding: 0 0 20px 10px;'><calcite-icon class='waitingForConnection' title='Loading' aria-hidden='true' icon='offline' scale='m' calcite-hydrated='' style='margin-right: 5px;'></calcite-icon><span style='vertical-align:text-top;'>Loading...</span></div></div>");
+                            accumulateContent(thePromise,"<div id='promise"+thePromise+"' style='display:none;'><span class='idTitle'>"+identifyLayers[identifyGroup][[theLayerName]].display_label+"</span><div style='padding: 0 0 20px 10px;'><calcite-icon class='waitingForConnection' title='Loading' aria-hidden='true' icon='offline' scale='m' calcite-hydrated='' style='margin-right: 5px;'></calcite-icon><span style='vertical-align:text-top;'>Loading...</span></div></div>");
+                            
                             query.executeQueryJSON(item.url, params) //.then(identifySuccess).catch(handleQueryError);
                             .then((response) => {
                                 // console.log("Query "+theLayerName+" response - promise #"+thePromise);
@@ -725,9 +731,11 @@ function displayContent() {
                                     err = e.message;
                                     if (e.details.url) err += " URL="+e.details.url;
                                     if (e.details.requestOptions.query.outFields) err += " outFields="+e.details.requestOptions.query.outFields;
-                                    accumulateContent(thePromise,"<span class='idSubValue'>"+theLayerName+"</span><div style='padding:0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubTitle'>"+err+"</span><br/></div>");
+                                    //accumulateContent(thePromise,"<span class='idSubValue'>"+theLayerName+"</span><div style='padding:0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubTitle'>"+err+"</span><br/></div>");
+                                    accumulateContent(thePromise,"<span class='idSubValue'>"+identifyLayers[identifyGroup][[theLayerName]].display_label+"</span><div style='padding:0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubTitle'>"+err+"</span><br/></div>");
                                 }else {
-                                    accumulateContent(thePromise,"<span class='idTitle'>"+theLayerName+"</span><div style='padding:0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubTitle'>External map service is unavailable.</span><br/></div>");
+                                    //accumulateContent(thePromise,"<span class='idTitle'>"+theLayerName+"</span><div style='padding:0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubTitle'>External map service is unavailable.</span><br/></div>");
+                                    accumulateContent(thePromise,"<span class='idTitle'>"+identifyLayers[identifyGroup][[theLayerName]].display_label+"</span><div style='padding:0 0 20px 10px;'><span class='idSubTitle'>Import failed: </span><span class='idSubTitle'>External map service is unavailable.</span><br/></div>");
                                 }
                             });
                         }
@@ -1062,7 +1070,7 @@ function handleQueryResults(results,thePromise) {
                                         (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) === "http"))
                                         tmpStr = "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a><br/>";
                                     else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("percent") > -1){
-                                        tmpStr = "<span class='idSubTitle'>"+ identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "%</span><br/>";
+                                        tmpStr = "<span class='idSubTitle'>"+ identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "%</span><br/>";
                                     }
                                     else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("updated") > -1){
                                         // subtract 6 hours from Greenwich time
@@ -1078,32 +1086,32 @@ function handleQueryResults(results,thePromise) {
                                         if (minutes == 1) minStr = "minute";
                                         if (days >= 1) {
                                             if (hours >= 1)
-                                                tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +days+" "+dayStr+" "+hours+" "+hourStr+" ago</span><br/>";
+                                                tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" +days+" "+dayStr+" "+hours+" "+hourStr+" ago</span><br/>";
                                             else
-                                                tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +days+" "+dayStr+" ago</span><br/>";
+                                                tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" +days+" "+dayStr+" ago</span><br/>";
                                         } else if (hours >= 1){
                                             if (minutes >= 1)
-                                                tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +hours+" "+hourStr+" "+minutes+" "+minStr+" ago</span><br/>";
+                                                tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" +hours+" "+hourStr+" "+minutes+" "+minStr+" ago</span><br/>";
                                             else
-                                                tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" +hours+" "+hourStr+" ago</span><br/>";
+                                                tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" +hours+" "+hourStr+" ago</span><br/>";
                                         } else
-                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>"+minutes+" "+minStr+" ago</span><br/>";
+                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>"+minutes+" "+minStr+" ago</span><br/>";
                                     }
                                     else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("date") > -1){
                                         d = new Date(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
-                                        tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + (d.getMonth()+1) + "/"+ d.getDate() +"/"+ d.getFullYear() +"</span><br/>";
+                                        tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + (d.getMonth()+1) + "/"+ d.getDate() +"/"+ d.getFullYear() +"</span><br/>";
                                     }
                                     else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("acre") > -1 ||
                                         identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("size") > -1 ||
                                         identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("final") > -1 ||
                                         identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("burned") > -1 ){
                                         if (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] >= 1)
-                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + numberWithCommas(Math.round(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]])) + " Acres</span><br/>";
+                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + numberWithCommas(Math.round(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]])) + " Acres</span><br/>";
                                         else
-                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + numberWithCommas(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(2)) + " Acres</span><br/>";
+                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + numberWithCommas(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(2)) + " Acres</span><br/>";
                                     }
                                     else {
-                                        tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span id='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</span><br/>";
+                                        tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "</span><br/>";
                                     }
                                 }
                             
@@ -1250,7 +1258,8 @@ function writeFeatureContent(feature,layerName,thePromise){
                     return function() {
                         if (XMLHttpRequestObjects[arrIndex].readyState == 4) {
                             if (XMLHttpRequestObjects[arrIndex].status == 200) {
-                                tmpStr = "<span class='idTitle'>"+layerName + "</span><div style='padding-left: 10px;'>";
+                                //tmpStr = "<span class='idTitle'>"+layerName + "</span><div style='padding-left: 10px;'>";
+                                tmpStr = "<span class='idTitle'>"+identifyLayers[identifyGroup][[layerName]].display_label + "</span><div style='padding-left: 10px;'>";
 
                                 features.push(feature);
                                 // highlight all features (polygons are turned off)
@@ -1307,11 +1316,37 @@ function writeFeatureContent(feature,layerName,thePromise){
                                             if ((typeof(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]) === "string" && feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 7) == "<a href") && (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].indexOf("target") == -1))
                                                 tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ":</span><span class='idSubValue'> " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].replace(">", " target='_blank'>")+"</span>";
                                             else{
+                                                if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("updated") > -1){
+                                                    // subtract 6 hours from Greenwich time
+                                                    var d = (Date.now() - feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
+                                                    const days = Math.trunc(d/1000/60/60/24);
+                                                    const hours = Math.trunc(d/1000/60/60 - days*24);
+                                                    const minutes = Math.trunc(d/1000/60 - hours*60);
+                                                        var dayStr = "days";
+                                                    if (days == 1) dayStr = "day";
+                                                    var hourStr = "hours";
+                                                    if (hours == 1) hourStr = "hour";
+                                                    var minStr = "minutes";
+                                                    if (minutes == 1) minStr = "minute";
+                                                    if (days >= 1) {
+                                                        if (hours >= 1)
+                                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" +days+" "+dayStr+" "+hours+" "+hourStr+" ago</span><br/>";
+                                                        else
+                                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" +days+" "+dayStr+" ago</span><br/>";
+                                                    } else if (hours >= 1){
+                                                        if (minutes >= 1)
+                                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" +hours+" "+hourStr+" "+minutes+" "+minStr+" ago</span><br/>";
+                                                        else
+                                                            tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span classs='idSubValue'>" +hours+" "+hourStr+" ago</span><br/>";
+                                                    } else
+                                                        tmpStr = "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>"+minutes+" "+minStr+" ago</span><br/>";
+                                                }else {
                                                 // format numbers to 1 decimal place TODO *******************
                                                 //if(!isNaN(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]])){
                                                 //    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ":</span><span class='idSubValue'> " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(1)+"</span>";
                                                 //} else
                                                     tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ":</span><span class='idSubValue'> " + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]+"</span>";
+                                                }
                                             }
                                         }
                                         tmpStr += "<br/>";
@@ -1350,7 +1385,8 @@ function writeFeatureContent(feature,layerName,thePromise){
                                             for (j = 0; j < identifyLayers[identifyGroup][layerName].one2many_fields.length; j++) {
                                                 var one2many = xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2many_fields[j]);
                                                 // Make regulation title bold and values not bold
-                                                if (identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("regulations")>-1)
+                                                if (identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("regulations")>-1 ||
+                                                    identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("restrictions")>-1 )
                                                     tmpStr += "<span class='idSubValue'>"+identifyLayers[identifyGroup][layerName].displaynames[0] + ":</span><ul style='margin-top: 0px; margin-bottom: 0px;'>";
                                                 else
                                                     tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[0] + ":</span><ul style='margin-top: 0px; margin-bottom: 0px;'>";
@@ -1436,7 +1472,8 @@ function writeFeatureContent(feature,layerName,thePromise){
             features.push(feature);
             // highlight all features (polygons are turned off)
             highlightFeature(features.length-1,false);
-            tmpStr = "<span class='idTitle'>"+ layerName + "</span><div style='padding-left: 10px;'>";
+            //tmpStr = "<span class='idTitle'>"+ layerName + "</span><div style='padding-left: 10px;'>";
+            tmpStr = "<span class='idTitle'>"+identifyLayers[identifyGroup][[layerName]].display_label + "</span><div style='padding-left: 10px;'>";
             var first = true;
             // set header with the layer specified in IdentifyWidget.xml file with preTitle, titleField or identifyGroup as title
             if (theTitle[identifyGroup] == identifyGroup){
@@ -1490,6 +1527,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                         (feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].substring(0, 4) == "http"))
                         tmpStr += "<a href='" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] + "' class='idSubValue' target='_blank'>" + identifyLayers[identifyGroup][layerName].displaynames[i] + "</a>";
                     else{
+
                         // Convert Min & Max Elevation display name values to ft and display only 1 decimal place
                         if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Min Elevation"){
                             minElev =  feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] *3.2808;
@@ -1504,8 +1542,38 @@ function writeFeatureContent(feature,layerName,thePromise){
                             tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>";
                             tmpStr +=  feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(1)+"mi</span>";
                         }
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("updated") > -1){
+                            // subtract 6 hours from Greenwich time
+                            var d = (Date.now() - feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
+                            const days = Math.trunc(d/1000/60/60/24);
+                            const hours = Math.trunc(d/1000/60/60 - days*24);
+                            const minutes = Math.trunc(d/1000/60 - hours*60);
+                                var dayStr = "days";
+                            if (days == 1) dayStr = "day";
+                            var hourStr = "hours";
+                            if (hours == 1) hourStr = "hour";
+                            var minStr = "minutes";
+                            if (minutes == 1) minStr = "minute";
+                            if (days >= 1) {
+                                if (hours >= 1)
+                                    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" +days+" "+dayStr+" "+hours+" "+hourStr+" ago</span>";
+                                else
+                                    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" +days+" "+dayStr+" ago</span>";
+                            } else if (hours >= 1){
+                                if (minutes >= 1)
+                                    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" +hours+" "+hourStr+" "+minutes+" "+minStr+" ago</span>";
+                                else
+                                    tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" +hours+" "+hourStr+" ago</span>";
+                            } else
+                                tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>"+minutes+" "+minStr+" ago</span>";
+                        }
                         // Name make proper case, some were all upper case
-                        else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Name"){                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + toTitleCase(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toLowerCase())+"</span>";
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Name") > -1){
+                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + toTitleCase(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toLowerCase())+"</span>";
+                        }
+                        // Restrictions make title bold and text not bold
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("restrictions")>-1 ){
+                            tmpStr += "<span class='idSubValue'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubTitle'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] +"</span>";
                         }
                         // MVUM Seasonal Roads
                         else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Seasonal"){
@@ -1668,7 +1736,7 @@ function addClickPoint(){
         else alert("Missing picture marker symbol assets/images/color-pin.png where color is the color-theme specified in the body tag of index.html.","Error");
         const symbol = {
             type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-            url: "./assets/images/"+pinImg, // SVG does not work on FireFox!!!!!!
+            url: "./assets/images/"+pinImg, // SVG documents must include a definition for width and height to load properly in Firefox. svg does not work in FireFox!!!!! SVG does not work on FireFox!!!!!!
             width: 24,
             height: 24,
             xoffset: 0,
