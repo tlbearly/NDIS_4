@@ -1,6 +1,7 @@
 function myLayerList() {
     // Dialog with 3 tabs: Layer List, Basemaps, and Legend
     const tabs = document.createElement("calcite-tabs");
+    tabs.style.overflow = "auto"; // make the tabs not scroll
     const mapLayersWidget = document.createElement("calcite-dialog");
     mapLayersWidget.appendChild(tabs);
     var listFontSize = "1rem";
@@ -539,6 +540,20 @@ function layerListAddSublayerDialogs(event,theLayer){
             block.setAttribute("collapsible", false);
             block.setAttribute("open",true);
 
+            // Transparency
+            if (layer.transparency_control){
+                subLayerTransparency = document.createElement("calcite-slider");
+                subLayerTransparency.value = layer.opacity;
+                subLayerTransparency.slot = "content-bottom";
+                subLayerTransparency.layer = layer;
+                subLayerTransparency.min = 0;
+                subLayerTransparency.max = 1;
+                subLayerTransparency.addEventListener("calciteSliderChange", event => {
+                    event.target.layer.opacity = event.target.value;
+                });
+                block.appendChild(subLayerTransparency);
+            }
+
             // Add Switch to actions-end of Visibility label
             subLayeronOffBtn = document.createElement("calcite-switch");
             subLayeronOffBtn.slot = "actions-end";
@@ -742,6 +757,31 @@ function layerListAddSublayerDialogs(event,theLayer){
                 block.style.border = "none";
                 block.setAttribute("collapsible", false);
                 block.setAttribute("open",true);
+
+                //----------------
+                // Transparency
+                //----------------
+                if (layer.transparency_control){
+                    const subLayerTransparency = document.createElement("calcite-slider");
+                    subLayerTransparency.value = layer.opacity;
+                    subLayerTransparency.slot = "actions-end";
+                    subLayerTransparency.layer = layer;
+                    subLayerTransparency.min = 0.2;
+                    subLayerTransparency.max = 1.0;
+                    subLayerTransparency.snap = true;
+                    subLayerTransparency.ticks = 4;
+                    subLayerTransparency.step = 0.1;
+                    subLayerTransparency.groupSeparator = true;
+                    subLayerTransparency.style.width = "150px";
+                    subLayerTransparency.labelTicks = true;
+                    subLayerTransparency.labelHandles = true;
+                    //subLayerTransparency.style
+                    //subLayerTransparency.labelFormatter = "value: number, type: value";
+                    subLayerTransparency.addEventListener("calciteSliderInput", event => {
+                        event.target.layer.opacity = event.target.value;
+                    });
+                    block.appendChild(subLayerTransparency);
+                }
 
                 // Add on/off switch to end of Visibility
                 subLayeronOffBtn = document.createElement("calcite-switch");

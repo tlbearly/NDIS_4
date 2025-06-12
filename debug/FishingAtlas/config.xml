@@ -54,21 +54,8 @@
         <operationallayers>
             <!-- Note: if parentGroup is the same as the label it will put the layers at the top level instead of in an expandable block -->
             <!--Land and Access-->
-            <layer label="Land and Access" visible="true" alpha="1"
+            <layer label="Land and Access" visible="true" transparency_control="true" alpha="1"
                     url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/LandAccess2025/MapServer"/>
-            <layer group="Fishing Info" visible="true"/>
-                <layer parentGroup="Fishing Info" label="Watercraft Inspection Stations" visible="true" alpha="1" minScale="144448"
-                    symbol_icon="./assets/images/boat_inspection.png"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/PublicWID/FeatureServer/0"/>
-			    <layer parentGroup="Fishing Info" label="Stream Guage" visible="true" alpha="1"
-                    symbol_icon="./assets/images/water_20dp.svg" minScale="72224" filter="governing_location = 'CO, USA'"
-                    url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/Live_Stream_Gauges_v1/FeatureServer/0"/>
-                <layer parentGroup="Fishing Info" label="Fishing Info" visible="true" alpha="0.9"
-            		url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/FishingInfo2025/MapServer"/>
-                    <!--url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Main_Map/MapServer"/-->
-            <!--layer label="Fishing Info" open="true" opensublayer="Recommended opportunties" visible="true" alpha="0.9"
-            		url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Main_Map/MapServer"/-->
-			<!-- layers in groups must be feature services! -->
             <layer group="Transportation" visible="true" alpha="1" radio="false"/>
                 <layer  parentGroup="Transportation" label="Motor Vehicle Use Map" open="true" visible="true" alpha="1"  minScale="144448"
 					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1"/>
@@ -76,12 +63,25 @@
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/FeatureServer/5" />
                 <layer parentGroup="Transportation" label="Colorado State Parks Roads" visible="false" minScale="144448"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1" />
+                <!-- use &lt;&gt; for not equal in SQL Expression filter for <> -->
+                <!--For picture marker symbols for point layers use: symbol_icon="./assets/images/file.svg,./assets/images/file.png"-->
                 <layer parentGroup="Transportation" group="Trails" visible="true" open="false"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/"
                     layerIds="14,15"
                     layerVis="true,true"
+                    filter=",type &lt;&gt; 'Road'"
+                    symbol_icon=","
                     layerNames="Trailheads,Trails"
                     minScale="144448"/>
+            <layer group="Fishing Info" visible="true"/>
+                <layer parentGroup="Fishing Info" label="Watercraft Inspection Stations" visible="true" alpha="1" minScale="144448"
+                    symbol_icon="./assets/images/ANSBoat.svg"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/PublicWID/FeatureServer/0"/>
+			    <layer parentGroup="Fishing Info" label="Stream Guage" visible="true" alpha="1"
+                    symbol_icon="./assets/images/stream_gauge.svg" minScale="72224" filter="governing_location = 'CO, USA'"
+                    url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/Live_Stream_Gauges_v1/FeatureServer/0"/>
+                <layer parentGroup="Fishing Info" label="Fishing Info" visible="true" alpha="0.9"
+            		url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/FishingInfo2025/MapServer"/>
             <layer group="Wildfire" label="Wildfire" open="true" visible="false" alpha="0.8"/>
 			    <layer parentGroup="Wildfire" label="Wildfire Perimeters" open="true" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
 			    <layer parentGroup="Wildfire" label="Wildfire Incidents" open="true" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>

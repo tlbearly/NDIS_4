@@ -88,7 +88,7 @@ function addMapLayers(){
         "esri/layers/FeatureLayer","esri/layers/GroupLayer",], (MapImageLayer, FeatureLayer, GroupLayer) => {
         // Create Layer 3-21-22
         // Get layers from url of config.xml
-        function createLayer(layer,symbol_icon=null,filter=null){
+        function createLayer(layer,symbol_icon=null,filter=null,transparency_control=false){
             // layer could be the operational layer read from config.xml as an xml document (need to use getAttribute)
             // or event.layer (need to use layer.element)
             //console.log("Creating layer: ");
@@ -323,6 +323,7 @@ function addMapLayers(){
             }
             if (!found)
                 mapLayers.push(myLayer);
+            myLayer.transparency_control = transparency_control;
             map.add(myLayer);
         }
 
@@ -549,7 +550,7 @@ function addMapLayers(){
             ids = ids.reverse();
             return ids;
         }
-        function addGroupLayer(groupName, vis, opacity, radio, featureservice, portal, minScale, maxScale, layerIds, layerVis, layerNames, listMode, legendEnabled, popupFields,popupLabels){
+        function addGroupLayer(groupName, vis, opacity, radio, featureservice, portal, minScale, maxScale, layerIds, layerVis, layerNames, listMode, legendEnabled, popupFields,popupLabels,filters,symbol_icons){
             // Creates a group and adds feature service layers in layerVis. Returns the GroupLayer
             // groupName: string, name of this group
             // vis: boolean, is this group visible?
@@ -560,6 +561,8 @@ function addMapLayers(){
             // layerNames: array of strings, names of each layer
             // popupFields: field names in the feature service to display in identify popup template
             // popupLabels: labels for above fields
+            // filters: a SQL expression to filter the service
+            // symbol_icons: a marker symbol svg or png file to use for a point layer
             var visMode = "independent";
             if(radio) visMode="exclusive";
             vis = vis.toLowerCase() === "true";
@@ -602,6 +605,8 @@ function addMapLayers(){
                 featureservice += "/";
             var ids = getLayerIds(layerIds); // convert strings like "3-5" to integer array 3,4,5
             layerVis = layerVis.reverse();
+            if (filters) filters.reverse();
+            if (symbol_icons)symbol_icons.reverse();
             if (layerVis.length != ids.length){
                 alert("Error in "+app+"/config.xml operationallayers. In layer group "+groupName+", list of layerIds and layerVis must have the same number of elements.");
                 return groupLayer;
@@ -616,16 +621,20 @@ function addMapLayers(){
 
             // Add each featureservice layer to this group
             for(var i=0;i<ids.length;i++){
+                if (filters.length < i+1) filters.push(null);
+                if (filters.length > i && filters[i] === "") filters[i] = null;
+                if (symbol_icons.length < i+1) symbol_icons.push(null);
+                if (symbol_icons.length > i && symbol_icons[i] === "") symbol_icons[i] = null;
                 if (layerVis[i] == null) alert("Missing layerVis item ("+i+") for "+groupName+" in config.xml. Should be true or false.","Data Error");
                 vis = layerVis[i].toLowerCase() === "true";
                 tries[groupLayer.title+ids[i]]=0;
                 // use layer names from config.xml 
                 if (layerNames != null){
-                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],minScale,maxScale,layerNames[i],listMode,legendEnabled,popupFields,popupLabels);
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],minScale,maxScale,layerNames[i],listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i]);
                 } 
                 // Use feature service layer names 
                 else {
-                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],minScale,maxScale,null,listMode,legendEnabled,popupFields,popupLabels);
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],minScale,maxScale,null,listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i]);
                 }
             }
             return groupLayer;
@@ -640,6 +649,8 @@ function addMapLayers(){
                 // get popup template from config.xml
                 var popupFields = [];
                 var popupLabels = [];
+                var filter = null;
+                var symbol_icon = null;
                 var listMode = "show";
                 var legendEnabled = true;
                 for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
@@ -648,6 +659,12 @@ function addMapLayers(){
                         if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields")){
                             popupFields = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields").split(",");
                             popupLabels = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_labels").split(",");
+                        }
+                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("filter")){
+                            filter = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("filter");
+                        }
+                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon")){
+                            symbol_icon = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon");
                         }
                         if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("listMode")){
                             listMode = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("listMode");
@@ -666,13 +683,13 @@ function addMapLayers(){
                 tries[layer.parent.title+"19"]=1;
                 //createSubGroupLayer(layer.parent,layer.url,layer.visible,19,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels);
                 }*/
-                createSubGroupLayer(layer.parent,layer.url,layer.visible,layer.id,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels);
+                createSubGroupLayer(layer.parent,layer.url,layer.visible,layer.id,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon);
                 layer.parent.remove(layer);
             },30000);
             
         }
 
-        function createSubGroupLayer(groupLayer,url,visible,id,minScale,maxScale,title,listMode,legendEnabled,popupFields,popupLabels){		
+        function createSubGroupLayer(groupLayer,url,visible,id,minScale,maxScale,title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon){		
             var fsUrl;
             if (url[url.length-1]==="/")
                 fsUrl = url + id;
@@ -805,56 +822,25 @@ function addMapLayers(){
                 subGroupLayer.minScale = minScale;
                 subGroupLayer.maxScale = maxScale;
             }
-
-            // TODO: testing adding definition expression (filter) and symbols. Hard coded for testing. Eventually read from config.xml
-            if (fsUrl.indexOf("CPWAdminData")>0 && id == 15){
-                subGroupLayer.definitionExpression = "type <> 'Road'";
-                
-                /*    subGroupLayer.renderer = {
-                        type: "simple",
-                        symbol: {
-                            color: {a: 1,
-                                r: 80,
-                                g: 255,
-                                b: 80
-                            },
-                            join: "round",
-                            miterLimit: 2,
-                            style: "dash",
-                            type: "simple-line",
-                            width: 2
-                        },
-                    };*/
-
-            }
-            // label trailheads
-            /*if (fsUrl.indexOf("CPWAdminData")>0 && id==14){ 
-                const labelClass = {
-                    // autocasts as new LabelClass()
-                    symbol: {
-                      type: "text", // autocasts as new TextSymbol()
-                      color: "black",
-                      haloColor: [255,255,153,1.0],
-                      haloSize: "2px",
-                      xoffset: -23,
-                      yoffset: -30,
-                      horizontalAlignment: "center",
-                      verticalAlignment: "baseline",
-                      font: {
-                        //autocasts as new Font()
-                        family: "Arial",
-                        size: 10
-                      }
-                    },
-                    labelPlacement: "always-horizontal", //below-center for points
-                    text: label,
-                    labelExpressionInfo: {
-                        expression: "$feature.name"
-                    }
+            // apply SQL expression
+            if (filter)
+                subGroupLayer.definitionExpression = filter;
+            // apply marker symbol
+            if (symbol_icon){
+                 const symbol = {
+                    type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
+                    url: symbol_icon, // SVG documents must include a definition for width and height to load properly in Firefox. svg does not work in FireFox!!!!!
+                    size: 20,
+                    width: 20,
+                    height: 20,
+                    xoffset: 0,
+                    yoffset: 0
                 };
-                // TODO needs to be featureservice to add labels!!!!
-                subGroupLayer.labelingInfo=[labelClass];
-            }*/
+                subGroupLayer.renderer = {
+                    type: "simple",
+                    symbol: symbol
+                }
+            }
             groupLayer.add(subGroupLayer);
         }
 
@@ -970,8 +956,11 @@ function addMapLayers(){
         var regexp = /([^a-zA-Z0-9 \-,\._\/:])/g;
         var popupFields = [];
         var popupLabels = [];
+        var filters = [];
+        var symbol_icons = [];
         var symbol_icon;
         var filter;
+        var transparency_control;
         var listMode = "show";
         var legendEnabled = true;
         for (i = 0; i < layer.length; i++) {
@@ -979,6 +968,7 @@ function addMapLayers(){
             maxScale=0;
             symbol_icon = null;
             filter = null;
+            transparency_control = false;
             var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null,portal=null;	
             if (layer[i].getAttribute("maxScale"))
                 maxScale = layer[i].getAttribute("maxScale").replace(regexp,"");
@@ -998,6 +988,10 @@ function addMapLayers(){
             // filter: where expression to apply
             if (layer[i].getAttribute("filter")){
                 filter = layer[i].getAttribute("filter");
+            }
+            // add a transparency control? true or false
+            if (layer[i].getAttribute("transparency_control")){
+                transparency_control = layer[i].getAttribute("transparency_control") === "true";
             }
             // group layer with or without sub layers
             if (layer[i].getAttribute("group") && layer[i].getAttribute("group") != ""){
@@ -1050,6 +1044,11 @@ function addMapLayers(){
                             listMode = layer[i].getAttribute("listMode");
                             if (listMode !== "show" || listMode !== "hide") alert("Error in config.xml file. listMode must be show or hide for layer label: "+layer[i].label,"Data Error");
                         }
+                        // SQL expressions
+                        if (layer[i].getAttribute("filter"))
+                            filters = layer[i].getAttribute("filter").split(",");
+                        if (layer[i].getAttribute("symbol_icon"))
+                            symbol_icons = layer[i].getAttribute("symbol_icon").replace(regexp,"").split(",");
                         if (layer[i].getAttribute("legendEnabled")){
                             legendEnabled = layer[i].getAttribute("legendEnabled");
                             if (legendEnabled !== "true" || legendEnabled !== "false") alert("Error in config.xml file. legendEnabled must be true or false for layer label: "+layer[i].label,"Data Error");
@@ -1057,7 +1056,7 @@ function addMapLayers(){
                     }
                     
                     // returns a GroupLayer with feature layers added to to it. Use for group layer Elk and feature layers species data for elk.
-                    groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,radio,url,portal,minScale,maxScale,layerIds,layerVis,layerNames,listMode,legendEnabled,popupFields,popupLabels)};
+                    groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,radio,url,portal,minScale,maxScale,layerIds,layerVis,layerNames,listMode,legendEnabled,popupFields,popupLabels,filters,symbol_icons)};
                     if (parentGroupName != null && parentGroupName != "")
                         groupLayers[parentGroupName].layer.add(groupLayers[groupName].layer);
                     else{
@@ -1219,7 +1218,7 @@ function addMapLayers(){
                 // DEBUG make it fail
                 //layer[i].setAttribute("url",layer[i].getAttribute("url")+"oooo");
                 //console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);				
-                createLayer(layer[i],symbol_icon,filter);
+                createLayer(layer[i],symbol_icon,filter,transparency_control);
             }		
         }
         // -- Layer List --

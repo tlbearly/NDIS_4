@@ -54,6 +54,10 @@ a:-webkit-any-link:hover, .link:hover {
     background-color: var(--lightBackground);
     border-left-color: var(--press);
 }
+/* calcite-slider NOT WORKING!!!!!! */
+.thumb:focus .handle, .thumb--active .handle {
+    --calcite-color-brand: var(--press);
+}
 calcite-tab-title {
     --calcite-color-brand: var(--press);
 }

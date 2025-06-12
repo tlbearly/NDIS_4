@@ -96,7 +96,7 @@
         <!-- operationallayers:  Note: Displays in reverse order. -->
         <operationallayers>
             <!-- Land and Access is hard coded in myLayerList.js to add correct GMU layer: big game, sheep, or goat -->
-			<layer label="Land and Access" open="true" type="dynamic" visible="true" alpha="1.0"
+			<layer label="Land and Access" open="true" transparency_control="true" visible="true" alpha="1.0"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccess2025/MapServer"/>
 			
             <!-- Game Species group layer Bob's -->
@@ -148,8 +148,6 @@
                     layerIds="8,9,15-17,10,11,18"
                     layerVis="false,true,true,true,true,false,true,false"
                     layerNames="Bighorn Migration Patterns,Bighorn Migration Corridors,Bighorn Winter Severe Range,Bighorn Winter Concentration Area,Bighorn Winter Range,Bighorn Summer Concentration Area,Bighorn Summer Range,Bighorn Overall Range"/>
-
-            <!-- layers in groups must be feature services! -->
             <layer group="Transportation" visible="true" alpha="1" radio="false"/>
                 <!-- MVUM Status and Visitor Map Symbology are not used -->
                 <!--url="https://services.arcgis.com/h4jNYexE41HKnu98/ArcGIS/rest/services/Motor_Vehicle_Use_Map_Roads/FeatureServer/0"/-->
@@ -159,15 +157,15 @@
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/FeatureServer/5" />
                 <layer parentGroup="Transportation" label="Colorado State Parks Roads" visible="false" minScale="144448"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1" />
+                <!-- use &lt;&gt; for not equal in SQL Expression filter for <> -->
+                <!--For picture marker symbols for point layers use: symbol_icon="./assets/images/file.svg,./assets/images/file.png"-->
                 <layer parentGroup="Transportation" group="Trails" visible="true" open="false"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/"
                     layerIds="14,15"
+                    filter=",type &lt;&gt; 'Road'"
                     layerVis="true,true"
                     layerNames="Trailheads,Trails"
                     minScale="144448"/>
-                <!--layer parentGroup="Transportation" label="RoadsTrails" open="true" visible="false" alpha="1.0"
-                    url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/RoadsTrails/MapServer"/-->
-
             <layer group="Wildfire" open="false" visible="false" alpha="1" radio="false"/>
                 <layer parentGroup="Wildfire" label="Wildfire Incidents" type="dynamic" visible="true" alpha="0.8" 
                     url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>

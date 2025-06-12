@@ -1,6 +1,7 @@
 function myLayerList() {
     // Dialog with 3 tabs: Layer List, Basemaps, and Legend
     const tabs = document.createElement("calcite-tabs");
+    tabs.style.overflow = "auto"; // make the tabs not scroll
     const mapLayersWidget = document.createElement("calcite-dialog");
     mapLayersWidget.appendChild(tabs);
     var listFontSize = "1rem";
@@ -485,7 +486,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                     radioGroup.parentNode.placeholder = selectedItem;
                     radioGroup.parentNode.open = false;
                     // Update layer description
-                    iframe1.src = "layer-desc/" + selectedItem + ".html";
+                    iframe1.src = app+"/layer-desc/" + selectedItem + ".html";
                     if (layer.title === "Game Species")
                         setGMU(species); // update search widget and map
                     // Update opacity is whole block is visible or not
@@ -512,7 +513,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             iframe1.style.height = "300px"; 
             iframe1.style.width = "100%";
             iframe1.slot="message";
-            iframe1.src = "layer-desc/" + selectedItem + ".html";
+            iframe1.src = app+"/layer-desc/" + selectedItem + ".html";
             iframe1.setAttribute("frameborder",0);
             //iframe.style.border = "none";
             iframe1.style.margin = "0";
@@ -524,7 +525,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             openBtn.slot = "title";
             openBtn.scale = "m";
             openBtn.addEventListener("click", function (event) {
-                window.open("layer-desc/" + selectedItem + ".html", "_blank");
+                window.open(app+"/layer-desc/" + selectedItem + ".html", "_blank");
             });
             notice.appendChild(openBtn);
             notice.appendChild(iframe1);
@@ -538,6 +539,20 @@ function layerListAddSublayerDialogs(event,theLayer){
             block.style.border = "none";
             block.setAttribute("collapsible", false);
             block.setAttribute("open",true);
+
+            // Transparency
+            if (layer.transparency_control){
+                subLayerTransparency = document.createElement("calcite-slider");
+                subLayerTransparency.value = layer.opacity;
+                subLayerTransparency.slot = "content-bottom";
+                subLayerTransparency.layer = layer;
+                subLayerTransparency.min = 0;
+                subLayerTransparency.max = 1;
+                subLayerTransparency.addEventListener("calciteSliderChange", event => {
+                    event.target.layer.opacity = event.target.value;
+                });
+                block.appendChild(subLayerTransparency);
+            }
 
             // Add Switch to actions-end of Visibility label
             subLayeronOffBtn = document.createElement("calcite-switch");
@@ -713,7 +728,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 iframe1.style.height = "300px"; 
                 iframe1.style.width = "100%";
                 iframe1.slot="message";
-                iframe1.src = "layer-desc/" + layer.title + ".html";
+                iframe1.src = app+"/layer-desc/" + layer.title + ".html";
                 iframe1.setAttribute("frameborder",0);
                 //iframe.style.border = "none";
                 iframe1.style.margin = "0";
@@ -726,7 +741,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 openBtn.slot = "title";
                 openBtn.scale = "m";
                 openBtn.addEventListener("click", function (event) {
-                    window.open("layer-desc/" + layer.title + ".html", "_blank");
+                    window.open(app+"/layer-desc/" + layer.title + ".html", "_blank");
                 });
                 notice.appendChild(openBtn);
                 notice.appendChild(iframe1);
@@ -742,6 +757,30 @@ function layerListAddSublayerDialogs(event,theLayer){
                 block.style.border = "none";
                 block.setAttribute("collapsible", false);
                 block.setAttribute("open",true);
+
+                //----------------
+                // Transparency
+                //----------------
+                if (layer.transparency_control){
+                    const subLayerTransparency = document.createElement("calcite-slider");
+                    subLayerTransparency.value = layer.opacity;
+                    subLayerTransparency.slot = "actions-end";
+                    subLayerTransparency.layer = layer;
+                    subLayerTransparency.min = 0.2;
+                    subLayerTransparency.max = 1.0;
+                    subLayerTransparency.snap = true;
+                    subLayerTransparency.ticks = 4;
+                    subLayerTransparency.step = 0.1;
+                    subLayerTransparency.groupSeparator = true;
+                    subLayerTransparency.style.width = "150px";
+                    subLayerTransparency.labelTicks = true;
+                    subLayerTransparency.labelHandles = true;
+                    //subLayerTransparency.labelFormatter = "value: number, type: value";
+                    subLayerTransparency.addEventListener("calciteSliderInput", event => {
+                        event.target.layer.opacity = event.target.value;
+                    });
+                    block.appendChild(subLayerTransparency);
+                }
 
                 // Add on/off switch to end of Visibility
                 subLayeronOffBtn = document.createElement("calcite-switch");

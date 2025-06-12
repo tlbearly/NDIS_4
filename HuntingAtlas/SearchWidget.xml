@@ -53,7 +53,7 @@
   	</layer>
 	<layer>
 		<name>Campground</name>
-		<url>hhttps://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/3</url>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/3</url>
 		<searchFields>Name</searchFields>
 		<displayfield>Name</displayfield>
 		<placeholder>Search Campgrounds</placeholder>

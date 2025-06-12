@@ -272,7 +272,7 @@
 			<layer label="Motor Vehicle Use Map: Roads">
 				<id>1</id>
                 <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer</url>
-				<vis_id>4</vis_id>
+				<vis_id>1</vis_id>
                 <vis_url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer</vis_url>
 				<!--url>https://services.arcgis.com/h4jNYexE41HKnu98/ArcGIS/rest/services/Motor_Vehicle_Use_Map_Roads/FeatureServer/0</url-->
 				<!--id>0</id-->

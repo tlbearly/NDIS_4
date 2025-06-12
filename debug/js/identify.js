@@ -1386,7 +1386,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                                                 var one2many = xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2many_fields[j]);
                                                 // Make regulation title bold and values not bold
                                                 if (identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("regulations")>-1 ||
-                                                    identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("restrictions")>-1 )
+                                                    identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("restrictions")>-1)
                                                     tmpStr += "<span class='idSubValue'>"+identifyLayers[identifyGroup][layerName].displaynames[0] + ":</span><ul style='margin-top: 0px; margin-bottom: 0px;'>";
                                                 else
                                                     tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[0] + ":</span><ul style='margin-top: 0px; margin-bottom: 0px;'>";
@@ -1571,8 +1571,9 @@ function writeFeatureContent(feature,layerName,thePromise){
                         else if (identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Name") > -1){
                             tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + toTitleCase(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toLowerCase())+"</span>";
                         }
-                        // Restrictions make title bold and text not bold
-                        else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("restrictions")>-1 ){
+                        // If greater than 5 words in the text, make title bold and text not bold
+                        else if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
+                            feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].match(/(\w+)/g).length > 5) { //identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("restrictions")>-1 ){
                             tmpStr += "<span class='idSubValue'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubTitle'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] +"</span>";
                         }
                         // MVUM Seasonal Roads
