@@ -540,18 +540,25 @@ function layerListAddSublayerDialogs(event,theLayer){
             block.setAttribute("collapsible", false);
             block.setAttribute("open",true);
 
-            // Transparency
+            // Transparency Slider
             if (layer.transparency_control){
-                subLayerTransparency = document.createElement("calcite-slider");
-                subLayerTransparency.value = layer.opacity;
-                subLayerTransparency.slot = "content-bottom";
-                subLayerTransparency.layer = layer;
-                subLayerTransparency.min = 0;
-                subLayerTransparency.max = 1;
-                subLayerTransparency.addEventListener("calciteSliderChange", event => {
-                    event.target.layer.opacity = event.target.value;
-                });
-                block.appendChild(subLayerTransparency);
+                const subLayerTransparency = document.createElement("calcite-slider");
+                    subLayerTransparency.value = layer.opacity;
+                    subLayerTransparency.slot = "actions-end";
+                    subLayerTransparency.layer = layer;
+                    subLayerTransparency.min = 0.2;
+                    subLayerTransparency.max = 1.0;
+                    subLayerTransparency.snap = true;
+                    subLayerTransparency.ticks = 6;
+                    subLayerTransparency.step = 0.2;
+                    subLayerTransparency.groupSeparator = true;
+                    subLayerTransparency.style.width = "150px";
+                    subLayerTransparency.labelTicks = true;
+                    subLayerTransparency.labelHandles = true;
+                    subLayerTransparency.addEventListener("calciteSliderInput", event => {
+                        event.target.layer.opacity = event.target.value;
+                    });
+                    block.appendChild(subLayerTransparency);
             }
 
             // Add Switch to actions-end of Visibility label
@@ -758,9 +765,9 @@ function layerListAddSublayerDialogs(event,theLayer){
                 block.setAttribute("collapsible", false);
                 block.setAttribute("open",true);
 
-                //----------------
-                // Transparency
-                //----------------
+                //---------------------
+                // Transparency Slider
+                //---------------------
                 if (layer.transparency_control){
                     const subLayerTransparency = document.createElement("calcite-slider");
                     subLayerTransparency.value = layer.opacity;
@@ -769,14 +776,12 @@ function layerListAddSublayerDialogs(event,theLayer){
                     subLayerTransparency.min = 0.2;
                     subLayerTransparency.max = 1.0;
                     subLayerTransparency.snap = true;
-                    subLayerTransparency.ticks = 4;
-                    subLayerTransparency.step = 0.1;
+                    subLayerTransparency.ticks = 6;
+                    subLayerTransparency.step = 0.2;
                     subLayerTransparency.groupSeparator = true;
                     subLayerTransparency.style.width = "150px";
                     subLayerTransparency.labelTicks = true;
                     subLayerTransparency.labelHandles = true;
-                    //subLayerTransparency.style
-                    //subLayerTransparency.labelFormatter = "value: number, type: value";
                     subLayerTransparency.addEventListener("calciteSliderInput", event => {
                         event.target.layer.opacity = event.target.value;
                     });
@@ -853,7 +858,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 subLayerList.appendChild(row);
                                 if (element[i].loaded == false) {
                                     //alert("need to wait for layer to load, "+element[i].title);
-                                    var tim2 = setInterval(function(layer){
+                                    let tim2 = setInterval(function(layer){
                                         // call function to add layer and sublayers
                                         if (layer.layers || layer.sublayers){
                                             clearInterval(tim2);
@@ -871,6 +876,28 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 let blockRow = document.createElement("tr");
                                 if (i != element.length-1)
                                     blockRow.style.borderTop = "1px solid #efefef";
+                                // new code
+                                subLayerList.appendChild(blockRow);
+                                if (element[i].loaded == false) {
+                                    //alert("need to wait for layer to load, "+element[i].title);
+                                    let tim3 = setInterval(function(layer){
+                                        // call function to add layer and sublayers
+                                        if (layer.layers || layer.sublayers){
+                                            clearInterval(tim3);
+                                            // Pass in row, layer, put sublayers in an expandable block: false, fonsize, html h tag level 
+                                            addToLayerList(blockRow, layer, true, listFontSize, hLevel);
+                                        }
+                                    },500,element[i]);
+                                }else
+                                    addToLayerList(blockRow, element[i], true, listFontSize, hLevel); // false = do not add expandable block
+                                /*
+
+
+
+
+
+
+                                // old code
                                 let blockCol = document.createElement("td");
                                 blockCol.colSpan = "3";
                                 blockRow.appendChild(blockCol);
@@ -947,9 +974,6 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 if (element[i].loaded == false){
                                 // wait and then call routine again
                                     //alert(element[i].title+" not loaded. TODO in myLayerList.js");
-
-
-
 
                                 }
                                 if (element[i].sublayers) subSublayerArr = element[i].sublayers;
@@ -1058,15 +1082,23 @@ function layerListAddSublayerDialogs(event,theLayer){
                                             subLayerGroup.appendChild(subLayerListItem2); // Append to the calcite-block
                                         }
                                     }
-                                }
+                                }*/
                             }
                             // 1st level list item
                             // <tr (subLayerListItem)><td (subLayerListHeader)>layer title</td><td (subLayerVisibility)><calcite-switch (subLayerVisibility)></td></tr>
                             else {  
-                                subLayerListItem = document.createElement("tr");
+                                let subLayerListItem = document.createElement("tr");
                                 if (i != element.length-1)
                                     subLayerListItem.style.borderTop = "1px solid #efefef";
-                                subLayerListItem.style.fontSize=listFontSize;
+                                
+                                //new code
+                                subLayerList.appendChild(subLayerListItem);
+                                addToLayerList(subLayerListItem, element[i], true, listFontSize, hLevel); // false = do not add expandable block
+                                
+
+
+
+                                /*subLayerListItem.style.fontSize=listFontSize;
                                 subLayerListItem.style.margin="0";
                                 let subLayerListHeader = document.createElement("td");
                                 subLayerListHeader.style.fontSize=listFontSize;
@@ -1131,12 +1163,6 @@ function layerListAddSublayerDialogs(event,theLayer){
                                     iconDiv.appendChild(icon);
                                 }
                                 subLayerListItem.appendChild(iconDiv);
-                                            
-
-
-
-
-
 
                                 // Add Switch to actions-end of list Item
                                 let subLayerVisibility = document.createElement("td");
@@ -1154,6 +1180,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 });
                                 subLayerVisibility.appendChild(subLayeronOffBtn);
                                 subLayerListItem.appendChild(subLayerVisibility);
+                                // end old code
+                                */
                             }
                         }
                     }
@@ -1445,6 +1473,7 @@ function addBlock(row,element,listFontSize,hLevel){
         subLayerGroup.headingLevel = hLevel;
         subLayerGroup.style.fontWeight = "normal";
         subLayerGroup.style.border = "none";
+        subLayerGroup.style.fontSize = "1 rem";
         subLayerGroup.setAttribute("collapsible", true);
         // if open or opensublayer was set to true in config.xml
         if (openTOCgroups.indexOf(element.title) > -1)

@@ -28,7 +28,7 @@ Sub Page_Load(Sender As Object, E as EventArgs)
 '*************************************************
 '        Update database url here
 '*************************************************
-  strConnect += "Data Source=C:\Projects\fishingatlas\Data\FishingRegs\FishingRegs_2016.mdb;"
+  strConnect += "Data Source=C:\Projects\fishingatlas\Data\FishingRegs\FishingRegs_2025.mdb;"
   strConnect += "Persist Security Info=False"
 
   Response.Write ("<?xml version=""1.0"" encoding=""UTF-16""?>"&vbcrlf)

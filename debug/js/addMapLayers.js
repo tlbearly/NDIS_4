@@ -5,6 +5,7 @@ var openTOCgroups=[];
 var tries={}; // number of times we have tried to load each map layer
 var loadedFromCfg; // true when the layer has loaded and set the visiblelayers when setting layers from URL
 var labelFromURL = false;
+var icon_size = "20px"; // picture marker icon size for symbol_icon in config.xml file. Does nothing!!!!!! 
 
 function addGraphicsAndLabels() {
     //----------------------------------------------------------------
@@ -254,9 +255,8 @@ function addMapLayers(){
                 const symbol = {
                     type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
                     url: symbol_icon, // SVG documents must include a definition for width and height to load properly in Firefox. svg does not work in FireFox!!!!!
-                    size: 20,
-                    width: 20,
-                    height: 20,
+                    width: icon_size,
+                    height: icon_size,
                     xoffset: 0,
                     yoffset: 0
                 };
@@ -660,12 +660,25 @@ function addMapLayers(){
                             popupFields = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields").split(",");
                             popupLabels = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_labels").split(",");
                         }
-                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("filter")){
-                            filter = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("filter");
+                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds")){
+                            var ids = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds").split(",");
+                            for (var k=0; k<ids.length; k++){
+                                if (parseInt(ids[k]) == layer.id || parseInt(ids[k]) == layer.layerId){
+                                    if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("filter")){
+                                        filters = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("filter").split(",");
+                                        filter = filters[k];
+                                        if (filter === "") filter = null;
+                                    }
+                                    if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon")){
+                                        symbol_icons = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon").split(",");
+                                        symbol_icon = symbol_icons[k];
+                                        if (symbol_icon === "") symbol_icon = null;
+                                    }
+                                    break;
+                                }
+                            }
                         }
-                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon")){
-                            symbol_icon = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon");
-                        }
+                        
                         if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("listMode")){
                             listMode = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("listMode");
                         }
@@ -830,9 +843,8 @@ function addMapLayers(){
                  const symbol = {
                     type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
                     url: symbol_icon, // SVG documents must include a definition for width and height to load properly in Firefox. svg does not work in FireFox!!!!!
-                    size: 20,
-                    width: 20,
-                    height: 20,
+                    width: icon_size,
+                    height: icon_size,
                     xoffset: 0,
                     yoffset: 0
                 };
@@ -1060,6 +1072,7 @@ function addMapLayers(){
                     if (parentGroupName != null && parentGroupName != "")
                         groupLayers[parentGroupName].layer.add(groupLayers[groupName].layer);
                     else{
+                        groupLayers[groupName].layer.transparency_control = transparency_control;
                         mapLayers.push(groupLayers[groupName].layer);
                         map.add(groupLayers[groupName].layer);
                     }
