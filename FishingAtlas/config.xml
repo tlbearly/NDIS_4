@@ -82,11 +82,9 @@
                     url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/Live_Stream_Gauges_v1/FeatureServer/0"/>
                 <layer parentGroup="Fishing Info" label="Fishing Info" visible="true" alpha="0.9"
             		url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/FishingInfo2025/MapServer"/>
-            <layer group="Wildfire" label="Wildfire" open="true" visible="false" alpha="0.8"/>
+            <!--layer group="Wildfire" label="Wildfire" open="true" visible="false" alpha="0.8"/>
 			    <layer parentGroup="Wildfire" label="Wildfire Perimeters" open="true" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
-			    <layer parentGroup="Wildfire" label="Wildfire Incidents" open="true" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
-            <!--layer label="Wildfire Perimeters" open="false" visible="false" alpha="0.8"
-					url="https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Public_Wildfire_Perimeters_View/FeatureServer/0"/-->
+			    <layer parentGroup="Wildfire" label="Wildfire Incidents" open="true" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/-->
             <layer label="Base Data" visible="true" alpha="0.85" listMode="hide"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/BaseData2025/MapServer"/>
        </operationallayers>

@@ -329,6 +329,8 @@ function addMapLayers(){
 
         function layerLoadFailedHandler(event){
             console.log("layer failed to load: "+event.layer.id);
+            if (event.layer.url === "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_022/MapServer")
+                event.layer.url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer";
             // Layer failed to load 3-21-22
             // Wait 2 seconds, retry up to 5 times, then report the error and continue trying every 30 seconds
             // 3-10-22 NOTE: MVUM is sometimes missing some of the sublayers. Contacted victoria.smith-campbell@usda.gov
@@ -627,13 +629,14 @@ function addMapLayers(){
                 if (symbol_icons.length > i && symbol_icons[i] === "") symbol_icons[i] = null;
                 if (layerVis[i] == null) alert("Missing layerVis item ("+i+") for "+groupName+" in config.xml. Should be true or false.","Data Error");
                 vis = layerVis[i].toLowerCase() === "true";
-                tries[groupLayer.title+ids[i]]=0;
                 // use layer names from config.xml 
                 if (layerNames != null){
+                    tries[layerNames[i]+ids[i]]=0;
                     createSubGroupLayer(groupLayer,featureservice,vis,ids[i],minScale,maxScale,layerNames[i],listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i]);
                 } 
                 // Use feature service layer names 
                 else {
+                    tries[groupLayer.title+ids[i]]=0; // don't know layer names at this point
                     createSubGroupLayer(groupLayer,featureservice,vis,ids[i],minScale,maxScale,null,listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i]);
                 }
             }
@@ -642,9 +645,17 @@ function addMapLayers(){
         
         function subGroupLayerLoadFailed(event){
             // called from layerLoadFailedHandler from view.on("create-layer-error")
-            // tries to reload it every 30 seconds
+            // tries to reload it every 5 or 30 seconds
             var layer = event.layer;
-            tries[layer.parent.title+layer.id]++;
+            var tim = 5000;
+            if (layer.layerId) {
+                tries[layer.title+layer.layerId]++;
+                if (tries[layer.title+layer.layerId] > 5) tim = 30000;
+            }
+            else if (layer.id){
+                tries[layer.title+layer.id]++;
+                if (tries[layer.title+layer.id] > 5) tim = 30000;
+            }
             setTimeout(function(){
                 // get popup template from config.xml
                 var popupFields = [];
@@ -696,10 +707,15 @@ function addMapLayers(){
                 tries[layer.parent.title+"19"]=1;
                 //createSubGroupLayer(layer.parent,layer.url,layer.visible,19,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels);
                 }*/
-                createSubGroupLayer(layer.parent,layer.url,layer.visible,layer.id,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon);
+                var id;
+                if (layer.layerId){
+                    id = layer.layerId;
+                }else {
+                    id = layer.id;
+                }
+                createSubGroupLayer(layer.parent,layer.url,layer.visible,id,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon);
                 layer.parent.remove(layer);
-            },30000);
-            
+            },tim);  
         }
 
         function createSubGroupLayer(groupLayer,url,visible,id,minScale,maxScale,title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon){		
@@ -764,6 +780,14 @@ function addMapLayers(){
                 // Wait until layer loads then the title will be assigned. Then remove feature service name from the title (eg. "CPWSpeciesData -")
                 subGroupLayer.on("layerview-create", function(event){
                     var layer = event.layerView.layer;
+                    // remove loading icon
+                    var icon = document.getElementById("statusIcon"+layer.title.replace(/ /g,"+"));
+                    if (icon){
+                        icon.icon = "";
+                        icon.label = "";
+                        icon.title = "";
+                        icon.className = "";
+                    }
                     // get the feature service name (CPWSpeciesData), and remove it from the layer name. e.g. CPWSpeciesData - Elk Winter Range
                     // featureservice = .../ArcGIS/rest/services/CPWSpeciesData/FeatureServer/
                     // remove the feature service name from the title (eg. CPWSpeciesData - )
@@ -779,9 +803,17 @@ function addMapLayers(){
                     //console.log("sub group layer loaded: "+layer.parent.title+" "+title+" url="+fsUrl);
                 });
             }
-            if (groupLayer.title && tries[groupLayer.title+id]>0){
+            //if ((layer.title && tries[layer.title+id]>0) || (groupLayer.title && tries[groupLayer.title+id]>0)){
                 subGroupLayer.on("layerview-create", function(event){
                     var layer = event.layerView.layer;
+                    // remove loading icon
+                    var icon = document.getElementById("statusIcon"+layer.title.replace(/ /g,"+"));
+                    if (icon){
+                        icon.icon = "";
+                        icon.label = "";
+                        icon.title = "";
+                        icon.className = "";
+                    }
                     // load the correct layer order from config.xml file for all group layers
                     // opGroupLayerObj = a groupLayer with layerids, ignor sub groups with no sublayers
                     if (opGroupLayerObj.length == 0){
@@ -828,7 +860,7 @@ function addMapLayers(){
                     }
                     //console.log("reorder group layer "+layer.title);
                 });
-            }
+            //}
 
             // Add min and max Scale from config.xml
             if (minScale > 0 || maxScale > 0){
@@ -1074,6 +1106,7 @@ function addMapLayers(){
                     else{
                         groupLayers[groupName].layer.transparency_control = transparency_control;
                         mapLayers.push(groupLayers[groupName].layer);
+                        tries[groupLayers[groupName].layer.title] = 0;
                         map.add(groupLayers[groupName].layer);
                     }
                 } catch(e) {
@@ -1133,7 +1166,10 @@ function addMapLayers(){
                         opacity: Number(opacity),
                         id: label
                     });
-                    if (id != -1)fsLayer.id = id;
+                    if (id != -1){
+                        fsLayer.id = id;
+                        tries[label+id] = 0;
+                    }else tries[label] = 0;
                 }else {
                     fsLayer = new FeatureLayer({
                         visible: layerVis === "true",
@@ -1143,6 +1179,7 @@ function addMapLayers(){
                         //layerId: label, // do not use layerId, it sets this from url
                         id: label
                     });
+                    tries[fsLayer.title+fsLayer.layerId] = 0;
                 }
                 if (minScale > 0 || maxScale > 0){
                     fsLayer.minScale = minScale;
@@ -1230,7 +1267,9 @@ function addMapLayers(){
                 tries[layer[i].getAttribute("label")] = 0;
                 // DEBUG make it fail
                 //layer[i].setAttribute("url",layer[i].getAttribute("url")+"oooo");
-                //console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);				
+                //console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);
+                
+                // createLayer checks if layer has a getAttrubute function and reads values from config.xml file			
                 createLayer(layer[i],symbol_icon,filter,transparency_control);
             }		
         }

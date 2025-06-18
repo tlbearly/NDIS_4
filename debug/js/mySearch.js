@@ -202,7 +202,7 @@ function createSearchWidget(sources,zoomScale){
   
          // Colorado Place GNIS
         sources.push({
-            url: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer",
+            url: myFindService, //"https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer",
             singleLineFieldName: "SingleLine",
             outFields: ["*"],
             name: "Colorado Places",

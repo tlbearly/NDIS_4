@@ -668,7 +668,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                             // Status has layer loaded?
                             var statusColumn = document.createElement("td");
                             const icon = document.createElement("calcite-icon");
-                            icon.id = "statusIcon";
+                            icon.id = "statusIcon"+item[i].title.replace(/ /g,"+");
                             if (item[i].loaded){
                                 icon.icon = "";
                             }else {
@@ -862,12 +862,15 @@ function layerListAddSublayerDialogs(event,theLayer){
                                         // call function to add layer and sublayers
                                         if (layer.layers || layer.sublayers){
                                             clearInterval(tim2);
+                                            console.log(layer.title+" "+layer.loaded+" with layers");
                                             // Pass in row, layer, put sublayers in an expandable block: false, fonsize, html h tag level 
                                             addToLayerList(row, layer, false, listFontSize, hLevel);
                                         }
                                     },500,element[i]);
-                                }else
+                                }else{
+                                    console.log(element[i].title+" "+element[i].loaded+" with layers");
                                     addToLayerList(row, element[i], false, listFontSize, hLevel); // false = do not add expandable block
+                                }
                             }
                             // if it has sublayers make it an expandable block
                             // tr td calcite-block
@@ -884,12 +887,15 @@ function layerListAddSublayerDialogs(event,theLayer){
                                         // call function to add layer and sublayers
                                         if (layer.layers || layer.sublayers){
                                             clearInterval(tim3);
+                                            console.log(layer.title+" "+layer.loaded+" with layers");
                                             // Pass in row, layer, put sublayers in an expandable block: false, fonsize, html h tag level 
                                             addToLayerList(blockRow, layer, true, listFontSize, hLevel);
                                         }
                                     },500,element[i]);
-                                }else
+                                }else{
+                                    console.log(element[i].title+" "+element[i].loaded+ " with layers");
                                     addToLayerList(blockRow, element[i], true, listFontSize, hLevel); // false = do not add expandable block
+                                }
                                 /*
 
 
@@ -1090,9 +1096,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 let subLayerListItem = document.createElement("tr");
                                 if (i != element.length-1)
                                     subLayerListItem.style.borderTop = "1px solid #efefef";
-                                
-                                //new code
                                 subLayerList.appendChild(subLayerListItem);
+                                console.log(element[i].title+" "+element[i].loaded);
                                 addToLayerList(subLayerListItem, element[i], true, listFontSize, hLevel); // false = do not add expandable block
                                 
 
@@ -1204,24 +1209,6 @@ function layerListAddSublayerDialogs(event,theLayer){
             }
         }
         view.ui.add(sublayerDialog,"top-right");
-        
-        // set font size for drop down blocks
-        const tim = setInterval(function () {
-            var blocks = document.querySelectorAll("calcite-block");
-            if (!blocks[0]) return;
-            if (!blocks[0].shadowRoot) return;
-            if (!blocks[0].shadowRoot.children) return;
-            if (blocks[0].shadowRoot.children.length < 1) return;
-            clearInterval(tim);
-            blocks.forEach(block => {
-                if (block.shadowRoot.querySelector("h3")){
-                    block.shadowRoot.querySelector("h3").style.fontSize = listFontSize;
-                    if (block.shadowRoot.querySelector("h3").innerText !== "Visibility:" &&
-                        block.shadowRoot.querySelector("h3").innerText !== "Layer Descriptions:")
-                        block.shadowRoot.querySelector("h3").style.fontWeight = "normal";
-                }
-            });
-        },500);
     });
 }
 function addToLayerList(row,element,block, listFontSize, hLevel){
@@ -1313,7 +1300,7 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                         const iconDiv = document.createElement("td");
                         if(item[j].type != "group"){
                             const icon = document.createElement("calcite-icon");
-                            icon.id = "statusIcon";
+                            icon.id = "statusIcon"+item[j].title.replace(/ /g,"+");
                             var testLayer = item[j];
                             if (item[j].type === "sublayer") testLayer = item[j].parent;
                             if (testLayer.type === "sublayer") testLayer = item[j].parent.parent;
@@ -1414,7 +1401,7 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
             const iconDiv = document.createElement("td");
             if(element.type != "group"){
                 const icon = document.createElement("calcite-icon");
-                icon.id = "statusIcon";
+                icon.id = "statusIcon"+element.title.replace(/ /g,"+");
                 var testLayer = element;
                 if (element.type === "sublayer") testLayer = element.parent;
                 if (testLayer.type === "sublayer") testLayer = element.parent.parent;
@@ -1471,10 +1458,12 @@ function addBlock(row,element,listFontSize,hLevel){
         subLayerGroup.heading = element.title;
         subLayerGroup.value = element.title;
         subLayerGroup.headingLevel = hLevel;
-        subLayerGroup.style.fontWeight = "normal";
-        subLayerGroup.style.border = "none";
-        subLayerGroup.style.fontSize = "1 rem";
         subLayerGroup.setAttribute("collapsible", true);
+        subLayerGroup.componentOnReady().then(() => {
+            subLayerGroup.shadowRoot.querySelector("h3").style.fontWeight = "normal";
+            subLayerGroup.shadowRoot.querySelector("h3").style.border = "none";
+            subLayerGroup.shadowRoot.querySelector("h3").style.fontSize = "1rem";
+        });
         // if open or opensublayer was set to true in config.xml
         if (openTOCgroups.indexOf(element.title) > -1)
             subLayerGroup.setAttribute("open",true);
@@ -1594,7 +1583,7 @@ function addBlock(row,element,listFontSize,hLevel){
                     const iconDiv = document.createElement("div");
                     if(item[j].type != "group"){
                         const icon = document.createElement("calcite-icon");
-                        icon.id = "statusIcon";
+                        icon.id = "statusIcon"+item[j].title.replace(/ /g,"+");
                         var testLayer = item[j];
                         if (item[j].type === "sublayer") testLayer = item[j].parent;
                         if (testLayer.type === "sublayer") testLayer = item[j].parent.parent;

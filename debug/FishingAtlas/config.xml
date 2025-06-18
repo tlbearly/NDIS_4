@@ -10,34 +10,35 @@
 // and use restrictions.  See use restrictions in the file:
 // <install location>/License.txt
 //
-// operationallayers: Note: Displays in reverse order
+// operationallayers: Note: Displays in reverse order. The top level layers or groups will display in a separate
+        dialog widget. When you click on one of these it will open a new dialog widget.
         feature service or map service with groups and layers 
             tag: layer
             attributes:
                 label: service display name
-                open: true or false, is this group open?
-                type: featureservice, mapservice
+                opensublayer: comma delimited list of group layer names under this service to expand at the start.
                 visible: true or false
                 alpha: opacity 0.8. Must be set or data will be invisible. Set to 1 to allow service defaults to show.
                 url: MapServer or FeatureServer URL
-                popup_fields: fields to identify comma delimited (feature service only)
-                popup_labels: labels for the above fields comma delimited (feature service only)
                 transparency_control: Should a transparency control slider be added next to Visibility? Values: "true" or "false". Defaults to false.
                 filter=SQL where filter. For example: "type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
                 symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). For example: "./assets/images/file.png"
                 minScale="144448" layer turns on below this scale. 1:100k="144448" 1:50k="72224"
                 maxScale="144448" layer turns off above this scale
-        
-        
+                listMode="show" or "hide" default is "show". Should this service be included in the layer list?
+                legendEnabled="true" or "false" default is "true". Should this service be include in the legend?
+
         group layer
             tag: layer
             attributes:
                 group: group name
-                open: true or false, is this group open? Top level are never open. If radio is true, this is ignored.
+                open: true or false, is this group open? Top level groups should not use open. If radio is true, this is ignored.
+                opensublayer: comma delimited list of group layer names under this service to expand at the start.
                 visible: true or false
                 alpha: opacity 0.8
-                radio: true or false, uses a drop down list for children (only one set is visible at a time). Game Species drop down
-                    with Elk, Bighorn, etc. Selected species displays it's children at the top level in the layer list.
+                radio: true or false, uses a drop down list for children (only one set is visible at a time). 
+                    For exmple: Game Species drop down with Elk, Bighorn, etc in the drop down. The selected species displays
+                    it's children at the top level in the layer list.
                 transparency_control: Should a transparency control slider be added next to Visibility? Values: "true" or "false". Defaults to false.
         
 
@@ -46,16 +47,18 @@
             attributes:
                 label: service display name
                 parentGroup: group name
+                NOTE: if the parentGroup is the same as the label, it will not put it in a group, but will
+                    put the layers at the top level. The parentGroup will be in the first dialog widget.
                 visible: true or false
+                opensublayer: comma delimited list of group layer names under this service to expand at the start.
                 alpha: opacity 0.8 (optional)
                 url=a FeatureService 
-                popup_fields: fields to identify comma delimited (feature service only)
-                popup_labels: labels for the above fields comma delimited (feature service only)
                 minScale="144448" layer turns on below this scale. 1:100k="144448" 1:50k="72224"
                 maxScale="144448" layer turns off above this scale
                 filter=SQL where filter. For example: "type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
                 symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). For example: "./assets/images/file.png"
-
+                listMode=Should this service be included in the layer list?
+                legendEnabled="true" or "false" default is "true". Should this service be include in the legend?
         
         sub group under the parent group with or without layers under it.
             tag: layer
@@ -63,6 +66,7 @@
                 group=label
                 parentGroup=parent group name
                 open=true or false, is this group open?
+                opensublayer: comma delimited list of group layer names under this service to expand at the start.
                 alpha=opacity for the group
                 visible=true or false, is this group visible?
                 url=a FeatureService to add layers to this group. If this is missing, it will just add the group and the rest of the attributes are ignored.
@@ -71,24 +75,19 @@
                 symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). Comma delimited, one for each layerIDs above. For example: "./assets/images/file.png,"
                 layerVis=visibility of each layer in display order.
                 layerNames=optional display name. If missing, it will use names from FeatureService. Format="layer1 name,layer2 name,..." in display order.
-                popup_fields: fields to identify comma delimited (feature service only)
-                popup_labels: labels for the above fields comma delimited (feature service only)
-        
+                listMode=Should this service be included in the layer list?
+                legendEnabled="true" or "false" default is "true". Should this service be include in the legend?
 
+    hideGroupSublayers: do not show sublayers in a group. If a mapservice url has the id with it, you will need to add it to this tag.
 ////////////////////////////////////////////////////////////////////////////////
 -->
 <configuration xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
     <title>Colorado Fishing Atlas</title>
-    <!--subtitle>Colorado Parks and Wildlife</subtitle-->
     <app>fishingatlas</app>
     <!-- logo in header bar-->
-    <logo>assets/images/logo.svg</logo>
+    <logo>./assets/images/logo.svg</logo>
 	<httpproxy>/proxy/DotNet/proxy.ashx</httpproxy>
 
-    <!-- Application logo at bottom right corner -->
-    <!-- To change this logo and link, edit StaticImageWidget.xml-->
-    <widget bottom="2" right="10" config="StaticImageWidget.xml" url="../widgets/StaticImage/StaticImageWidget.swf"/>
-    
     <style>
 		<font name="Helvetica" size="11"/>    	
     </style>
@@ -100,31 +99,33 @@
 	<printservicegeo>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting</printservicegeo>
     <printservice>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/ExportWebMap/GPServer/Export%20Web%20Map</printservice>
 	
-	<!-- Find a Place Service **NEW** -->
+	<!-- Colorado Places Service GNIS -->
 	<findplaceservice url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer"/>
 	
-	<!-- Address Service **NEW** -->
-	<addressservice url="https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"/>
+	<!-- Address Service -->
+	<!--addressservice url="https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"/-->
+    <!-- 6/17/25 now using hard code address service in mySearch.js
+    "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"-->
 	
-    <!-- Key to allow Bing Map background layers to work.  Do not change. -->
+    <!-- Key to allow Bing Map background layers to work.  Do not change. NOT USED-->
 	<!--bing key="Ak1eor2ZBWpGcsTkRL8PjLwDpPda-_tK9v-PS-5IbeiOpKm0Eq6n4Xdf26hFbAN6"/-->
 
     <!-- wkid is required.  This is the spatial reference number.-->
-    <map top="85" wkid="102100"
+    <map wkid="102100"
     	 initialextent="-12350000 4250000 -11150000 5250000">
-         <!-- Set open=true if you want this mapservice layer expanded at the start. -->
+         <!-- Set open=true if you want this group layer expanded at the start. -->
          <!-- Set opensublayer=comma delimited list of layer names under the mapservice checkbox to expand at the start. open must be true. -->
          <!--     example: open="true" opensublayer="Places of Interest,Township Range Sections" --> 
         <!-- operationallayers:  Note: Displays in reverse order. -->
         <operationallayers>
             <!-- Note: if parentGroup is the same as the label it will put the layers at the top level instead of in an expandable block -->
             <!--Land and Access-->
-            <layer label="Land and Access" visible="true" transparency_control="true" alpha="1"
+            <layer label="Land and Access" visible="true" opensublayer="CPW Public Access Properties" transparency_control="true" alpha="1"
                     url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/LandAccess2025/MapServer"/>
-            <layer group="Transportation" visible="true" alpha="1" radio="false"/>
-                <layer  parentGroup="Transportation" label="Motor Vehicle Use Map" open="true" visible="true" alpha="1"  minScale="144448"
-					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1"/>
-                <layer  parentGroup="Transportation" label="BLM Colorado Routes" open="true" visible="true" alpha="1" minScale="144448"
+            <layer group="Transportation" visible="false" alpha="1" radio="false"/>
+                <layer  parentGroup="Transportation" label="Motor Vehicle Use Map" visible="true" alpha="1"  minScale="144448"
+					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_022/MapServer/1"/>
+                <layer  parentGroup="Transportation" label="BLM Colorado Routes" visible="true" alpha="1" minScale="144448"
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/FeatureServer/5" />
                 <layer parentGroup="Transportation" label="Colorado State Parks Roads" visible="false" minScale="144448"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1" />
@@ -147,14 +148,14 @@
                     url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/Live_Stream_Gauges_v1/FeatureServer/0"/>
                 <layer parentGroup="Fishing Info" label="Fishing Info" visible="true" alpha="0.9"
             		url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/FishingInfo2025/MapServer"/>
-            <!--layer group="Wildfire" label="Wildfire" open="true" visible="false" alpha="0.8"/>
-			    <layer parentGroup="Wildfire" label="Wildfire Perimeters" open="true" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
-			    <layer parentGroup="Wildfire" label="Wildfire Incidents" open="true" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/-->
-            <layer label="Base Data" visible="true" alpha="0.85" listMode="hide"
+            <!--layer group="Wildfire" label="Wildfire" visible="false" alpha="0.8"/>
+			    <layer parentGroup="Wildfire" label="Wildfire Perimeters"visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
+			    <layer parentGroup="Wildfire" label="Wildfire Incidents" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/-->
+            <layer label="Base Data" visible="true" alpha="1.0" listMode="hide"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/BaseData2025/MapServer"/>
        </operationallayers>
 		
-		<hideGroupSublayers>Motor Vehicle Use Map,Gold Medal Water,Trails,Fishing License Agent,Family friendly,More remote fly fishing,Ice fishing,Special Fishing Regulations,Fishing Information Point,Stocked with catchables (~10 inches),Emergency,Field Office,Chamber of Commerce or Welcome Center,Campgrounds and SWA Facilities</hideGroupSublayers>
+		<hideGroupSublayers>Motor Vehicle Use Map,Township Range Sections,Gold Medal Water,Trails,Fishing License Agent,Family friendly,More remote fly fishing,Ice fishing,Special Fishing Regulations,Fishing Information Point,Stocked with catchables (~10 inches),Emergency,Field Office,Chamber of Commerce or Welcome Center,Campgrounds and SWA Facilities</hideGroupSublayers>
     </map>
 
     <links>
