@@ -71,6 +71,8 @@
                 visible=true or false, is this group visible?
                 url=a FeatureService to add layers to this group. If this is missing, it will just add the group and the rest of the attributes are ignored.
                 layerIds=FeatureService ids in display order, and can use 3-6,9,11 format.
+                minScale=can be 1 value for all layer ids, or comma delimited min scales for each layerIDs.
+                maxScale=can be 1 value for all layer ids, or comma delimited min scales for each layerIDs.
                 filter=SQL where filter. Comma delimited, one for each layerIDs above. For example: ",type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
                 symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). Comma delimited, one for each layerIDs above. For example: "./assets/images/file.png,"
                 layerVis=visibility of each layer in display order.
@@ -186,7 +188,7 @@
                     filter=",type &lt;&gt; 'Road'"
                     layerVis="true,true"
                     layerNames="Trailheads,Trails"
-                    minScale="144448"/>
+                    minScale="36112,144448"/>
             <layer group="Wildfire" visible="false" alpha="1"/>
                 <layer parentGroup="Wildfire" label="Wildfire Incidents" visible="true" alpha="0.8" 
                     url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>

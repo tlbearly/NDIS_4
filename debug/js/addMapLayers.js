@@ -329,8 +329,6 @@ function addMapLayers(){
 
         function layerLoadFailedHandler(event){
             console.log("layer failed to load: "+event.layer.id);
-            if (event.layer.url === "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_022/MapServer")
-                event.layer.url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer";
             // Layer failed to load 3-21-22
             // Wait 2 seconds, retry up to 5 times, then report the error and continue trying every 30 seconds
             // 3-10-22 NOTE: MVUM is sometimes missing some of the sublayers. Contacted victoria.smith-campbell@usda.gov
@@ -371,17 +369,6 @@ function addMapLayers(){
                 console.log("Retrying to load (every 2 seconds): "+event.layer.id);
                 setTimeout(function(){createLayer(event.layer);},2000);
             } 
-            // Greater than 5 tries, give warning
-            /*else if (tries[event.layer.title] == 4){
-                //if (event.layer.id.indexOf("Motor Vehicle") > -1 || event.layer.id.indexOf("Wildfire") > -1 || event.layer.id.indexOf("BLM") > -1)
-                //    alert("The external map service that provides "+event.layer.id+" is experiencing problems.  This issue is out of CPW control. We will continue to try to load it. We apologize for any inconvenience.","External (Non-CPW) Map Service Error");
-                //else
-                //    alert(event.layer.id+" service is busy or not responding. We will continue to try to load it.","Data Error");
-                //if (layer){
-                    console.log("Retrying to load: "+event.layer.id);
-                    setTimeout(function(){createLayer(event.layer);},30000);
-                //}
-            }*/
             // Greater than 5 tries. Keep trying every 30 seconds
             else {
     //DEBUG
@@ -401,45 +388,6 @@ function addMapLayers(){
                 //console.log(event.layer.title +" loaded in layerLoadHandler.");
             //else
                 //console.log(event.layer.id +" loaded in layerLoadHandler.");
-            
-            // Set the arcade context for Wildfire Incidents to print at correct size
-            // the input feature's geometry is expected
-            // to be in the spatial reference of the view
-            //*************************TODO tried to fix printing wildfire symbols did not work */
-            /*if (event.layer.id === "Wildfire Incidents"){
-                const labelVariableExpressionInfo = arcadeUtils
-                .getExpressionsFromLayer(event.layer)
-                .filter(expressionInfo => expressionInfo.profileInfo.context === "label-class")[0];
-                const wildfireLabelArcadeScript = labelVariableExpressionInfo.expression;
-
-                const rendererVariableExpressionInfo = arcadeUtils
-                .getExpressionsFromLayer(event.layer)
-                .filter(expressionInfo => expressionInfo.profileInfo.context === "unique-value-renderer")[0];
-                const wildfireRendererArcadeScript = rendererVariableExpressionInfo.expression;
-
-                // Arcade expression used by size visual variable
-                const sizeVariableExpressionInfo = arcadeUtils
-                .getExpressionsFromLayer(event.layer)
-                .filter(expressionInfo => expressionInfo.profileInfo.context === "size-variable")[0];
-
-                const wildfireSizeArcadeScript = sizeVariableExpressionInfo.expression;
-                const wildfireSizeArcadeTitle = sizeVariableExpressionInfo.title;
-        
-                //const color
-                // Define the visualization profile variables
-                // Spec documented here:
-                // https://developers.arcgis.com/arcade/profiles/visualization/
-                const visualizationProfile = arcade.createArcadeProfile("visualization");
-        
-                // Compile the color variable expression and create an executor
-                const wildfireLabelArcadeExecutor =
-                    await arcade.createArcadeExecutor(wildfireLabelArcadeScript, visualizationProfile);
-                const wildfireRendererArcadeExecutor =
-                    await arcade.createArcadeExecutor(wildfireRendererArcadeScript, visualizationProfile);
-                const wildfireSizeArcadeExecutor =
-                    await arcade.createArcadeExecutor(wildfireSizeArcadeScript, visualizationProfile);
-            }*/
-            //*******************end wildfire *****************************/
 
             // remove MVUM Status & "Visitor Map Symbology"
             if (event.layer.title === "Motor Vehicle Use Map" || event.layer.title === "MVUM"){
@@ -558,11 +506,14 @@ function addMapLayers(){
             // vis: boolean, is this group visible?
             // radio: boolean, radio buttons?
             // featureservice: string, url
+            // portal: portal number for the service
+            // minScale: Can be an array of scales for each layerIDs
+            // maxScale: Can be an array of scales for each layerIDs
             // layerIds: array of integers, or string "10-15,17", id of each layer
             // layerVis: array of true, false for visibility of each layer
             // layerNames: array of strings, names of each layer
-            // popupFields: field names in the feature service to display in identify popup template
-            // popupLabels: labels for above fields
+            // popupFields: field names in the feature service to display in identify popup template NOT USED
+            // popupLabels: labels for above fields NOT USED
             // filters: a SQL expression to filter the service
             // symbol_icons: a marker symbol svg or png file to use for a point layer
             var visMode = "independent";
@@ -598,14 +549,46 @@ function addMapLayers(){
                     });
                 }
             }
-            if (minScale != 0) groupLayer.minScale = minScale;
-            if (maxScale != 0) groupLayer.maxScale = maxScale;
+             // check if comma delimited list of min scales
+            if (minScale != 0) {
+                if (minScale.toString().indexOf(",") > -1) {
+                    var scales = minScale.split(",");
+                    var largest = 0;
+                    for (var m=0; m<scales.length; m++){
+                        if (parseInt(scales[m]) > parseInt(largest)) largest = scales[m];
+                    }
+                    groupLayer.minScale = parseInt(largest);
+                }else 
+                    groupLayer.minScale = minScale;
+            }
+            // check if comma delimited list of max scales
+            if (maxScale != 0) {
+                if (maxScale.toString().indexOf(",") > -1) {
+                    var scales = maxScale.split(",");
+                    var smallest = 9244649;
+                    for (var m=0; m<scales.length; m++){
+                        if (parseInt(scales[m]) < parseInt(smallest)) smallest = scales[m];
+                    }
+                    groupLayer.minScale = parseInt(smallest);
+                }else 
+                    groupLayer.maxScale = maxScale;
+            }
             if (!featureservice) return groupLayer;
 
             // add / to end of feature service
             if (featureservice.substr(featureservice.length-1) != "/")
                 featureservice += "/";
             var ids = getLayerIds(layerIds); // convert strings like "3-5" to integer array 3,4,5
+            var minScales = null;
+            var maxScales = null;
+            if (minScale.toString().indexOf(",") > -1) {
+                minScales = minScale.split(",").reverse();
+                if (minScales.length != ids.length) alert("In config.xml, group layer "+groupLayer.title+", the layer with url="+featureservice+" minScale must have 1 value or the same number of comma dilimited vales as layerIds.");
+            }
+            if (maxScale.toString().indexOf(",") > -1){
+                maxScales = maxScale.split(",").reverse();
+                if (minScales.length != ids.length) alert("In config.xml, group layer "+groupLayer.title+", the layer with url="+featureservice+" maxScale must have 1 value or the same number of comma dilimited vales as layerIds.");
+            }
             layerVis = layerVis.reverse();
             if (filters) filters.reverse();
             if (symbol_icons)symbol_icons.reverse();
@@ -629,15 +612,20 @@ function addMapLayers(){
                 if (symbol_icons.length > i && symbol_icons[i] === "") symbol_icons[i] = null;
                 if (layerVis[i] == null) alert("Missing layerVis item ("+i+") for "+groupName+" in config.xml. Should be true or false.","Data Error");
                 vis = layerVis[i].toLowerCase() === "true";
+                // parse out minScale=value1,value2...
+                var myMinScale=minScale;
+                var myMaxScale=maxScale;
+                if (minScales) myMinScale = minScales[i];
+                if (maxScales) myMaxScale = maxScales[i];
                 // use layer names from config.xml 
                 if (layerNames != null){
-                    tries[layerNames[i]+ids[i]]=0;
-                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],minScale,maxScale,layerNames[i],listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i]);
+                    //tries[layerNames[i]+ids[i]]=0;
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],myMinScale,myMaxScale,layerNames[i],listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i]);
                 } 
                 // Use feature service layer names 
                 else {
-                    tries[groupLayer.title+ids[i]]=0; // don't know layer names at this point
-                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],minScale,maxScale,null,listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i]);
+                    //tries[groupLayer.title+ids[i]]=0; // don't know layer names at this point
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],myMinScale,myMaxScale,null,listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i]);
                 }
             }
             return groupLayer;
@@ -645,17 +633,17 @@ function addMapLayers(){
         
         function subGroupLayerLoadFailed(event){
             // called from layerLoadFailedHandler from view.on("create-layer-error")
-            // tries to reload it every 5 or 30 seconds
+            // tries to reload it every 10 seconds
             var layer = event.layer;
-            var tim = 5000;
-            if (layer.layerId) {
+            var tim = 10000;
+            /*if (layer.layerId) {
                 tries[layer.title+layer.layerId]++;
                 if (tries[layer.title+layer.layerId] > 5) tim = 30000;
             }
             else if (layer.id){
                 tries[layer.title+layer.id]++;
                 if (tries[layer.title+layer.id] > 5) tim = 30000;
-            }
+            }*/
             setTimeout(function(){
                 // get popup template from config.xml
                 var popupFields = [];
@@ -701,7 +689,7 @@ function addMapLayers(){
                 }
 
                 //debug
-                console.log("trying to load layer again: "+layer.parent.title+" "+layer.id);
+                console.log("trying to load group layer again. (every "+tim/1000+" seconds): "+layer.parent.title+" "+layer.id);
                 /* layer.id is not a number!!!!! not working
                 if (layer.id == 1900) {
                 tries[layer.parent.title+"19"]=1;
@@ -780,14 +768,6 @@ function addMapLayers(){
                 // Wait until layer loads then the title will be assigned. Then remove feature service name from the title (eg. "CPWSpeciesData -")
                 subGroupLayer.on("layerview-create", function(event){
                     var layer = event.layerView.layer;
-                    // remove loading icon
-                    var icon = document.getElementById("statusIcon"+layer.title.replace(/ /g,"+"));
-                    if (icon){
-                        icon.icon = "";
-                        icon.label = "";
-                        icon.title = "";
-                        icon.className = "";
-                    }
                     // get the feature service name (CPWSpeciesData), and remove it from the layer name. e.g. CPWSpeciesData - Elk Winter Range
                     // featureservice = .../ArcGIS/rest/services/CPWSpeciesData/FeatureServer/
                     // remove the feature service name from the title (eg. CPWSpeciesData - )
@@ -803,17 +783,9 @@ function addMapLayers(){
                     //console.log("sub group layer loaded: "+layer.parent.title+" "+title+" url="+fsUrl);
                 });
             }
-            //if ((layer.title && tries[layer.title+id]>0) || (groupLayer.title && tries[groupLayer.title+id]>0)){
+            //if (groupLayer.title && tries[groupLayer.title+id]>0){
                 subGroupLayer.on("layerview-create", function(event){
                     var layer = event.layerView.layer;
-                    // remove loading icon
-                    var icon = document.getElementById("statusIcon"+layer.title.replace(/ /g,"+"));
-                    if (icon){
-                        icon.icon = "";
-                        icon.label = "";
-                        icon.title = "";
-                        icon.className = "";
-                    }
                     // load the correct layer order from config.xml file for all group layers
                     // opGroupLayerObj = a groupLayer with layerids, ignor sub groups with no sublayers
                     if (opGroupLayerObj.length == 0){
@@ -1106,7 +1078,7 @@ function addMapLayers(){
                     else{
                         groupLayers[groupName].layer.transparency_control = transparency_control;
                         mapLayers.push(groupLayers[groupName].layer);
-                        tries[groupLayers[groupName].layer.title] = 0;
+                        //tries[groupLayers[groupName].layer.title] = 0;
                         map.add(groupLayers[groupName].layer);
                     }
                 } catch(e) {
@@ -1168,8 +1140,9 @@ function addMapLayers(){
                     });
                     if (id != -1){
                         fsLayer.id = id;
-                        tries[label+id] = 0;
-                    }else tries[label] = 0;
+                      //  tries[label+id] = 0;
+                    }
+                    //else tries[label] = 0;
                 }else {
                     fsLayer = new FeatureLayer({
                         visible: layerVis === "true",
@@ -1179,7 +1152,7 @@ function addMapLayers(){
                         //layerId: label, // do not use layerId, it sets this from url
                         id: label
                     });
-                    tries[fsLayer.title+fsLayer.layerId] = 0;
+                    //tries[fsLayer.title+fsLayer.layerId] = 0;
                 }
                 if (minScale > 0 || maxScale > 0){
                     fsLayer.minScale = minScale;

@@ -546,11 +546,10 @@ function layerListAddSublayerDialogs(event,theLayer){
                     subLayerTransparency.value = layer.opacity;
                     subLayerTransparency.slot = "actions-end";
                     subLayerTransparency.layer = layer;
-                    subLayerTransparency.min = 0.2;
+                    subLayerTransparency.min = 0.1;
                     subLayerTransparency.max = 1.0;
-                    subLayerTransparency.snap = true;
-                    subLayerTransparency.ticks = 6;
-                    subLayerTransparency.step = 0.2;
+                    subLayerTransparency.ticks = 10;
+                    subLayerTransparency.step = 0.1;
                     subLayerTransparency.groupSeparator = true;
                     subLayerTransparency.style.width = "150px";
                     subLayerTransparency.labelTicks = true;
@@ -668,9 +667,10 @@ function layerListAddSublayerDialogs(event,theLayer){
                             // Status has layer loaded?
                             var statusColumn = document.createElement("td");
                             const icon = document.createElement("calcite-icon");
-                            icon.id = "statusIcon"+item[i].title.replace(/ /g,"+");
+                            icon.id = "statusIcon";
                             if (item[i].loaded){
                                 icon.icon = "";
+                                console.log(item[i].title+" type="+item[i].type+" loaded. No need to display loading icon.");
                             }else {
                                 icon.icon = "offline";
                                 icon.className = "waitingForConnection";
@@ -678,7 +678,9 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 icon.title = "loading...";
                                 icon.style.marginRight = "5px";
                             
+                                console.log(item[i].title+" type="+item[i].type+" not loaded. Display loading icon.");
                                 item[i].on("layerview-create", function(event){
+                                    console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
                                     icon.icon = "";
                                     icon.label = "";
                                     icon.title = "";
@@ -773,11 +775,10 @@ function layerListAddSublayerDialogs(event,theLayer){
                     subLayerTransparency.value = layer.opacity;
                     subLayerTransparency.slot = "actions-end";
                     subLayerTransparency.layer = layer;
-                    subLayerTransparency.min = 0.2;
+                    subLayerTransparency.min = 0.1;
                     subLayerTransparency.max = 1.0;
-                    subLayerTransparency.snap = true;
-                    subLayerTransparency.ticks = 6;
-                    subLayerTransparency.step = 0.2;
+                    subLayerTransparency.ticks = 10;
+                    subLayerTransparency.step = 0.1;
                     subLayerTransparency.groupSeparator = true;
                     subLayerTransparency.style.width = "150px";
                     subLayerTransparency.labelTicks = true;
@@ -857,7 +858,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                                     row.style.borderTop = "1px solid #efefef";
                                 subLayerList.appendChild(row);
                                 if (element[i].loaded == false) {
-                                    //alert("need to wait for layer to load, "+element[i].title);
+                                    console.log("need to wait for layer to load, "+element[i].title+" TODO: should status icon be displayed?");
                                     let tim2 = setInterval(function(layer){
                                         // call function to add layer and sublayers
                                         if (layer.layers || layer.sublayers){
@@ -882,7 +883,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 // new code
                                 subLayerList.appendChild(blockRow);
                                 if (element[i].loaded == false) {
-                                    //alert("need to wait for layer to load, "+element[i].title);
+                                    console.log("need to wait for layer to load, "+element[i].title+" TODO: should add status icon?");
                                     let tim3 = setInterval(function(layer){
                                         // call function to add layer and sublayers
                                         if (layer.layers || layer.sublayers){
@@ -1241,27 +1242,12 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                         }
                         // is it a 2nd level expandable block?
                         if (hideGroupSublayers.indexOf(item[j].title) == -1 && (item[j].layers || item[j].sublayers)){
-                            //if (item[j].loaded){
                                 addBlock(row,item[j],listFontSize,hLevel);
                                 if (lastRow)
                                     lastRow.after(row);
                                 lastRow = row;
                                 row = null;
                                 continue;
-                            /*// layer never loads!!!! }else {
-                                // wait for layer to load
-                                var tim1 = setInterval(function(layer,lastRow,row){
-                                    if (layer.loaded){
-                                        addBlock(row,layer,listFontSize,hLevel);
-                                        if (lastRow)
-                                            lastRow.after(row);
-                                        lastRow = row;
-                                        row = null;
-                                        clearInterval(tim1);
-                                    }  
-                                },500,item[j],lastRow,row);
-                                continue;
-                            }*/
                         }
                         row.style.fontSize=listFontSize;
                         row.style.margin="0";
@@ -1300,8 +1286,9 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                         const iconDiv = document.createElement("td");
                         if(item[j].type != "group"){
                             const icon = document.createElement("calcite-icon");
-                            icon.id = "statusIcon"+item[j].title.replace(/ /g,"+");
+                            icon.id = "statusIcon";
                             var testLayer = item[j];
+                            console.log(item[j].title+" in hideGroupSublayers="+hideGroupSublayers.indexOf(item[j].title) == -1)
                             if (item[j].type === "sublayer") testLayer = item[j].parent;
                             if (testLayer.type === "sublayer") testLayer = item[j].parent.parent;
                             if (testLayer.loaded){
@@ -1313,9 +1300,10 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                                 icon.title = "loading...";
                                 icon.style.marginRight = "5px";
                             
-                                console.log (item[j].title+" "+item[j].type);
+                                console.log (item[j].title+" "+item[j].type+" not loaded. Display loading icon.");
                                 if(testLayer.on !== undefined) {
                                     testLayer.on("layerview-create", function(event){
+                                        console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
                                         icon.icon = "";
                                         icon.label = "";
                                         icon.title = "";
@@ -1401,7 +1389,7 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
             const iconDiv = document.createElement("td");
             if(element.type != "group"){
                 const icon = document.createElement("calcite-icon");
-                icon.id = "statusIcon"+element.title.replace(/ /g,"+");
+                icon.id = "statusIcon";
                 var testLayer = element;
                 if (element.type === "sublayer") testLayer = element.parent;
                 if (testLayer.type === "sublayer") testLayer = element.parent.parent;
@@ -1414,9 +1402,10 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                     icon.title = "loading...";
                     icon.style.marginRight = "5px";
                 
-                    console.log (element.title+" "+element.type);
+                    console.log (element.title+" "+element.type+" display loading icon.");
                     if(testLayer.on !== undefined) {
                         testLayer.on("layerview-create", function(event){
+                            console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
                             icon.icon = "";
                             icon.label = "";
                             icon.title = "";
@@ -1583,7 +1572,7 @@ function addBlock(row,element,listFontSize,hLevel){
                     const iconDiv = document.createElement("div");
                     if(item[j].type != "group"){
                         const icon = document.createElement("calcite-icon");
-                        icon.id = "statusIcon"+item[j].title.replace(/ /g,"+");
+                        icon.id = "statusIcon";
                         var testLayer = item[j];
                         if (item[j].type === "sublayer") testLayer = item[j].parent;
                         if (testLayer.type === "sublayer") testLayer = item[j].parent.parent;
@@ -1596,10 +1585,11 @@ function addBlock(row,element,listFontSize,hLevel){
                             icon.title = "loading...";
                             icon.style.marginRight = "5px";
                         
-                            console.log (item[j].title+" "+item[j].type);
+                            console.log (item[j].title+" "+item[j].type+" display loading icon.");
                             // TODO !!!!!!!!!!!!!!!!!!!!!!!! not working for all layers (sublayers)
                             if(testLayer.on !== undefined) {
                                 testLayer.on("layerview-create", function(event){
+                                    console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
                                     icon.icon = "";
                                     icon.label = "";
                                     icon.title = "";

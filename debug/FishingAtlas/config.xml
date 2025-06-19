@@ -71,6 +71,8 @@
                 visible=true or false, is this group visible?
                 url=a FeatureService to add layers to this group. If this is missing, it will just add the group and the rest of the attributes are ignored.
                 layerIds=FeatureService ids in display order, and can use 3-6,9,11 format.
+                minScale=can be 1 value for all layer ids, or comma delimited min scales for each layerIDs.
+                maxScale=can be 1 value for all layer ids, or comma delimited min scales for each layerIDs.
                 filter=SQL where filter. Comma delimited, one for each layerIDs above. For example: ",type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
                 symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). Comma delimited, one for each layerIDs above. For example: "./assets/images/file.png,"
                 layerVis=visibility of each layer in display order.
@@ -124,7 +126,7 @@
                     url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/LandAccess2025/MapServer"/>
             <layer group="Transportation" visible="false" alpha="1" radio="false"/>
                 <layer  parentGroup="Transportation" label="Motor Vehicle Use Map" visible="true" alpha="1"  minScale="144448"
-					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_022/MapServer/1"/>
+					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1"/>
                 <layer  parentGroup="Transportation" label="BLM Colorado Routes" visible="true" alpha="1" minScale="144448"
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/FeatureServer/5" />
                 <layer parentGroup="Transportation" label="Colorado State Parks Roads" visible="false" minScale="144448"
@@ -136,15 +138,14 @@
                     layerIds="14,15"
                     layerVis="true,true"
                     filter=",type &lt;&gt; 'Road'"
-                    symbol_icon=","
                     layerNames="Trailheads,Trails"
-                    minScale="144448"/>
+                    minScale="36112,144448"/>
             <layer group="Fishing Info" visible="true"/>
                 <layer parentGroup="Fishing Info" label="Watercraft Inspection Stations" visible="true" alpha="1" minScale="144448"
                     symbol_icon="./assets/images/ANSBoat_sm.svg"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/PublicWID/FeatureServer/0"/>
 			    <layer parentGroup="Fishing Info" label="Stream Guage" visible="true" alpha="1"
-                    symbol_icon="./assets/images/stream_gauge_sm.svg" minScale="72224" filter="governing_location = 'CO, USA'"
+                    symbol_icon="./assets/images/stream_gauge_sm.svg" minScale="144448" filter="governing_location = 'CO, USA'"
                     url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/Live_Stream_Gauges_v1/FeatureServer/0"/>
                 <layer parentGroup="Fishing Info" label="Fishing Info" visible="true" alpha="0.9"
             		url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/FishingInfo2025/MapServer"/>
