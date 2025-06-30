@@ -369,14 +369,16 @@ function readIdentifyWidget() {
                                 // Add ability to identify sheep and goat GMUs. 4-18-18 change label to Big Game GMU Boundaries for use with AssetReport_Data mapservice
 	                              if (label == "Big Game GMU") {
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"] = {};
+                                    identifyLayers[identifyGroups[f]]["Bighorn GMU"].display_label = "Bighorn GMU";
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"].url = settings.sheepUrl.slice(0, settings.sheepUrl.length - 2);
-                                    identifyLayers[identifyGroups[f]]["Bighorn GMU"].id = settings.sheepUrl.slice(settings.sheepUrl.length - 1);
+                                    identifyLayers[identifyGroups[f]]["Bighorn GMU"].id = settings.sheepUrl.substring(settings.sheepUrl.lastIndexOf("/")+1);
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"].geometry = "polygon";
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"].fields = [settings.sheepField];
                                     identifyLayers[identifyGroups[f]]["Bighorn GMU"].displaynames = ["GMU Number"];
                                     identifyLayers[identifyGroups[f]]["Goat GMU"] = {};
+                                    identifyLayers[identifyGroups[f]]["Goat GMU"].display_label = "Goat GMU";
                                     identifyLayers[identifyGroups[f]]["Goat GMU"].url = settings.goatUrl.slice(0, settings.goatUrl.length - 2);
-                                    identifyLayers[identifyGroups[f]]["Goat GMU"].id = settings.goatUrl.slice(settings.goatUrl.length - 1);
+                                    identifyLayers[identifyGroups[f]]["Goat GMU"].id = settings.goatUrl.substring(settings.goatUrl.lastIndexOf("/")+1);
                                     identifyLayers[identifyGroups[f]]["Goat GMU"].geometry = "polygon";
                                     identifyLayers[identifyGroups[f]]["Goat GMU"].fields = [settings.goatField];
                                     identifyLayers[identifyGroups[f]]["Goat GMU"].displaynames = ["GMU Number"];
@@ -896,7 +898,8 @@ function displayContent() {
                     }*/
 
                     var url = item.url;
-                    // remove Big Game GMU if this is identifying Bighorn or Goat GMU
+                    // Remove Big Game GMU if this is identifying Bighorn or Goat GMU
+                    // TODO maybe make bighorn and goat show all the time when big game is showing?
                     if (settings.elkUrl && item.url == settings.elkUrl.slice(0, settings.elkUrl.lastIndexOf("/") + 1) && gmu != "Big Game GMU") {
                         // Find the index to the layerId for Big Game GMU and remove it from the layer ids.
                         var elkID = parseInt(settings.elkUrl.slice(settings.elkUrl.lastIndexOf("/") +1));
@@ -1491,7 +1494,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                         }
                     }
                     // handle Bighorn and Goat GMU
-                    else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1){
+                    else if (identifyLayers[identifyGroup].titleLayer.indexOf("GMU") != 1 && layerName.indexOf("GMU") != -1 && layerName === gmu){
                         theTitle[identifyGroup] = layerName +" Number "+feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
                         // only highlight if has feature title
                         //highlightFeature(features.length-1,false);

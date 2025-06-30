@@ -114,11 +114,11 @@
 	<!--use_map_link>true</use_map_link>
 	<use_get_extent>false</use_get_extent-->
 	<use_gmus>true</use_gmus>
-	<gmu_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/14</gmu_url>
+	<gmu_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/15</gmu_url>
 	<gmu_field>GMUID</gmu_field>
-	<sheep_gmu_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/15</sheep_gmu_url>
+	<sheep_gmu_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/16</sheep_gmu_url>
 	<sheep_gmu_field>BSGMU</sheep_gmu_field>
-	<goat_gmu_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/16</goat_gmu_url>
+	<goat_gmu_url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/17</goat_gmu_url>
 	<goat_gmu_field>MGGMU</goat_gmu_field>
 		
 	<driving_directions>true</driving_directions>
@@ -131,7 +131,7 @@
 			<link label="Weather at click point">https://</link>
 			<!-- GMU      NOTE: cannot use vis_id with GMU -->
 			<layer label="Big Game GMU">
-				<id>14</id>
+				<id>15</id>
 	     		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
 	     		<geometry>polygon</geometry>
 		   		<fields>GMUID</fields>
@@ -223,7 +223,7 @@
 				<displaynames>Name,Address,City,Phone</displaynames>
 	   		</layer>
 			<layer label="CPW Contact Info">
-				<id>20</id>
+				<id>33</id>
 				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
 				<geometry>polygon</geometry>
 				<fields>CDOW_FOName,COUNTYNAME,CDOW_Area,CDOW_AWM,CDOW_FOAddress,CDOW_FOCity,CDOW_FOPhone,CDOW_District,CDOW_DWM</fields>

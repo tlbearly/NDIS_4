@@ -540,18 +540,24 @@ function layerListAddSublayerDialogs(event,theLayer){
             block.setAttribute("collapsible", false);
             block.setAttribute("open",true);
 
-            // Transparency
+            // Transparency Slider
             if (layer.transparency_control){
-                subLayerTransparency = document.createElement("calcite-slider");
-                subLayerTransparency.value = layer.opacity;
-                subLayerTransparency.slot = "content-bottom";
-                subLayerTransparency.layer = layer;
-                subLayerTransparency.min = 0;
-                subLayerTransparency.max = 1;
-                subLayerTransparency.addEventListener("calciteSliderChange", event => {
-                    event.target.layer.opacity = event.target.value;
-                });
-                block.appendChild(subLayerTransparency);
+                const subLayerTransparency = document.createElement("calcite-slider");
+                    subLayerTransparency.value = layer.opacity;
+                    subLayerTransparency.slot = "actions-end";
+                    subLayerTransparency.layer = layer;
+                    subLayerTransparency.min = 0.1;
+                    subLayerTransparency.max = 1.0;
+                    subLayerTransparency.ticks = 10;
+                    subLayerTransparency.step = 0.1;
+                    subLayerTransparency.groupSeparator = true;
+                    subLayerTransparency.style.width = "150px";
+                    subLayerTransparency.labelTicks = true;
+                    subLayerTransparency.labelHandles = true;
+                    subLayerTransparency.addEventListener("calciteSliderInput", event => {
+                        event.target.layer.opacity = event.target.value;
+                    });
+                    block.appendChild(subLayerTransparency);
             }
 
             // Add Switch to actions-end of Visibility label
@@ -664,6 +670,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                             icon.id = "statusIcon";
                             if (item[i].loaded){
                                 icon.icon = "";
+                                console.log(item[i].title+" type="+item[i].type+" loaded. No need to display loading icon.");
                             }else {
                                 icon.icon = "offline";
                                 icon.className = "waitingForConnection";
@@ -671,7 +678,9 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 icon.title = "loading...";
                                 icon.style.marginRight = "5px";
                             
+                                console.log(item[i].title+" type="+item[i].type+" not loaded. Display loading icon.");
                                 item[i].on("layerview-create", function(event){
+                                    console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
                                     icon.icon = "";
                                     icon.label = "";
                                     icon.title = "";
@@ -758,24 +767,22 @@ function layerListAddSublayerDialogs(event,theLayer){
                 block.setAttribute("collapsible", false);
                 block.setAttribute("open",true);
 
-                //----------------
-                // Transparency
-                //----------------
+                //---------------------
+                // Transparency Slider
+                //---------------------
                 if (layer.transparency_control){
                     const subLayerTransparency = document.createElement("calcite-slider");
                     subLayerTransparency.value = layer.opacity;
                     subLayerTransparency.slot = "actions-end";
                     subLayerTransparency.layer = layer;
-                    subLayerTransparency.min = 0.2;
+                    subLayerTransparency.min = 0.1;
                     subLayerTransparency.max = 1.0;
-                    subLayerTransparency.snap = true;
-                    subLayerTransparency.ticks = 4;
+                    subLayerTransparency.ticks = 10;
                     subLayerTransparency.step = 0.1;
                     subLayerTransparency.groupSeparator = true;
                     subLayerTransparency.style.width = "150px";
                     subLayerTransparency.labelTicks = true;
                     subLayerTransparency.labelHandles = true;
-                    //subLayerTransparency.labelFormatter = "value: number, type: value";
                     subLayerTransparency.addEventListener("calciteSliderInput", event => {
                         event.target.layer.opacity = event.target.value;
                     });
@@ -851,17 +858,20 @@ function layerListAddSublayerDialogs(event,theLayer){
                                     row.style.borderTop = "1px solid #efefef";
                                 subLayerList.appendChild(row);
                                 if (element[i].loaded == false) {
-                                    //alert("need to wait for layer to load, "+element[i].title);
-                                    var tim2 = setInterval(function(layer){
+                                    console.log("need to wait for layer to load, "+element[i].title+" TODO: should status icon be displayed?");
+                                    let tim2 = setInterval(function(layer){
                                         // call function to add layer and sublayers
                                         if (layer.layers || layer.sublayers){
                                             clearInterval(tim2);
+                                            console.log(layer.title+" "+layer.loaded+" with layers");
                                             // Pass in row, layer, put sublayers in an expandable block: false, fonsize, html h tag level 
                                             addToLayerList(row, layer, false, listFontSize, hLevel);
                                         }
                                     },500,element[i]);
-                                }else
+                                }else{
+                                    console.log(element[i].title+" "+element[i].loaded+" with layers");
                                     addToLayerList(row, element[i], false, listFontSize, hLevel); // false = do not add expandable block
+                                }
                             }
                             // if it has sublayers make it an expandable block
                             // tr td calcite-block
@@ -870,6 +880,31 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 let blockRow = document.createElement("tr");
                                 if (i != element.length-1)
                                     blockRow.style.borderTop = "1px solid #efefef";
+                                // new code
+                                subLayerList.appendChild(blockRow);
+                                if (element[i].loaded == false) {
+                                    console.log("need to wait for layer to load, "+element[i].title+" TODO: should add status icon?");
+                                    let tim3 = setInterval(function(layer){
+                                        // call function to add layer and sublayers
+                                        if (layer.layers || layer.sublayers){
+                                            clearInterval(tim3);
+                                            console.log(layer.title+" "+layer.loaded+" with layers");
+                                            // Pass in row, layer, put sublayers in an expandable block: false, fonsize, html h tag level 
+                                            addToLayerList(blockRow, layer, true, listFontSize, hLevel);
+                                        }
+                                    },500,element[i]);
+                                }else{
+                                    console.log(element[i].title+" "+element[i].loaded+ " with layers");
+                                    addToLayerList(blockRow, element[i], true, listFontSize, hLevel); // false = do not add expandable block
+                                }
+                                /*
+
+
+
+
+
+
+                                // old code
                                 let blockCol = document.createElement("td");
                                 blockCol.colSpan = "3";
                                 blockRow.appendChild(blockCol);
@@ -946,9 +981,6 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 if (element[i].loaded == false){
                                 // wait and then call routine again
                                     //alert(element[i].title+" not loaded. TODO in myLayerList.js");
-
-
-
 
                                 }
                                 if (element[i].sublayers) subSublayerArr = element[i].sublayers;
@@ -1057,15 +1089,22 @@ function layerListAddSublayerDialogs(event,theLayer){
                                             subLayerGroup.appendChild(subLayerListItem2); // Append to the calcite-block
                                         }
                                     }
-                                }
+                                }*/
                             }
                             // 1st level list item
                             // <tr (subLayerListItem)><td (subLayerListHeader)>layer title</td><td (subLayerVisibility)><calcite-switch (subLayerVisibility)></td></tr>
                             else {  
-                                subLayerListItem = document.createElement("tr");
+                                let subLayerListItem = document.createElement("tr");
                                 if (i != element.length-1)
                                     subLayerListItem.style.borderTop = "1px solid #efefef";
-                                subLayerListItem.style.fontSize=listFontSize;
+                                subLayerList.appendChild(subLayerListItem);
+                                console.log(element[i].title+" "+element[i].loaded);
+                                addToLayerList(subLayerListItem, element[i], true, listFontSize, hLevel); // false = do not add expandable block
+                                
+
+
+
+                                /*subLayerListItem.style.fontSize=listFontSize;
                                 subLayerListItem.style.margin="0";
                                 let subLayerListHeader = document.createElement("td");
                                 subLayerListHeader.style.fontSize=listFontSize;
@@ -1130,12 +1169,6 @@ function layerListAddSublayerDialogs(event,theLayer){
                                     iconDiv.appendChild(icon);
                                 }
                                 subLayerListItem.appendChild(iconDiv);
-                                            
-
-
-
-
-
 
                                 // Add Switch to actions-end of list Item
                                 let subLayerVisibility = document.createElement("td");
@@ -1153,6 +1186,8 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 });
                                 subLayerVisibility.appendChild(subLayeronOffBtn);
                                 subLayerListItem.appendChild(subLayerVisibility);
+                                // end old code
+                                */
                             }
                         }
                     }
@@ -1175,24 +1210,6 @@ function layerListAddSublayerDialogs(event,theLayer){
             }
         }
         view.ui.add(sublayerDialog,"top-right");
-        
-        // set font size for drop down blocks
-        const tim = setInterval(function () {
-            var blocks = document.querySelectorAll("calcite-block");
-            if (!blocks[0]) return;
-            if (!blocks[0].shadowRoot) return;
-            if (!blocks[0].shadowRoot.children) return;
-            if (blocks[0].shadowRoot.children.length < 1) return;
-            clearInterval(tim);
-            blocks.forEach(block => {
-                if (block.shadowRoot.querySelector("h3")){
-                    block.shadowRoot.querySelector("h3").style.fontSize = listFontSize;
-                    if (block.shadowRoot.querySelector("h3").innerText !== "Visibility:" &&
-                        block.shadowRoot.querySelector("h3").innerText !== "Layer Descriptions:")
-                        block.shadowRoot.querySelector("h3").style.fontWeight = "normal";
-                }
-            });
-        },500);
     });
 }
 function addToLayerList(row,element,block, listFontSize, hLevel){
@@ -1225,27 +1242,12 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                         }
                         // is it a 2nd level expandable block?
                         if (hideGroupSublayers.indexOf(item[j].title) == -1 && (item[j].layers || item[j].sublayers)){
-                            //if (item[j].loaded){
                                 addBlock(row,item[j],listFontSize,hLevel);
                                 if (lastRow)
                                     lastRow.after(row);
                                 lastRow = row;
                                 row = null;
                                 continue;
-                            /*// layer never loads!!!! }else {
-                                // wait for layer to load
-                                var tim1 = setInterval(function(layer,lastRow,row){
-                                    if (layer.loaded){
-                                        addBlock(row,layer,listFontSize,hLevel);
-                                        if (lastRow)
-                                            lastRow.after(row);
-                                        lastRow = row;
-                                        row = null;
-                                        clearInterval(tim1);
-                                    }  
-                                },500,item[j],lastRow,row);
-                                continue;
-                            }*/
                         }
                         row.style.fontSize=listFontSize;
                         row.style.margin="0";
@@ -1286,6 +1288,7 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                             const icon = document.createElement("calcite-icon");
                             icon.id = "statusIcon";
                             var testLayer = item[j];
+                            console.log(item[j].title+" in hideGroupSublayers="+hideGroupSublayers.indexOf(item[j].title) == -1)
                             if (item[j].type === "sublayer") testLayer = item[j].parent;
                             if (testLayer.type === "sublayer") testLayer = item[j].parent.parent;
                             if (testLayer.loaded){
@@ -1297,9 +1300,10 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                                 icon.title = "loading...";
                                 icon.style.marginRight = "5px";
                             
-                                console.log (item[j].title+" "+item[j].type);
+                                console.log (item[j].title+" "+item[j].type+" not loaded. Display loading icon.");
                                 if(testLayer.on !== undefined) {
                                     testLayer.on("layerview-create", function(event){
+                                        console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
                                         icon.icon = "";
                                         icon.label = "";
                                         icon.title = "";
@@ -1398,9 +1402,10 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                     icon.title = "loading...";
                     icon.style.marginRight = "5px";
                 
-                    console.log (element.title+" "+element.type);
+                    console.log (element.title+" "+element.type+" display loading icon.");
                     if(testLayer.on !== undefined) {
                         testLayer.on("layerview-create", function(event){
+                            console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
                             icon.icon = "";
                             icon.label = "";
                             icon.title = "";
@@ -1442,9 +1447,12 @@ function addBlock(row,element,listFontSize,hLevel){
         subLayerGroup.heading = element.title;
         subLayerGroup.value = element.title;
         subLayerGroup.headingLevel = hLevel;
-        subLayerGroup.style.fontWeight = "normal";
-        subLayerGroup.style.border = "none";
         subLayerGroup.setAttribute("collapsible", true);
+        subLayerGroup.componentOnReady().then(() => {
+            subLayerGroup.shadowRoot.querySelector("h3").style.fontWeight = "normal";
+            subLayerGroup.shadowRoot.querySelector("h3").style.border = "none";
+            subLayerGroup.shadowRoot.querySelector("h3").style.fontSize = "1rem";
+        });
         // if open or opensublayer was set to true in config.xml
         if (openTOCgroups.indexOf(element.title) > -1)
             subLayerGroup.setAttribute("open",true);
@@ -1577,10 +1585,11 @@ function addBlock(row,element,listFontSize,hLevel){
                             icon.title = "loading...";
                             icon.style.marginRight = "5px";
                         
-                            console.log (item[j].title+" "+item[j].type);
+                            console.log (item[j].title+" "+item[j].type+" display loading icon.");
                             // TODO !!!!!!!!!!!!!!!!!!!!!!!! not working for all layers (sublayers)
                             if(testLayer.on !== undefined) {
                                 testLayer.on("layerview-create", function(event){
+                                    console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
                                     icon.icon = "";
                                     icon.label = "";
                                     icon.title = "";
