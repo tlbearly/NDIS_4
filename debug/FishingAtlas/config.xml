@@ -187,10 +187,45 @@
     		icon="assets/images/i_documentadd2.png"/>
     </links>
     <extra_widgets>
-        <widget name="filter" title="Display Fishing Opportunities">
-            <butten title="Family Friendly"
-                url=""
+        <widget name="filter" title="Fishing Opportunities">
+            <button title="All fishing opportunities"
+                icon="ptmedred.png"
+                layer-title="Fishing Info"
+                layer-id="3,5,7"
+                active="true"
                 where=""/>
+            <button title="Family friendly"
+                icon="ptmedgray.png"
+                layer-title="Fishing Info"
+                layer-id="3,5,7"
+                active="false"
+                where="OPP_FAMILY = 'Yes'"/>
+            <button title="More remote fly fishing"
+                icon="ptmedgreen.png"
+                layer-title="Fishing Info"
+                layer-id="3,5,7"
+                active="false"
+                where="OPP_RUSTIC = 'Yes'"/>
+            <button title="Ice fishing"
+                icon="ptmedblue.png"
+                layer-title="Fishing Info"
+                layer-id="3,5,7"
+                active="false"
+                where="OPP_ICE = 'Yes'"/>
+            <button title="Stocked with 10 inch catchables"
+                icon="ptlggreen.png"
+                layer-title="Fishing Info"
+                layer-id="3,5,7"
+                active="false"
+                where="STOCKED = 'Catchable trout'"/>
+            <button title="Boating"
+                icon="ptlggray.png"
+                layer-title="Fishing Info"
+                layer-id="3,5,7"
+                active="false"
+                dropdown="true"
+                list="Non-motorized,Motor boats,Electric,Belly boats"
+                where="BOATING = 'list'"/>
         </widget>
     </extra_widgets> 
 </configuration>

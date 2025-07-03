@@ -1521,7 +1521,40 @@ function readConfig(){
                             var name = widget[i].getAttribute("name");
                             if (name.toLowerCase() === "filter"){
                                 var title = widget[i].getAttribute("title");
-                                myFilter(title);
+                                var filterBtns = widget[i].getElementsByTagName("button");
+                                var btn = [];
+                                for(var j=0; j < filterBtns.length; j++){
+                                    // error checking
+                                    if (!filterBtns[j].getAttribute("title"))alert("Fatal Error: Missing filter widget button#"+j+" title attribute in config.xml file.","Data Error");
+                                    
+                                    btn.push(document.createElement("button"));
+                                    btn[j].type="button";
+                                    btn[j].setAttribute("aria-busy","false");
+                                    btn[j].setAttribute("aria-label",filterBtns[j].getAttribute("title"));
+                                    btn[j].setAttribute("title",filterBtns[j].getAttribute("title"));
+                                    btn[j].setAttribute("aria-live","polite");
+                                    btn[j].title = filterBtns[j].getAttribute("title");
+                                    btn[j].icon= "./assets/images/"+filterBtns[j].getAttribute("icon");
+                                    btn[j].layerTitle= filterBtns[j].getAttribute("layer-title");
+                                    btn[j].layerId= filterBtns[j].getAttribute("layer-id");
+                                    btn[j].active= filterBtns[j].getAttribute("active") === "true";
+                                    btn[j].expression= filterBtns[j].getAttribute("where");
+                                    btn[j].layer = null; // will look this up from map
+                                    btn[j].className="esri-widget--button";
+                                    btn[j].className="esri-widget--button esri-interactive";
+                                    btn[j].style.margin="2px 0";
+                                    btn[j].style.padding="0 2px";
+                                    btn[j].style.width="270px";
+                                    btn[j].style.justifyContent="normal";
+                                    btn[j].style.border="none";
+                                    if (filterBtns[j].getAttribute("dropdown")) {
+                                        btn[j].dropdown = true;
+                                        btn[j].list = filterBtns[j].getAttribute("list");
+                                    }else btn[j].dropdown = false;
+
+                                    
+                                }
+                                myFilter(title,btn);
                             }
                         }
                     }
