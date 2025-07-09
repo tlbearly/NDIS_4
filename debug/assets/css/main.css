@@ -7,7 +7,9 @@ body,
   width: 100%;
   font-size: 16px;
 }
-
+.esri-view {
+  font-family: Lato, Helvetica, Arial, sans-serif;
+}
 /* Identify Styles */
 .idTitle {
   text-transform: uppercase;
@@ -112,7 +114,7 @@ body,
 }
 .myIdDialog{
   position:absolute;
-  top:95px;
+  top:97px;
   left:15px;
   max-height:calc(100vh - 115px);
   width:500px;
@@ -132,7 +134,12 @@ body,
     max-height: calc(50vh - 110px)
   }
 }
-
+/* Filter Widget */
+.filterTxt {
+  text-align:left;
+  margin-right:2px;
+  margin-left:5px;
+}
 /* myMeasure Buttons */
 .esri-widget--button.active,
 .esri-widget--button.active:hover,
@@ -394,8 +401,8 @@ input[type="checkbox"]:checked {
 }
 .help_button{
   position: absolute;
-  left: 20px;
-  top: 80px;
+  right: 10px;
+  top: 10px;
   border: none;
   background-color: #ffffff55;
   border-radius: 4px;

@@ -1520,6 +1520,7 @@ function readConfig(){
                         for (var i = 0; i < widget.length; i++) {
                             var name = widget[i].getAttribute("name");
                             if (name.toLowerCase() === "filter"){
+                                var icon = widget[i].getAttribute("icon");
                                 var title = widget[i].getAttribute("title");
                                 var filterBtns = widget[i].getElementsByTagName("button");
                                 var btn = [];
@@ -1536,7 +1537,7 @@ function readConfig(){
                                     btn[j].title = filterBtns[j].getAttribute("title");
                                     btn[j].icon= "./assets/images/"+filterBtns[j].getAttribute("icon");
                                     btn[j].layerTitle= filterBtns[j].getAttribute("layer-title");
-                                    btn[j].layerId= filterBtns[j].getAttribute("layer-id");
+                                    btn[j].layerId= filterBtns[j].getAttribute("layer-id").split(",");
                                     btn[j].active= filterBtns[j].getAttribute("active") === "true";
                                     btn[j].expression= filterBtns[j].getAttribute("where");
                                     btn[j].layer = null; // will look this up from map
@@ -1554,7 +1555,7 @@ function readConfig(){
 
                                     
                                 }
-                                myFilter(title,btn);
+                                myFilter(title,icon,btn);
                             }
                         }
                     }

@@ -46,7 +46,7 @@
 	</layer>
 	<layer>
   		<name>Township Range</name> 
- 		 <url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/19</url> 
+ 		 <url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/32</url> 
  		<searchFields>TOWNRANGE</searchFields>
 		<displayfield>TOWNRANGE</displayfield>
 		<placeholder>Search Township Range (1N 73W)</placeholder>

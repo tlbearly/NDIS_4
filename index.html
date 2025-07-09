@@ -300,23 +300,19 @@
           logo.style.marginRight="10px";
           logo.setAttribute("align","middle");
           logo.addEventListener("click",function(){
-            //view.closePopup();
             closeIdentify();
             closeMeasure();
             openHelp();
-            //helpWidget.open = true;
           });
           const helpLink = document.createElement("button");
           helpLink.className="help_button";
           helpLink.addEventListener("click",function(){
-            //view.closePopup();
             closeIdentify();
             closeMeasure();
             openHelp();
-            //helpWidget.open = true;
           });
           if (window.innerWidth > 768) {
-            helpLink.innerHTML="Help";
+            helpLink.innerHTML="?";
           } else {
             helpLink.innerHTML="?";
             titlediv.style.height="70px";
@@ -325,26 +321,6 @@
           titlediv.appendChild(helpLink);
           titlediv.appendChild(title);
           view.ui.add(titlediv,"top-left");
-
-          // add help
-          /*helpWidget = document.createElement("calcite-dialog");
-          helpWidget.id = "help";
-          helpWidget.className = "help";
-          helpWidget.heading = "Help";
-          helpWidget.label = "Help";
-          helpWidget.placement = "top-start";
-          helpWidget.overlayPositioning = "absolute";
-          helpContent = document.createElement("div");
-          helpContent.style.padding = "10px";
-          helpContent.style.fontSize = "medium";
-          helpContent.id = "helpContent";
-          // help message
-          const call = document.createElement("p");
-          call.style.paddingTop = "0";
-          call.style.marginTop = "0";
-          call.innerText = "If you are having trouble using or reading this map, plesae contact Colorado Parks and Widllife at (call center # maybe?).";
-          helpContent.appendChild(call);
-          helpWidget.appendChild(helpContent);*/
 
           // + - zoom buttons
           view.ui.move("zoom", "bottom-right");
