@@ -217,15 +217,15 @@
                 layer-title="Fishing Info"
                 layer-id="3,5,7"
                 active="false"
-                where="STOCKED = 'Catchable trout'"/>
+                where="STOCKED like '%Catchable%'"/>
             <button title="Boating"
                 icon="ptlggray.png"
                 layer-title="Fishing Info"
                 layer-id="3,5,7"
                 active="false"
                 dropdown="true"
-                list="Non-motorized,Motor boats,Electric,Belly boats"
-                where="BOATING='Non-motorized',BOATING='Motor boats',BOATING='Electric',BOATING='Belly boats'"/>
+                list=",Non-motorized,Motor boats,Electric,Belly boats"
+                where=",BOATING='Non-motorized',BOATING='Motor boats',BOATING='Electric',BOATING='Belly boats'"/>
         </widget>
     </extra_widgets> 
 </configuration>

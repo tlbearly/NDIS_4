@@ -29,6 +29,8 @@ function makeDropdownActive(selectedBtn){
             document.getElementById("filterTitle").innerHTML = "<strong>Showing: </strong>"+ btn[i].title+" "+label;
             for (var j=0; j<btn[i].layer.length; j++)
                 btn[i].layer[j].definitionExpression = expression;
+            // close on mobile
+            if (window.innerWidth <= 768)closeFilter();
         }
     }
 }
@@ -58,7 +60,8 @@ function myFilter(title,icon,btn){
     filterWidget.style.zIndex="0";
     filterWidget.style.borderTopRightRadius="0";
     filterWidget.style.borderTopLeftRadius="0";
-    filterWidget.style.width="320px";
+    if (window.innerWidth <= 768)filterWidget.style.width="244px";
+    else filterWidget.style.width="320px";
     filterWidget.style.display="flex";
     filterWidget.style.backgroundColor="var(--background)";
     filterWidget.style.padding="5px";
@@ -112,42 +115,20 @@ function myFilter(title,icon,btn){
                 var sel = document.createElement("select");
                 sel.id = "select_"+btn[i].title;
                 sel.setAttribute("onchange","makeDropdownActive("+i+")");
-                //var str = "<select id='select_"+btn[i].title+"'>"; // onchange='makeDropdownActive("+i+")'>";
                 for(var k=0; k<list.length; k++){
                     var opt = document.createElement("option");
                     opt.value = expression[k];
                     opt.label = list[k];
                     sel.appendChild(opt);
-                    //str += "<option value=\""+btn[i].expression+list[k]+"\'\">"+list[k]+"</option>";
                 }
-                //str += "</select>";
-                //btn[i].innerHTML += str;
                 btn[i].appendChild(sel);
             }
 
             if (!btn[i].dropdown){
                 btn[i].addEventListener("click", function(){
                     var i;
-                    if (this.dropdown){
-                        //document.getElementById("filterPopup").onmouseleave = "";
-                        makeAllInactive();
-                        
-                        // find the given layer
-                        if (!this.layer){
-                            this.layer = findLayer(this.layerTitle,this.layerId);
-                        }
-                        
-                        this.className=this.className+" active";
-                        this.active = true;
-                        this.style.fontWeight=500;
-                        this.innerHTML+="<span class='check'></span>";
-                        // update title by filter button
-                        filterShowing.innerHTML = "<strong>Showing: </strong>"+ this.title+" "+this.childNodes[3].childNodes[this.childNodes[3].selectedIndex].text;
-                        for (i=0; i<this.layer.length; i++)
-                            this.layer[i].definitionExpression = this.childNodes[3].childNodes[this.childNodes[3].selectedIndex].value;
-                    }
                     // make button active
-                    else if (!this.active){
+                    if (!this.active){
                         // make all buttons inactive
                         makeAllInactive();
                         
@@ -164,6 +145,8 @@ function myFilter(title,icon,btn){
                         filterShowing.innerHTML = "<strong>Showing: </strong>"+ this.title;
                         for (i=0; i<this.layer.length; i++)
                             this.layer[i].definitionExpression = this.expression;
+                        // close on mobile
+                        if (window.innerWidth <= 768)closeFilter();
                     }
 
                     // Make buton inactive, select first (all)
@@ -190,6 +173,8 @@ function myFilter(title,icon,btn){
                         for (i=0; i<btn[0].layer.length; i++)
                             btn[0].layer[i].definitionExpression = btn[0].expression;
                         btn[0].innerHTML+="<span class='check'></span>";
+                        // close on mobile
+                        if (window.innerWidth <= 768)closeFilter();
                     }
                 },true);
             }
