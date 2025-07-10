@@ -517,13 +517,13 @@ function displayContent() {
                                         for(var p=0; p<items3.length; p++){
                                             if(items3[p].layers !== undefined || items3[p].sublayers){
                                                 //alert("Need to add code to identify.js line 490 to check for visible layers to identify.");
-                                                console.log("Identify visible only layers is ignoring "+items3[p].title+" Need to add code to identify.js line 490 to check for visible layers to identify.");
+                                                //console.log("Identify visible only layers is ignoring "+items3[p].title+" Need to add code to identify.js line 490 to check for visible layers to identify.");
                                             }else{
                                                 //console.log(items3[p].title);
                                                 if (items3[p].url.toLowerCase().indexOf("featureserver") > -1){
                                                     if (items3[p].url !== undefined && items3[p].url !== null && isMapLayerInIdentify(items3[p].url,items3[p].layerId)){
                                                         if (items3[p].minScale == 0 && items3[p].parent.parent.minScale != 0){
-                                                            console.log ("set minScale of "+items3[p].title+" "+items3[p].minScale+" to minScale of "+items3[p].parent.parent.title+" "+items3[p].parent.parent.minScale);
+                                                            //console.log ("set minScale of "+items3[p].title+" "+items3[p].minScale+" to minScale of "+items3[p].parent.parent.title+" "+items3[p].parent.parent.minScale);
                                                             items3[p].minScale = items3[p].parent.parent.minScale;
                                                         }
                                                         alllayers.push(items3[p]);
@@ -544,7 +544,7 @@ function displayContent() {
                                         if (items2[n].url.toLowerCase().indexOf("featureserver") > -1){
                                             if (items2[n].url !== undefined && items2[n].url !== null && isMapLayerInIdentify(items2[n].url,items2[n].layerId)){
                                                 if (items2[n].minScale == 0 && items2[n].parent.minScale != 0){
-                                                    console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
+                                                    //console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
                                                     items2[n].minScale = items2[n].parent.minScale;
                                                 }
                                                 alllayers.push(items2[n]);
@@ -552,7 +552,7 @@ function displayContent() {
                                         }else{
                                             if (items2[n].url !== undefined && items2[n].url !== null && isMapLayerInIdentify(items2[n].url,items2[n].id)){
                                                 if (items2[n].minScale == 0 && items2[n].parent.minScale != 0){
-                                                    console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
+                                                    //console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
                                                     items2[n].minScale = items2[n].parent.minScale;
                                                 }
                                                 alllayers.push(items2[n]);
@@ -1466,7 +1466,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                 XMLHttpRequestObjects[xmlIndex].send();
             } catch (error) {
                 alert("Identify on " + layerName + " failed with error: " + error.message + " in javascript/identify.js handleQueryResults().", "Data Error");
-                console.log(error.message);
+                //console.log(error.message);
                 hideLoading();
             }
         }
@@ -1760,7 +1760,7 @@ function highlightFeature(id,fade) {
     if (id > -1){
         if (features[id] && features[id].geometry && (features[id].geometry != undefined && features[id].geometry.type)) { 
             if (features[id].geometry.type === "polyline") {
-                console.log("highlight line numHighlight="+numHighlightFeatures);
+                //console.log("highlight line numHighlight="+numHighlightFeatures);
                 addTempLine(features[id],fade);
                 numHighlightFeatures++;
             }
@@ -1780,7 +1780,7 @@ function removeHighlight() {
     for (var i=0; i<numHighlightFeatures; i++)
         view.graphics.remove(view.graphics.items[view.graphics.items.length-1]);
     numHighlightFeatures=0;
-    console.log("remove all highlights");
+    //console.log("remove all highlights");
 }
 
 function setIdentifyFooter(clickPt) {

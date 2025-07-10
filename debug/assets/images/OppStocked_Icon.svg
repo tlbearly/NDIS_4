@@ -4,8 +4,25 @@
       .cls-1 {
         fill: #5d9bd3;
       }
+
+      .cls-2 {
+        font-size: 20px;
+        font-family: "Frutiger LT 55 Roman";
+        font-weight: 700;
+      }
+
+      .cls-2, .cls-3 {
+        text-anchor: middle;
+      }
+
+      .cls-3 {
+        font-size: 50px;
+        font-family: Elephant;
+      }
     </style>
   </defs>
   <circle class="cls-1" cx="24" cy="24" r="23"/>
-  <image id="fish-seafood-wild-nature-fish-svgrepo-com" x="3" y="12" width="43" height="22" xlink:href="data:img/png;base64,iVBORw0KGgoAAAANSUhEUgAAACsAAAAWCAYAAABZuWWzAAAC80lEQVRIiazNMQ0AIAwAsCYzsAcH84CTaUYPNwcmVgMNMxYOGhuFxMMdKfABAAD//6IGZmRgYNjMwMDwHwv+ysDAoEYVixgYGAAAAAD//6IGzsDhUBBOo5otDAwMAAAAAP//IgdrMTAw5DAwMCxlYGC4wsDA8BePY58xMDAsYmBgCGZgYGChyFYGBgYAAAAA//8iFssyMDDUMzAw3MDjMEL4KQMDQzkDAwMnWS5gYGAAAAAA//8ihEEZZTE0o5DrSHT8mIGBIYRklzAwMAAAAAD//8KFORgYGNoZGBh+UdGR6HglAwODINEuYmBgAAAAAP//woZVGRgYLtPQkcj4FjQPEAYMDAwAAAAA//9Cx2YMDAyv6eRQGP7IwMBgQ9C1DAwMAAAAAP//QsYm0HLxNwMDw2QGBoZzdHTwNwYGBie8rmNgYAAAAAD//4JhGQYGhldQjWuhYkYDEMIGOF3IwMAAAAAA//+c1bEJgEAQRNGXXWInxxVgK0a2aE+XHGgBJnIsbGBi4iQDw0TDsj9wGwQ6UDMLdHbsaH/v6aX4wxdO3Fg+egUb1hzvwUgHEwAA//8CYQsqhxDI8P0MDAwF0NgBOQIZCDEwMEQwMDAcJDJ57GNgYGhkYGCwAgAAAP//AmkGhSyo/nZmYGBIZGBg2EOmI98zMDB0MTAwyJEQ6qCQBDmIsPkMDKsAAAAA//8CaeCDWgJqjNwhsQL4DtUHSjJcZCaTODzmg/IRyG0qDAwMDAAAAAD//wJhMQYGhp1EOvIh1HENDAwMDhQ4EBlIY7HnKLS5yQZXyMDAAAAAAP//AiUBGOBmYGDQhDoehEHgM7Q9CspwoGryCxUchw3cY2BgUIRKgDKhFAMDwzsUhQwMDAAAAAD//xoseAFSqILaIpiAgYEBAAAA//9iGiSuPYLEnoVVBQMDAwAAAP//GixYHRqq13A6iIGBAQAAAP//Gkz4BbRsxg4YGBgAAAAA//8aTNgVWoxiBwwMDAAAAAD//wMA229OU+pByJEAAAAASUVORK5CYII="/>
+  <image id="fish-seafood-wild-nature-fish-svgrepo-com" x="3" y="4" width="42" height="20" xlink:href="data:img/png;base64,iVBORw0KGgoAAAANSUhEUgAAACoAAAAUCAYAAAD7s6+GAAACwUlEQVRIiWJkIB8wMzAwyDIwMPBDsQCU5mBgYJhNgbmYgIGBAQAAAP//ogRnMDAw/MeCF1LdJgYGBgAAAAD//6IEX8bh0GwGBgY9BgYGSarZxMDAAAAAAP//Ihc74nAkOn7LwMCwl4GBoZSBgUGdbAsZGBgAAAAA//8iFbMzMDDEMDAw3CDSoej4GAMDQywDAwMLSRYzMDAAAAAA//8iFnMyMDAUMDAwPCfTgej4DgMDQxwDAwMTUQ5gYGAAAAAA//8iBgczMDA8pJID0fFJBgYGA4KOYGBgAAAAAP//wocFGRgYVtPIgcj4NwMDQxkDAwPuopKBgQEAAAD//8IlqcPAwLCJgYFBkZpRQwD8ZGBg+AFV84uBgeEblP2XgYFhMQAAAP//wqbXnIGB4SMdQpJYvJeBgUEeAAAA//9CD1FDBgaGAwwMDHxUDKl3UDNvMjAwfGJgYBCC2uNAIPd/ZWBgKGdgYJjGwMDwHwAAAP//QpYQYWBgeEKlUPjDwMCwkoGBwR5PzhZDcgQ6PszAwKAMV8nAwAAAAAD//0LGG6GKrlEY9dsZGBg0iQxtUIxeQdO/D8NzDAwMAAAAAP//guEQqKJTUM2WZDjwM7QyIBVEoJnTgWEAAwMDAAAA//8CYVArCFQAgxTdg0ZJIomOPM7AwKBChiPR7QdhUEWAChgYGAAAAAD//wLhIAqi+TUDA0MmFarEZCQzjTBkGRgYAAAAAP//AuEVZDjwDQMDQw20DUoNwMbAwPCIgYHhHwMDAxeGgQwMDAAAAAD//wJhNWiaBBXuHlANuBwIatplMTAw8FDJgcggl4GB4S5WGQYGBgAAAAD//wJhUA6rgqZPbI4DObyXgYHBggaOQwagUMVe7zMwMAAAAAD//wLlcFDhvpaBgUEBGvQgh4EaIacZGBgOITXpBg4wMDAAAAAA//8DAOWzMhz4q8qPAAAAAElFTkSuQmCC"/>
+  <text id="_10_" data-name="10&apos;&apos;" class="cls-2" x="25" y="38.5"><tspan x="25">10’’</tspan></text>
+  <text id="Lorem_Ipsum" data-name="Lorem Ipsum" class="cls-3" x="-478" y="-221.5"><tspan x="-478">Lorem Ipsum</tspan></text>
 </svg>

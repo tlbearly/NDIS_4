@@ -308,18 +308,16 @@
             closeIdentify();
             closeMeasure();
             openHelp();
-            //helpWidget.open = true;
           });
           const helpLink = document.createElement("button");
           helpLink.className="help_button";
-          helpLink.title="help";
+          helpLink.title="Help";
           helpLink.addEventListener("click",function(){
             //view.closePopup();
             closeIdentify();
             closeMeasure();
             openHelp();
             closeFilter();
-            //helpWidget.open = true;
           });
           if (window.innerWidth > 768) {
             helpLink.innerHTML="?";
@@ -332,44 +330,8 @@
           titlediv.appendChild(title);
           view.ui.add(titlediv,"top-left");
 
-          // add help
-          /*helpWidget = document.createElement("calcite-dialog");
-          helpWidget.id = "help";
-          helpWidget.className = "help";
-          helpWidget.heading = "Help";
-          helpWidget.label = "Help";
-          helpWidget.placement = "top-start";
-          helpWidget.overlayPositioning = "absolute";
-          helpContent = document.createElement("div");
-          helpContent.style.padding = "10px";
-          helpContent.style.fontSize = "medium";
-          helpContent.id = "helpContent";
-          // help message
-          const call = document.createElement("p");
-          call.style.paddingTop = "0";
-          call.style.marginTop = "0";
-          call.innerText = "If you are having trouble using or reading this map, plesae contact Colorado Parks and Widllife at (call center # maybe?).";
-          helpContent.appendChild(call);
-          helpWidget.appendChild(helpContent);*/
-
           // + - zoom buttons
-          view.ui.move("zoom", "bottom-right");
-
-          // This Identify action button event fires for each click on any action
-          // This event fires for each click on any action
-            /*reactiveUtils.on(()=>view.popup, "trigger-action", (event)=>{
-              if(event.action.id === "zoom-to-feature"){
-                  zoomToPt();
-              }
-              else if(event.action.id === "directions"){
-                  getDirections();
-              }
-              else if(event.action.id === "input-area"){
-                  getInputArea();
-              }
-          });*/
-          // just capture when it closes
-        
+          view.ui.move("zoom", "bottom-right");   
           
           // add Scale Bar
           let scaleBar = new ScaleBar({
@@ -414,11 +376,9 @@
           });
           view.ui.add(mapScaleBtn, "bottom-right");
           
-
           readIdentifyWidget(); // in identify, calls addSearch which needs elkUrl
           
           addMeasure(graphicsLayer);
-
 
           // MARK: -- Location --
           const locateBtn = new Locate({
@@ -505,7 +465,6 @@
       </article>
     </div>
   </div>
-  <!--class="errorbox" style="display:none;border:2px solid white;margin:auto;width:570px;border-radius:12px;top:20px;height:calc(100vh - 40px);"-->
   <div id="disclaimer" class="modalBkg">
     <div class="modalContent">
       <h2 id="disclaimerTitle" class="modalTitle"></h2>

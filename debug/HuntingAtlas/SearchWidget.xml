@@ -35,7 +35,7 @@
 	</layer>
 	<layer>
 		<name>Big Game GMUs</name>
-		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/14</url>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/15</url>
 		<searchFields>GMUID</searchFields>
 		<displayfield>GMUID</displayfield>
 		<exactMatch>true</exactMatch>

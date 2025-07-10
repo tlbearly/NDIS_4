@@ -73,7 +73,7 @@ function alert(){
 	if(theStack && ~theStack.indexOf(' Anonymous function ')) theStack = theStack.split(" Anonymous function ")[1];
 	if (theStack) msg += "\n"+theStack.split("\n")[0].split('<')[0];
 
-	console.log(msg);
+	//console.log(msg);
 	// do not show the same error message twice
 	if (document.getElementById("errMsg").innerHTML.indexOf(msg) > -1) {
 		document.getElementById("errBox").style.display="block";

@@ -328,7 +328,7 @@ function addMapLayers(){
         }
 
         function layerLoadFailedHandler(event){
-            console.log("layer failed to load: "+event.layer.id);
+            //console.log("layer failed to load: "+event.layer.id);
             // Layer failed to load 3-21-22
             // Wait 2 seconds, retry up to 5 times, then report the error and continue trying every 30 seconds
             // 3-10-22 NOTE: MVUM is sometimes missing some of the sublayers. Contacted victoria.smith-campbell@usda.gov
@@ -366,7 +366,7 @@ function addMapLayers(){
             }*/
             // Try every 2 seconds for up to 5 times 
             if (tries[event.layer.title] < 4){
-                console.log("Retrying to load (every 2 seconds): "+event.layer.id);
+                //console.log("Retrying to load (every 2 seconds): "+event.layer.id);
                 setTimeout(function(){createLayer(event.layer);},2000);
             } 
             // Greater than 5 tries. Keep trying every 30 seconds
@@ -377,7 +377,7 @@ function addMapLayers(){
     //layer.setAttribute("url", layer.getAttribute("url").substring(0,layer.getAttribute("url").length-4));
     //console.log("url="+layer.getAttribute("url"));
                 //if (layer){
-                    console.log("Retrying to load (every 30 seconds): "+event.layer.id);
+                    //console.log("Retrying to load (every 30 seconds): "+event.layer.id);
                     setTimeout(function(){createLayer(event.layer);},30000);
                 //}
             }
@@ -689,7 +689,7 @@ function addMapLayers(){
                 }
 
                 //debug
-                console.log("trying to load group layer again. (every "+tim/1000+" seconds): "+layer.parent.title+" "+layer.id);
+               // console.log("trying to load group layer again. (every "+tim/1000+" seconds): "+layer.parent.title+" "+layer.id);
                 /* layer.id is not a number!!!!! not working
                 if (layer.id == 1900) {
                 tries[layer.parent.title+"19"]=1;
@@ -1959,7 +1959,7 @@ function getLegendInfo(rootLayer){
                         return obj.name === layerlistitems[i].value;
                     });
                     if(legendObj && legendObj.drawingInfo){
-                        console.log("feature layer legend TODO *******");
+                        //console.log("feature layer legend TODO *******");
                     }
                 }
             };

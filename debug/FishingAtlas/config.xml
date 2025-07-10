@@ -218,8 +218,8 @@
                 layer-id="3,5,7"
                 active="false"
                 where="STOCKED like '%Catchable%'"/>
-            <button title="Boating"
-                icon="ptlggray.png"
+            <button title="Icon for Fish Selector"
+                icon="OppFishSpx_Icon.svg"
                 layer-title="Fishing Info"
                 layer-id="3,5,7"
                 active="false"
