@@ -8,9 +8,6 @@ function makeDropdownActive(selectedBtn){
             if (btn[i].layer)
                 btn[i].layer.definitionExpression = "";
             btn[i].style.fontWeight=400;
-            // remove check mark
-            if (btn[i].innerHTML.indexOf("<span class=\"check\"></span>")>-1)
-                btn[i].innerHTML = btn[i].innerHTML.substring(0,btn[i].innerHTML.length - 27);
         }else{
             // set active
             // find the given layer
@@ -21,12 +18,12 @@ function makeDropdownActive(selectedBtn){
             btn[i].className=btn[i].className+" active";
             btn[i].active = true;
             btn[i].style.fontWeight=500;
-            if (btn[i].innerHTML.indexOf("<span class=\"check\"></span>")==-1)
-                btn[i].innerHTML+="<span class='check'></span>";
+           
             // update title by filter button
             var label = document.getElementById("select_"+btn[i].title).selectedOptions[0].label;
             var expression = document.getElementById("select_"+btn[i].title).selectedOptions[0].value;
             document.getElementById("filterTitle").innerHTML = "<strong>Showing: </strong>"+ btn[i].title+" "+label;
+            document.getElementById("filterIcon").src = btn[i].icon;
             for (var j=0; j<btn[i].layer.length; j++)
                 btn[i].layer[j].definitionExpression = expression;
             // close on mobile
@@ -44,9 +41,6 @@ function myFilter(title,icon,btn){
             if (btn[j].layer)
                 btn[j].layer.definitionExpression = "";
             btn[j].style.fontWeight=400;
-            // remove check mark
-            if (btn[j].innerHTML.indexOf("<span class=\"check\"></span>")>-1)
-                btn[j].innerHTML = btn[j].innerHTML.substring(0,btn[j].innerHTML.length - 27);
         }
     }
     
@@ -83,6 +77,7 @@ function myFilter(title,icon,btn){
     let filterBtn = document.createElement("button");
     filterWidget.appendChild(filterBtn);
     filterWidget.appendChild(filterShowing);
+    filterBtn.style.width="45px";
     filterBtn.setAttribute("onmouseenter","openFilter()");
     filterBtn.setAttribute("aria-busy","false");
     filterBtn.setAttribute("aria-label",title);
@@ -91,22 +86,21 @@ function myFilter(title,icon,btn){
     filterBtn.className="esri-widget--button";
     filterBtn.style.border="1px solid #6e6e6e77";
     filterBtn.type="button";
-    filterBtn.innerHTML = "<img src='./assets/images/"+icon+"' style='width:24px' alt='filter map' aria-hidden='true' class='icon'> &#9660";
+    filterBtn.innerHTML = "<img id='filterIcon' src='./assets/images/"+icon+"' style='width:24px' alt='filter map' aria-hidden='true' class='icon'> &#9660";
     filterBtn.addEventListener("click",function(){
         document.getElementById("filterPopup").style.display = "block";
     });
 
         // add buttons to filter data
-        var iconSize = "24px";
+        var iconSize = "32px";
         for (var i=0; i<btn.length; i++){
             btn[i].name="filterBtn";
+            btn[i].innerHTML="<img src='"+btn[i].icon+"' style='width:"+iconSize+";'> <span class='filterTxt'>"+btn[i].title+"</span>";
             if (btn[i].active){
                 btn[i].className += " active";
-                btn[i].innerHTML="<img src='"+btn[i].icon+"' style='width:"+iconSize+";'> <span class='filterTxt'>"+btn[i].title+"</span><span class='check'></span>";
                 btn[i].style.fontWeight=500;
             }else{
-                btn[i].style.fontWeight=400;
-                btn[i].innerHTML="<img src='"+btn[i].icon+"' style='width:"+iconSize+";'> <span class='filterTxt'>"+btn[i].title+"</span>";
+                btn[i].style.fontWeight=400; 
             }
             document.getElementById("filterContent").appendChild(btn[i]);
             if (btn[i].dropdown){
@@ -140,9 +134,9 @@ function myFilter(title,icon,btn){
                         this.className=this.className+" active";
                         this.active = true;
                         this.style.fontWeight=500;
-                        this.innerHTML+="<span class='check'></span>";
                         // Update title by filter button
                         filterShowing.innerHTML = "<strong>Showing: </strong>"+ this.title;
+                        document.getElementById("filterIcon").src = this.icon;
                         for (i=0; i<this.layer.length; i++)
                             this.layer[i].definitionExpression = this.expression;
                         // close on mobile
@@ -156,9 +150,6 @@ function myFilter(title,icon,btn){
                         for (i=0; i<this.layer.length; i++)
                             this.layer[i].definitionExpression = this.expression;
                         this.style.fontWeight=400;
-                        // remove check mark
-                        if (this.innerHTML.indexOf("<span class='check'></span>")>-1)
-                            this.innerHTML = substring(0,btn[j].innerHTML - 27);
 
                         // make first active
                         btn[0].className=btn[0].className+" active";
@@ -172,7 +163,6 @@ function myFilter(title,icon,btn){
 
                         for (i=0; i<btn[0].layer.length; i++)
                             btn[0].layer[i].definitionExpression = btn[0].expression;
-                        btn[0].innerHTML+="<span class='check'></span>";
                         // close on mobile
                         if (window.innerWidth <= 768)closeFilter();
                     }
