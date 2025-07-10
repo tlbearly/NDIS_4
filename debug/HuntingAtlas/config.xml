@@ -218,7 +218,7 @@
             icon="./assets/images/logo.svg"/>
 		<link label="OLD Colorado Hunting Atlas"
             url="https://ndismaps.nrel.colostate.edu/OldAtlas/index.html?app=HuntingAtlas"
-            icon="./assets/images/i_fishingatlas.svg"
+            icon="./assets/images/i_huntingatlas.svg"
             extent="true"/>	
         <link label="Colorado Fishing Atlas"
             url="./index.html?app=FishingAtlas"
