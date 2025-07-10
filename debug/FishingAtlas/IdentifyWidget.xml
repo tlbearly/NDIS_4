@@ -221,14 +221,6 @@
                 <fields>name,stage_ft,flow_cfs,lastupdate,stationurl,graphurl</fields>
                 <displaynames>Station Name,Height (feet),Flow (cfs),Last updated,Station website, Graph website</displaynames>
             </layer>
-            <layer label="Stream Gage"  display_label="Our Old Stream Guage">
-                <id>4</id>
-                <!--url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer</url-->
-                <url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/NonDisplay2025/MapServer</url>
-                <geometry>point</geometry>
-                <fields>NAME,HTMLLINK</fields>
-                <displaynames>Station Name,Realtime data</displaynames>
-            </layer>
         </folder>
         <folder label="Resources">
             <!--  License Agent   -->

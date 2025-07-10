@@ -35,6 +35,7 @@ function addMeasure(graphicsLayer){
         const measureTitle = document.createElement("h2");
         measureTitle.style.textAlign="center";
         measureTitle.style.padding="10px";
+        measureTitle.style.height="28px";
         measureTitle.style.margin="0";
         measureTitle.innerHTML='<span id="helpTitle">Measure</span>';
         const measureClose = document.createElement("button");
