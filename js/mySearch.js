@@ -359,10 +359,10 @@ function createSearchWidget(sources,zoomScale){
         searchWidget.when(()=>{
             // if identify is showing close it when click on search widget
             searchWidget.container.addEventListener("click", function(event) {
-                //view.closePopup();
                 closeIdentify();
                 closeMeasure();
                 closeHelp();
+                closeFilter();
             });
 
             // change filter icon from down arrow to filter
@@ -379,16 +379,15 @@ function createSearchWidget(sources,zoomScale){
             searchWidget.container.children[0].querySelector("input").parentNode.parentNode.style.paddingRight  = "12px";
 
             if (window.innerWidth > 768) {
+                searchWidget.container.style.position = "absolute";
                 searchWidget.container.style.left = "85px";
-                searchWidget.container.style.position = "relative";
-                searchWidget.container.style.top = "-20px";
+                searchWidget.container.style.top = "35px";
                 searchWidget.container.style.width = "195px";
             }
             else {
-                searchWidget.container.style.left = "30px";
-                searchWidget.container.style.marginRight = "30px";
-                searchWidget.container.style.marginLeft = "7px";
-                searchWidget.container.style.top = "-20px";
+                searchWidget.container.style.position = "absolute";
+                searchWidget.container.style.left = "10px";
+                searchWidget.container.style.top = "39px";
                 searchWidget.container.style.width = "195px";
             }
         });
@@ -412,10 +411,10 @@ function createSearchWidget(sources,zoomScale){
         if (window.innerWidth > 768) {
             homeWidget.style.position = "absolute";
             homeWidget.style.left = "285px";
-            homeWidget.style.top = "38px";//-52px";
+            homeWidget.style.top = "35px";//-52px";
         }else {
             homeWidget.style.position = "absolute";
-            homeWidget.style.left = "209px";
+            homeWidget.style.left = "210px";
             homeWidget.style.top = "39px";//-51px";
         }
         let homeIcon = document.createElement("calcite-icon");

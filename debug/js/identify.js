@@ -1585,7 +1585,8 @@ function writeFeatureContent(feature,layerName,thePromise){
                             identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Address") == -1 &&
                             identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Inspection Station") == -1 &&
                             identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Station Name") == -1 &&
-                            identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Phone") == -1) { //identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("restrictions")>-1 ){
+                            identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Phone") == -1 &&
+                            identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Hours") == -1) { //identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("restrictions")>-1 ){
                             tmpStr += "<span class='idSubValue'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubTitle'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] +"</span>";
                         }
                         // MVUM Seasonal Roads

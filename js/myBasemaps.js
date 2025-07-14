@@ -154,7 +154,7 @@ function myBasemaps() {
                     //thumbnailUrl:"https://www.arcgis.com/sharing/rest/content/items/588f0e0acc514c11bc7c898fed9fc651/info/thumbnail/topo_thumb_b2wm.jpg"
                   });
             }catch(error){
-                console.log(error.message);
+                //console.log(error.message);
             }
         });
     }

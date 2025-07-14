@@ -517,13 +517,13 @@ function displayContent() {
                                         for(var p=0; p<items3.length; p++){
                                             if(items3[p].layers !== undefined || items3[p].sublayers){
                                                 //alert("Need to add code to identify.js line 490 to check for visible layers to identify.");
-                                                console.log("Identify visible only layers is ignoring "+items3[p].title+" Need to add code to identify.js line 490 to check for visible layers to identify.");
+                                                //console.log("Identify visible only layers is ignoring "+items3[p].title+" Need to add code to identify.js line 490 to check for visible layers to identify.");
                                             }else{
                                                 //console.log(items3[p].title);
                                                 if (items3[p].url.toLowerCase().indexOf("featureserver") > -1){
                                                     if (items3[p].url !== undefined && items3[p].url !== null && isMapLayerInIdentify(items3[p].url,items3[p].layerId)){
                                                         if (items3[p].minScale == 0 && items3[p].parent.parent.minScale != 0){
-                                                            console.log ("set minScale of "+items3[p].title+" "+items3[p].minScale+" to minScale of "+items3[p].parent.parent.title+" "+items3[p].parent.parent.minScale);
+                                                            //console.log ("set minScale of "+items3[p].title+" "+items3[p].minScale+" to minScale of "+items3[p].parent.parent.title+" "+items3[p].parent.parent.minScale);
                                                             items3[p].minScale = items3[p].parent.parent.minScale;
                                                         }
                                                         alllayers.push(items3[p]);
@@ -544,7 +544,7 @@ function displayContent() {
                                         if (items2[n].url.toLowerCase().indexOf("featureserver") > -1){
                                             if (items2[n].url !== undefined && items2[n].url !== null && isMapLayerInIdentify(items2[n].url,items2[n].layerId)){
                                                 if (items2[n].minScale == 0 && items2[n].parent.minScale != 0){
-                                                    console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
+                                                    //console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
                                                     items2[n].minScale = items2[n].parent.minScale;
                                                 }
                                                 alllayers.push(items2[n]);
@@ -552,7 +552,7 @@ function displayContent() {
                                         }else{
                                             if (items2[n].url !== undefined && items2[n].url !== null && isMapLayerInIdentify(items2[n].url,items2[n].id)){
                                                 if (items2[n].minScale == 0 && items2[n].parent.minScale != 0){
-                                                    console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
+                                                    //console.log ("set minScale of "+items2[n].title+" "+items2[n].minScale+" to minScale of "+items2[n].parent.title+" "+items2[n].parent.minScale);
                                                     items2[n].minScale = items2[n].parent.minScale;
                                                 }
                                                 alllayers.push(items2[n]);
@@ -1466,7 +1466,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                 XMLHttpRequestObjects[xmlIndex].send();
             } catch (error) {
                 alert("Identify on " + layerName + " failed with error: " + error.message + " in javascript/identify.js handleQueryResults().", "Data Error");
-                console.log(error.message);
+                //console.log(error.message);
                 hideLoading();
             }
         }
@@ -1545,6 +1545,11 @@ function writeFeatureContent(feature,layerName,thePromise){
                             tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>";
                             tmpStr +=  feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(1)+"mi</span>";
                         }
+                        // Flow (cfs) round
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Flow (cfs)"){
+                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>";
+                            tmpStr +=  feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(2)+"</span>";
+                        }
                         else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("updated") > -1){
                             // subtract 6 hours from Greenwich time
                             var d = (Date.now() - feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
@@ -1576,7 +1581,12 @@ function writeFeatureContent(feature,layerName,thePromise){
                         }
                         // If greater than 5 words in the text, make title bold and text not bold
                         else if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
-                            feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].match(/(\w+)/g).length > 5) { //identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("restrictions")>-1 ){
+                            feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].match(/(\w+)/g).length > 5 &&
+                            identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Address") == -1 &&
+                            identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Inspection Station") == -1 &&
+                            identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Station Name") == -1 &&
+                            identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Phone") == -1 &&
+                            identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Hours") == -1) { //identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("restrictions")>-1 ){
                             tmpStr += "<span class='idSubValue'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubTitle'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] +"</span>";
                         }
                         // MVUM Seasonal Roads
@@ -1760,7 +1770,7 @@ function highlightFeature(id,fade) {
     if (id > -1){
         if (features[id] && features[id].geometry && (features[id].geometry != undefined && features[id].geometry.type)) { 
             if (features[id].geometry.type === "polyline") {
-                console.log("highlight line numHighlight="+numHighlightFeatures);
+                //console.log("highlight line numHighlight="+numHighlightFeatures);
                 addTempLine(features[id],fade);
                 numHighlightFeatures++;
             }
@@ -1780,7 +1790,7 @@ function removeHighlight() {
     for (var i=0; i<numHighlightFeatures; i++)
         view.graphics.remove(view.graphics.items[view.graphics.items.length-1]);
     numHighlightFeatures=0;
-    console.log("remove all highlights");
+    //console.log("remove all highlights");
 }
 
 function setIdentifyFooter(clickPt) {

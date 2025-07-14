@@ -169,6 +169,7 @@
             text="A video highlighting the features of our map atlas"
             url="https://"
             icon="./assets/images/compass3.png"/-->
+        
         <link label="CPW Website"
             url="https://cpw.state.co.us"
             icon="./assets/images/logo.svg"/>
@@ -185,12 +186,50 @@
 		<link label="Stocking Report"
     		url="https://cpw.state.co.us/thingstodo/Pages/StockingReport.aspx"
     		icon="assets/images/i_documentadd2.png"/>
+        <link label="Send us Your Feedback" text="Please send your questions, comments, or problems with the Colorado FishingAtlas to ndisadmin@nrel.colostate.edu."
+            url="mailto:ndisadmin@nrel.colostate.edu"
+            icon="./assets/images/i_mail.png"/>
     </links>
     <extra_widgets>
-        <widget name="filter" title="Show Fishing Opportunities" icon="OppAll_Icon.svg">
-            <butten title="Family Friendly"
-                url=""
+        <widget name="filter" title="Fishing Opportunities" icon="OppAll_Icon.svg">
+            <button title="All fishing opportunities"
+                icon="OppAll_Icon.svg"
+                layer-title="Fishing Info"
+                layer-id="3,5,7"
+                active="true"
                 where=""/>
+            <button title="Family friendly opportunities"
+                icon="OppFamily_Icon.svg"
+                layer-title="Fishing Info"
+                layer-id="3,5,7"
+                active="false"
+                where="OPP_FAMILY = 'Yes'"/>
+            <button title="More remote fly fishing opportunities"
+                icon="OppFly_Icon.svg"
+                layer-title="Fishing Info"
+                layer-id="3,5,7"
+                active="false"
+                where="OPP_RUSTIC = 'Yes'"/>
+            <button title="Ice fishing opportunities"
+                icon="Opplce_Icon.svg"
+                layer-title="Fishing Info"
+                layer-id="3,5,7"
+                active="false"
+                where="OPP_ICE = 'Yes'"/>
+            <button title="Stocked with 10 inch catchables"
+                icon="OppStocked_Icon.svg"
+                layer-title="Fishing Info"
+                layer-id="3,5,7"
+                active="false"
+                where="STOCKED like '%Catchable%'"/>
+            <button title="Icon for Fish Selector"
+                icon="OppFishSpx_Icon.svg"
+                layer-title="Fishing Info"
+                layer-id="3,5,7"
+                active="false"
+                dropdown="true"
+                list=",Non-motorized,Motor boats,Electric,Belly boats"
+                where=",BOATING='Non-motorized',BOATING='Motor boats',BOATING='Electric',BOATING='Belly boats'"/>
         </widget>
     </extra_widgets> 
 </configuration>

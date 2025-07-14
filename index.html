@@ -20,22 +20,22 @@
   <script type="module" src="https://js.arcgis.com/calcite-components/2.13.0/calcite.esm.js"></script>
   
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css" async="true" />
-  <link rel="stylesheet" href="./assets/css/main.css?v=80" async="true" />
-  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=40" async="true" />
+  <link rel="stylesheet" href="./assets/css/main.css?v=85" async="true" />
+  <link rel="stylesheet" href="./assets/css/custom-theme.css?v=42" async="true" />
   
   <!--link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.13.0/calcite.css" /-->
 
-  <script type="text/javascript" src="js/xmlUtils.js?v=2" async="true"></script>
-  <script type="text/javascript" src="js/disclaimer.js?v=2" async="true"></script>
-  <script type="text/javascript" src="js/utilFuncs.js?v=28" async="true"></script>
-  <script type="text/javascript" src="js/addMapLayers.js?v=62" async="true"></script> <!-- read config.xml, add links to help -->
-  <script type="text/javascript" src="js/myBasemaps.js?v=24" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=148" async="true"></script>
-  <script type="text/javascript" src="js/mySearch.js?v=19" async="true"></script>
-  <script type="text/javascript" src="js/identify.js?v=84" async="true"></script> <!-- read IdentifyWidget.xml -->
-  <script type="text/javascript" src="js/errorBox.js?v=4" async="true"></script>
-  <script type="text/javascript" src="js/myMeasure.js?v=14" async="true"></script>
-  <script type="text/javascript" src="js/filter.js?v=1" async="true"></script>
+  <script type="text/javascript" src="js/xmlUtils.js?v=1.0" async="true"></script>
+  <script type="text/javascript" src="js/disclaimer.js?v=1.0" async="true"></script>
+  <script type="text/javascript" src="js/utilFuncs.js?v=1.3" async="true"></script>
+  <script type="text/javascript" src="js/addMapLayers.js?v=1.0" async="true"></script> <!-- read config.xml, add links to help -->
+  <script type="text/javascript" src="js/myBasemaps.js?v=1.0" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=1.0" async="true"></script>
+  <script type="text/javascript" src="js/mySearch.js?v=1.0" async="true"></script>
+  <script type="text/javascript" src="js/identify.js?v=1.1" async="true"></script> <!-- read IdentifyWidget.xml -->
+  <script type="text/javascript" src="js/errorBox.js?v=1.0" async="true"></script>
+  <script type="text/javascript" src="js/myMeasure.js?v=1.0" async="true"></script>
+  <script type="text/javascript" src="js/filter.js?v=1.2" async="true"></script>
 
   <script>
     function closeHelp(){
@@ -273,19 +273,23 @@
           // Add title, logo, and search
           const titlediv=document.createElement("div");
           titlediv.style.padding="5px";
-          titlediv.style.borderRadius="12px";
+          //titlediv.style.borderRadius="12px";
           titlediv.style.margin="0 0 -45px 0px";
           titlediv.id = "titleDiv";
           if (window.innerWidth > 768)
             titlediv.style.minWidth="320px";
           else
             titlediv.style.minWidth="244px";
-          titlediv.style.height="90px";
-          titlediv.style.border="2px solid white";
+          titlediv.style.height="70px";
+          titlediv.style.zIndex="0";
+          titlediv.className = "myDialog";
+          titlediv.setAttribute("onmouseenter","closeFilter()");
+          //titlediv.style.border="2px solid white";
           const title=document.createElement("span");
           title.style.fontSize="1.4em";
           title.style.lineHeight="1.3em";
           title.style.position="relative";
+          title.style.top="1px";
           title.id = "title";
           
           const logo = document.createElement("img");
@@ -300,16 +304,20 @@
           logo.style.marginRight="10px";
           logo.setAttribute("align","middle");
           logo.addEventListener("click",function(){
+            //view.closePopup();
             closeIdentify();
             closeMeasure();
             openHelp();
           });
           const helpLink = document.createElement("button");
           helpLink.className="help_button";
+          helpLink.title="Help";
           helpLink.addEventListener("click",function(){
+            //view.closePopup();
             closeIdentify();
             closeMeasure();
             openHelp();
+            closeFilter();
           });
           if (window.innerWidth > 768) {
             helpLink.innerHTML="?";
@@ -323,23 +331,7 @@
           view.ui.add(titlediv,"top-left");
 
           // + - zoom buttons
-          view.ui.move("zoom", "bottom-right");
-
-          // This Identify action button event fires for each click on any action
-          // This event fires for each click on any action
-            /*reactiveUtils.on(()=>view.popup, "trigger-action", (event)=>{
-              if(event.action.id === "zoom-to-feature"){
-                  zoomToPt();
-              }
-              else if(event.action.id === "directions"){
-                  getDirections();
-              }
-              else if(event.action.id === "input-area"){
-                  getInputArea();
-              }
-          });*/
-          // just capture when it closes
-        
+          view.ui.move("zoom", "bottom-right");   
           
           // add Scale Bar
           let scaleBar = new ScaleBar({
@@ -384,11 +376,9 @@
           });
           view.ui.add(mapScaleBtn, "bottom-right");
           
-
           readIdentifyWidget(); // in identify, calls addSearch which needs elkUrl
           
           addMeasure(graphicsLayer);
-
 
           // MARK: -- Location --
           const locateBtn = new Locate({
@@ -475,7 +465,6 @@
       </article>
     </div>
   </div>
-  <!--class="errorbox" style="display:none;border:2px solid white;margin:auto;width:570px;border-radius:12px;top:20px;height:calc(100vh - 40px);"-->
   <div id="disclaimer" class="modalBkg">
     <div class="modalContent">
       <h2 id="disclaimerTitle" class="modalTitle"></h2>
@@ -488,13 +477,8 @@
       </div>
     </div>
   </div>
-  <div id="filterPopup" class="myDialog myIdDialog" style="display:none; width:280px;">
-     <header class="myHeader">
-      <h2><span id="filterTitle">Filter</span><button id="filterClose" class="myCloseButton"  onclick="javascript:closeFilter()" aria-busy="false" aria-label="Close" aria-pressed="false">X</button></h2>
-    </header>
-    <article>
-      <div id="filterContent" style="padding:10px;overflow-y:auto;"></div>
-    </article>
+  <div id="filterPopup" class="myDialog myIdDialog" onmouseleave="closeFilter()" style="display:none;border-top-right-radius:0px;border-top-left-radius:0px;top:143px;width:330px;max-height:300px;">
+      <div id="filterContent" style="padding:10px;height:200px;overflow-y:auto;"></div>
   </div>
   <div id="identifyPopup" class="myDialog myIdDialog" style="display:none;">
     <header class="myHeader">

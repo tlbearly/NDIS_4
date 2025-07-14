@@ -670,7 +670,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                             icon.id = "statusIcon";
                             if (item[i].loaded){
                                 icon.icon = "";
-                                console.log(item[i].title+" type="+item[i].type+" loaded. No need to display loading icon.");
+                                //console.log(item[i].title+" type="+item[i].type+" loaded. No need to display loading icon.");
                             }else {
                                 icon.icon = "offline";
                                 icon.className = "waitingForConnection";
@@ -678,9 +678,9 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 icon.title = "loading...";
                                 icon.style.marginRight = "5px";
                             
-                                console.log(item[i].title+" type="+item[i].type+" not loaded. Display loading icon.");
+                                //console.log(item[i].title+" type="+item[i].type+" not loaded. Display loading icon.");
                                 item[i].on("layerview-create", function(event){
-                                    console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
+                                    //console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
                                     icon.icon = "";
                                     icon.label = "";
                                     icon.title = "";
@@ -858,18 +858,18 @@ function layerListAddSublayerDialogs(event,theLayer){
                                     row.style.borderTop = "1px solid #efefef";
                                 subLayerList.appendChild(row);
                                 if (element[i].loaded == false) {
-                                    console.log("need to wait for layer to load, "+element[i].title+" TODO: should status icon be displayed?");
+                                    //console.log("need to wait for layer to load, "+element[i].title+" TODO: should status icon be displayed?");
                                     let tim2 = setInterval(function(layer){
                                         // call function to add layer and sublayers
                                         if (layer.layers || layer.sublayers){
                                             clearInterval(tim2);
-                                            console.log(layer.title+" "+layer.loaded+" with layers");
+                                            //console.log(layer.title+" "+layer.loaded+" with layers");
                                             // Pass in row, layer, put sublayers in an expandable block: false, fonsize, html h tag level 
                                             addToLayerList(row, layer, false, listFontSize, hLevel);
                                         }
                                     },500,element[i]);
                                 }else{
-                                    console.log(element[i].title+" "+element[i].loaded+" with layers");
+                                    //console.log(element[i].title+" "+element[i].loaded+" with layers");
                                     addToLayerList(row, element[i], false, listFontSize, hLevel); // false = do not add expandable block
                                 }
                             }
@@ -883,18 +883,18 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 // new code
                                 subLayerList.appendChild(blockRow);
                                 if (element[i].loaded == false) {
-                                    console.log("need to wait for layer to load, "+element[i].title+" TODO: should add status icon?");
+                                    //console.log("need to wait for layer to load, "+element[i].title+" TODO: should add status icon?");
                                     let tim3 = setInterval(function(layer){
                                         // call function to add layer and sublayers
                                         if (layer.layers || layer.sublayers){
                                             clearInterval(tim3);
-                                            console.log(layer.title+" "+layer.loaded+" with layers");
+                                            //console.log(layer.title+" "+layer.loaded+" with layers");
                                             // Pass in row, layer, put sublayers in an expandable block: false, fonsize, html h tag level 
                                             addToLayerList(blockRow, layer, true, listFontSize, hLevel);
                                         }
                                     },500,element[i]);
                                 }else{
-                                    console.log(element[i].title+" "+element[i].loaded+ " with layers");
+                                    //console.log(element[i].title+" "+element[i].loaded+ " with layers");
                                     addToLayerList(blockRow, element[i], true, listFontSize, hLevel); // false = do not add expandable block
                                 }
                                 /*
@@ -1098,7 +1098,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 if (i != element.length-1)
                                     subLayerListItem.style.borderTop = "1px solid #efefef";
                                 subLayerList.appendChild(subLayerListItem);
-                                console.log(element[i].title+" "+element[i].loaded);
+                                //console.log(element[i].title+" "+element[i].loaded);
                                 addToLayerList(subLayerListItem, element[i], true, listFontSize, hLevel); // false = do not add expandable block
                                 
 
@@ -1288,7 +1288,7 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                             const icon = document.createElement("calcite-icon");
                             icon.id = "statusIcon";
                             var testLayer = item[j];
-                            console.log(item[j].title+" in hideGroupSublayers="+hideGroupSublayers.indexOf(item[j].title) == -1)
+                            //console.log(item[j].title+" in hideGroupSublayers="+hideGroupSublayers.indexOf(item[j].title) == -1)
                             if (item[j].type === "sublayer") testLayer = item[j].parent;
                             if (testLayer.type === "sublayer") testLayer = item[j].parent.parent;
                             if (testLayer.loaded){
@@ -1300,10 +1300,10 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                                 icon.title = "loading...";
                                 icon.style.marginRight = "5px";
                             
-                                console.log (item[j].title+" "+item[j].type+" not loaded. Display loading icon.");
+                                //console.log (item[j].title+" "+item[j].type+" not loaded. Display loading icon.");
                                 if(testLayer.on !== undefined) {
                                     testLayer.on("layerview-create", function(event){
-                                        console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
+                                        //console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
                                         icon.icon = "";
                                         icon.label = "";
                                         icon.title = "";
@@ -1402,10 +1402,10 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                     icon.title = "loading...";
                     icon.style.marginRight = "5px";
                 
-                    console.log (element.title+" "+element.type+" display loading icon.");
+                    //console.log (element.title+" "+element.type+" display loading icon.");
                     if(testLayer.on !== undefined) {
                         testLayer.on("layerview-create", function(event){
-                            console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
+                            //console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
                             icon.icon = "";
                             icon.label = "";
                             icon.title = "";
@@ -1585,11 +1585,11 @@ function addBlock(row,element,listFontSize,hLevel){
                             icon.title = "loading...";
                             icon.style.marginRight = "5px";
                         
-                            console.log (item[j].title+" "+item[j].type+" display loading icon.");
+                            //console.log (item[j].title+" "+item[j].type+" display loading icon.");
                             // TODO !!!!!!!!!!!!!!!!!!!!!!!! not working for all layers (sublayers)
                             if(testLayer.on !== undefined) {
                                 testLayer.on("layerview-create", function(event){
-                                    console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
+                                    //console.log(event.layerView.layer.title+" has loaded. Removed loading icon.");
                                     icon.icon = "";
                                     icon.label = "";
                                     icon.title = "";

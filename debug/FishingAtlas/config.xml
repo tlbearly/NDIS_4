@@ -169,6 +169,7 @@
             text="A video highlighting the features of our map atlas"
             url="https://"
             icon="./assets/images/compass3.png"/-->
+        
         <link label="CPW Website"
             url="https://cpw.state.co.us"
             icon="./assets/images/logo.svg"/>
@@ -185,6 +186,9 @@
 		<link label="Stocking Report"
     		url="https://cpw.state.co.us/thingstodo/Pages/StockingReport.aspx"
     		icon="assets/images/i_documentadd2.png"/>
+        <link label="Send us Your Feedback" text="Please send your questions, comments, or problems with the Colorado FishingAtlas to ndisadmin@nrel.colostate.edu."
+            url="mailto:ndisadmin@nrel.colostate.edu"
+            icon="./assets/images/i_mail.png"/>
     </links>
     <extra_widgets>
         <widget name="filter" title="Fishing Opportunities" icon="OppAll_Icon.svg">
