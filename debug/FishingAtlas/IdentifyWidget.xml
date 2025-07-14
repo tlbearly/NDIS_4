@@ -146,7 +146,6 @@
             <!--  Fishing Regs  -->
             <layer label="Special Fishing Regulations (stream)">
                 <id>5</id>
-                <!--url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer</url-->
                 <url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/NonDisplay2025/MapServer</url>
                 <geometry>line</geometry>
                 <fields>LOC_ID</fields>
@@ -159,7 +158,6 @@
             </layer>
             <layer label="Special Fishing Regulations (lake)">
                 <id>12</id>
-                <!--url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer</url-->
                 <url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/NonDisplay2025/MapServer</url>
                 <geometry>polygon</geometry>
                 <fields>LOC_ID</fields>
@@ -172,7 +170,6 @@
             </layer>
             <layer label="Special Fishing Regulations (property)">
                 <id>13</id>
-                <!--url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer</url-->
                 <url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/NonDisplay2025/MapServer</url>
                 <geometry>polygon</geometry>
                 <fields>LOC_ID</fields>

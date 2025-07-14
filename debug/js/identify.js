@@ -1545,6 +1545,11 @@ function writeFeatureContent(feature,layerName,thePromise){
                             tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>";
                             tmpStr +=  feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(1)+"mi</span>";
                         }
+                        // Flow (cfs) round
+                        else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Flow (cfs)"){
+                            tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>";
+                            tmpStr +=  feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toFixed(2)+"</span>";
+                        }
                         else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("updated") > -1){
                             // subtract 6 hours from Greenwich time
                             var d = (Date.now() - feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]]);
@@ -1576,7 +1581,11 @@ function writeFeatureContent(feature,layerName,thePromise){
                         }
                         // If greater than 5 words in the text, make title bold and text not bold
                         else if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
-                            feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].match(/(\w+)/g).length > 5) { //identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("restrictions")>-1 ){
+                            feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].match(/(\w+)/g).length > 5 &&
+                            identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Address") == -1 &&
+                            identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Inspection Station") == -1 &&
+                            identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Station Name") == -1 &&
+                            identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Phone") == -1) { //identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("restrictions")>-1 ){
                             tmpStr += "<span class='idSubValue'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubTitle'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] +"</span>";
                         }
                         // MVUM Seasonal Roads

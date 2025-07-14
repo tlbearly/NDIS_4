@@ -378,10 +378,17 @@ function dms_or_dm_to_dd(str) {
 
 // change text to title case
 function toTitleCase(str) {
-  return str.replace(
+  var str1 = str.replace(
     /\w\S*/g,
     text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
   );
+  str1 = str1.replace(" Stl"," STL");
+  str1 = str1.replace("Cpw","CPW");
+  str1 = str1.replace(" Swa"," SWA");
+  str1 = str1.replace(" Sfa"," SFA");
+  str1 = str1.replace("Cdow","CDOW");
+  str1 = str1.replace("/ne ","/NE ");
+  return str1;
 }
 
 //*************

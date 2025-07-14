@@ -47,6 +47,7 @@ function myFilter(title,icon,btn){
     // filter data displayed by selecting different buttons
     // for example: Family Friendly Fishing Pts
     // Title beside the the filter button
+    var iconSize = "32px";
     let filterWidget = document.createElement("div");
     filterWidget.style.position="absolute";
     filterWidget.id="Filter_Widget"
@@ -66,7 +67,6 @@ function myFilter(title,icon,btn){
     let filterShowing = document.createElement("div");
     filterShowing.id="filterTitle";
     filterShowing.innerHTML = "<strong>Showing: </strong>"+ btn[0].title;
-    //filterShowing.style.height= "40px";
     filterShowing.style.paddingLeft="10px";
     filterShowing.style.alignContent="center";
     filterShowing.style.lineHeight= "1em";
@@ -77,7 +77,8 @@ function myFilter(title,icon,btn){
     let filterBtn = document.createElement("button");
     filterWidget.appendChild(filterBtn);
     filterWidget.appendChild(filterShowing);
-    filterBtn.style.width="45px";
+    filterBtn.style.width="60px";
+    if (window.innerWidth <= 768)filterBtn.style.width="80px";
     filterBtn.setAttribute("onmouseenter","openFilter()");
     filterBtn.setAttribute("aria-busy","false");
     filterBtn.setAttribute("aria-label",title);
@@ -86,13 +87,12 @@ function myFilter(title,icon,btn){
     filterBtn.className="esri-widget--button";
     filterBtn.style.border="1px solid #6e6e6e77";
     filterBtn.type="button";
-    filterBtn.innerHTML = "<img id='filterIcon' src='./assets/images/"+icon+"' style='width:24px' alt='filter map' aria-hidden='true' class='icon'> &#9660";
+    filterBtn.innerHTML = "<img id='filterIcon' src='./assets/images/"+icon+"' style='width:"+iconSize+"' alt='filter map' aria-hidden='true' class='icon'> &#9660";
     filterBtn.addEventListener("click",function(){
         document.getElementById("filterPopup").style.display = "block";
     });
 
         // add buttons to filter data
-        var iconSize = "32px";
         for (var i=0; i<btn.length; i++){
             btn[i].name="filterBtn";
             btn[i].innerHTML="<img src='"+btn[i].icon+"' style='width:"+iconSize+";'> <span class='filterTxt'>"+btn[i].title+"</span>";
