@@ -87,6 +87,8 @@ function myFilter(title,icon,btn){
 
     function lookupDataForExpression(btn,opt,expression,label){
         var xmlhttp = createXMLhttpRequest();
+        label = label.replace("(","%28");
+        label = label.replace(")","%29");
         xmlhttp.open("POST",btn.database+"?v="+ndisVer+"&key="+label,true);
         xmlhttp.send(null);
 

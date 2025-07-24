@@ -26,8 +26,8 @@ function addSearch() {
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                 try {
-                    var xmlDoc = createXMLdoc(xmlhttp);
-                    var searchLayers = xmlDoc.getElementsByTagName("layer");
+                    var xmlSearchDoc = createXMLdoc(xmlhttp);
+                    var searchLayers = xmlSearchDoc.getElementsByTagName("layer");
                     for (var f = 0; f < searchLayers.length; f++) {
                         var layerName = "layer"+(f+1);
                         if (!searchLayers[f].getElementsByTagName("name")[0]){
@@ -83,10 +83,10 @@ function addSearch() {
                         // limit to Colorado
                         sources[sources.length-1].filter = searchExtent;
                     }
-                    if (!xmlDoc.getElementsByTagName("zoomscale")[0] && !xmlDoc.getElementsByTagName("zoomscale")[0].childNodes[0].data)
+                    if (!xmlSearchDoc.getElementsByTagName("zoomscale")[0] && !xmlSearchDoc.getElementsByTagName("zoomscale")[0].childNodes[0].data)
                         alert("Error in "+app+"/SearchWidget.xml file. Tag, zoomscale is missing. Using 72224 scale to zoom to points.","Data Error");
                     else
-                        zoomScale = parseInt(xmlDoc.getElementsByTagName("zoomscale")[0].childNodes[0].data);
+                        zoomScale = parseInt(xmlSearchDoc.getElementsByTagName("zoomscale")[0].childNodes[0].data);
                 
                     createSearchWidget(sources,zoomScale);
                 }catch (e) {
