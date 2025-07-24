@@ -1,4 +1,4 @@
-var xmlDoc; // config.xml document json
+var xmlConfigDoc; // config.xml document json
 var ext;
 var initExtent;
 var openTOCgroups=[];
@@ -227,9 +227,9 @@ function addMapLayers(){
                     
                     // add identify popup template
                     var xmlLayer=null;
-                    for(i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
-                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label") === myLayer.id){
-                            xmlLayer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
+                    for(i=0;i<xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+                        if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label") === myLayer.id){
+                            xmlLayer = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
                             break;
                         }
                     }
@@ -358,9 +358,9 @@ function addMapLayers(){
     //if (event.layer.loadError && event.layer.loadError.message) console.log("Error: "+event.layer.loadError.message+" Status: "+event.layer.loadStatus);
     //console.log("tries="+tries[event.layer.title]);
             /*var layer=null;
-            for(i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
-                if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label") === event.layer.id){
-                    layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
+            for(i=0;i<xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+                if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label") === event.layer.id){
+                    layer = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
                     break;
                 }
             }*/
@@ -407,19 +407,19 @@ function addMapLayers(){
                 // opLayerObj = top level layer of group
                 // opGroupLayerObj = a groupLayer with layerids, ignor sub groups with no sublayers
                 if (opLayerObj.length == 0){
-                    for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+                    for(var i=0;i<xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
                         // add top level layer or group
-                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("parentGroup")===null){
-                            if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label")){
+                        if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("parentGroup")===null){
+                            if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label")){
                                 opLayerObj.push({
-                                    title: xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label"),
+                                    title: xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label"),
                                     type: "layer",
                                     parentId: null
                                 });
                             }
-                            else if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group")){
+                            else if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group")){
                                 opLayerObj.push({
-                                    title: xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group"),
+                                    title: xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group"),
                                     type: "group",
                                     parentId: null
                                 });
@@ -652,24 +652,24 @@ function addMapLayers(){
                 var symbol_icon = null;
                 var listMode = "show";
                 var legendEnabled = true;
-                for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
-                    if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group") === layer.parent.title){
-                        //layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
-                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields")){
-                            popupFields = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields").split(",");
-                            popupLabels = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_labels").split(",");
+                for(var i=0;i<xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+                    if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group") === layer.parent.title){
+                        //layer = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
+                        if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields")){
+                            popupFields = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_fields").split(",");
+                            popupLabels = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("popup_labels").split(",");
                         }
-                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds")){
-                            var ids = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds").split(",");
+                        if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds")){
+                            var ids = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds").split(",");
                             for (var k=0; k<ids.length; k++){
                                 if (parseInt(ids[k]) == layer.id || parseInt(ids[k]) == layer.layerId){
-                                    if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("filter")){
-                                        filters = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("filter").split(",");
+                                    if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("filter")){
+                                        filters = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("filter").split(",");
                                         filter = filters[k];
                                         if (filter === "") filter = null;
                                     }
-                                    if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon")){
-                                        symbol_icons = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon").split(",");
+                                    if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon")){
+                                        symbol_icons = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon").split(",");
                                         symbol_icon = symbol_icons[k];
                                         if (symbol_icon === "") symbol_icon = null;
                                     }
@@ -678,11 +678,11 @@ function addMapLayers(){
                             }
                         }
                         
-                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("listMode")){
-                            listMode = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("listMode");
+                        if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("listMode")){
+                            listMode = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("listMode");
                         }
-                        if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("legendEnabled")){
-                            legendEnabled = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("legendEnabled");
+                        if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("legendEnabled")){
+                            legendEnabled = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("legendEnabled");
                         }
                         break;
                     }
@@ -789,17 +789,17 @@ function addMapLayers(){
                     // load the correct layer order from config.xml file for all group layers
                     // opGroupLayerObj = a groupLayer with layerids, ignor sub groups with no sublayers
                     if (opGroupLayerObj.length == 0){
-                        for(var i=0;i<xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
+                        for(var i=0;i<xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
                             // add group layer with sublayers
-                            if (xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds")){
-                                var ids = getLayerIds(xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds"));
+                            if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds")){
+                                var ids = getLayerIds(xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("layerIds"));
                                 for(j=0;j<ids.length;j++){
                                     //DEBUG if (ids[j] == 1900)ids[j]=19;
                                     opGroupLayerObj.push({
                                         title: ids[j],
                                         type: "layer",
-                                        parentId: xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group"),
-                                        grandparentId: xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("parentGroup")
+                                        parentId: xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group"),
+                                        grandparentId: xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("parentGroup")
                                     });
                                 }
                             }
@@ -942,14 +942,14 @@ function addMapLayers(){
 
         // Get hide GroupSublayers & radioLayers from config.xml
         try {
-            if (xmlDoc.getElementsByTagName("hideGroupSublayers")[0] && xmlDoc.getElementsByTagName("hideGroupSublayers")[0].firstChild)
-                hideGroupSublayers = xmlDoc.getElementsByTagName("hideGroupSublayers")[0].firstChild.nodeValue.split(",");
+            if (xmlConfigDoc.getElementsByTagName("hideGroupSublayers")[0] && xmlConfigDoc.getElementsByTagName("hideGroupSublayers")[0].firstChild)
+                hideGroupSublayers = xmlConfigDoc.getElementsByTagName("hideGroupSublayers")[0].firstChild.nodeValue.split(",");
         } catch (e) {
             alert("Warning: Missing hideGroupSublayers tag in " + app + "/config.xml file. " + e.message, "Data Error");
         }
         try {
-            if (xmlDoc.getElementsByTagName("radiolayers")[0] && xmlDoc.getElementsByTagName("radiolayers")[0].firstChild)
-                radioLayers = xmlDoc.getElementsByTagName("radiolayers")[0].firstChild.nodeValue.split(",");
+            if (xmlConfigDoc.getElementsByTagName("radiolayers")[0] && xmlConfigDoc.getElementsByTagName("radiolayers")[0].firstChild)
+                radioLayers = xmlConfigDoc.getElementsByTagName("radiolayers")[0].firstChild.nodeValue.split(",");
         } catch (e) {
             alert("Warning: Missing radiolayers tag in " + app + "/config.xml file. " + e.message, "Data Error");
         }
@@ -957,7 +957,7 @@ function addMapLayers(){
         // ---------------------------------------------------
         //  Load each Layer from config.xml operationallayers
         // ---------------------------------------------------
-        var layer = xmlDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer");
+        var layer = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer");
         
         // DEBUG: make if fail
         //layer[0].setAttribute("url","https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_Base_Map2/MapServer");
@@ -1403,30 +1403,30 @@ function readConfig(){
             var configFile = app + "/config.xml?v=" + Date.now(); //+ ndisVer;
             xmlhttp.onreadystatechange = function () {
                 if (xmlhttp.readyState == 4 && xmlhttp.status === 200) {
-                    xmlDoc = createXMLdoc(xmlhttp);
+                    xmlConfigDoc = createXMLdoc(xmlhttp);
                     // Set Geometry ServicenURL
                     try{
-                        geometryService = xmlDoc.getElementsByTagName("geometryservice")[0].getAttribute("url");
+                        geometryService = xmlConfigDoc.getElementsByTagName("geometryservice")[0].getAttribute("url");
                     } catch (e) {
                         alert('Missing tag: geometryservice in ' + app + '/config.xml.\n\nTag should look like: &lt;geometryservice url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/Utilities/Geometry/GeometryServer"/&gt;\n\nWill use that url for now.', 'Data Error');
                         geometryService = "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/Utilities/Geometry/GeometryServer";
                     }
                     // Set Print Service for PrintTask				  
                     try {
-                        printServiceUrl = xmlDoc.getElementsByTagName("printservice")[0].firstChild.nodeValue;
+                        printServiceUrl = xmlConfigDoc.getElementsByTagName("printservice")[0].firstChild.nodeValue;
                     } catch (e) {
                         alert('Missing tag: printservice in ' + app + '/config.xml.\n\nTag should look like: &lt;printservice&gt;https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task&lt;/printservice&gt;\n\nWill use that url for now.', 'Data Error');
                         printServiceUrl = "https://ndismaps.nrel.colostate.edu/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task";
                     }
                     try {
-                        printGeoServiceUrl = xmlDoc.getElementsByTagName("printservicegeo")[0].firstChild.nodeValue;
+                        printGeoServiceUrl = xmlConfigDoc.getElementsByTagName("printservicegeo")[0].firstChild.nodeValue;
                     } catch (e) {
                         alert('Missing tag: printservicegeo in ' + app + '/config.xml.\n\nTag should look like: &lt;printservicegeo&gt;https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting&lt;/printservice&gt;\n\nWill use that url for now.', 'Data Error');
                         printGeoServiceUrl = "https://ndismaps.nrel.colostate.edu/arcgis/rest/services/PrintTemplate/georefPrinting/GPServer/georefPrinting";
                     }
                     var title;
                     try {
-                        title = xmlDoc.getElementsByTagName("title")[0].firstChild.nodeValue;
+                        title = xmlConfigDoc.getElementsByTagName("title")[0].firstChild.nodeValue;
                     } catch (e) {
                         alert("Warning: Missing title tag in " + app + "/config.xml file. " + e.message, "Data Error");
                     }
@@ -1436,18 +1436,18 @@ function readConfig(){
                         document.getElementById("title").innerHTML = title;
                         
                         document.title = title;
-                        //document.getElementById("subtitle").innerHTML = xmlDoc.getElementsByTagName("subtitle")[0].firstChild.nodeValue;
-                        document.getElementById("logo").src = xmlDoc.getElementsByTagName("logo")[0].firstChild.nodeValue;
-                        //document.getElementById("logourl").href = xmlDoc.getElementsByTagName("logourl")[0].firstChild.nodeValue;
+                        //document.getElementById("subtitle").innerHTML = xmlConfigDoc.getElementsByTagName("subtitle")[0].firstChild.nodeValue;
+                        document.getElementById("logo").src = xmlConfigDoc.getElementsByTagName("logo")[0].firstChild.nodeValue;
+                        //document.getElementById("logourl").href = xmlConfigDoc.getElementsByTagName("logourl")[0].firstChild.nodeValue;
                     } catch (e) {
                         alert("Warning: Missing title, subtitle, logo, or logurl tag in " + app + "/config.xml file. " + e.message, "Data Error");
                     }
-                    if (xmlDoc.getElementsByTagName("noDisclaimer") && xmlDoc.getElementsByTagName("noDisclaimer")[0] && xmlDoc.getElementsByTagName("noDisclaimer")[0].firstChild.nodeValue == "true") {}
+                    if (xmlConfigDoc.getElementsByTagName("noDisclaimer") && xmlConfigDoc.getElementsByTagName("noDisclaimer")[0] && xmlConfigDoc.getElementsByTagName("noDisclaimer")[0].firstChild.nodeValue == "true") {}
                     else if (getCookie("noDisclaimer") != 1)
                         loadDisclaimer(title);
                     // Set up Find a Place												   
                     try {
-                        myFindService = xmlDoc.getElementsByTagName("findplaceservice")[0].getAttribute("url");
+                        myFindService = xmlConfigDoc.getElementsByTagName("findplaceservice")[0].getAttribute("url");
                     } catch (e) {
                         alert('Missing tag: findplaceservice in ' + app + '/config.xml.\n\nTag should look like: &lt;findplaceservice url="https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer"/&gt;\n\nWill use that url for now.', 'Data Error');
                         myFindService = "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/GNIS_Loc/GeocodeServer";
@@ -1459,8 +1459,8 @@ function readConfig(){
                     }*/
                     // Set initial/full map extent
                     try {
-                        ext = xmlDoc.getElementsByTagName("map")[0].getAttribute("initialextent").split(" ");
-                        wkid = parseInt(xmlDoc.getElementsByTagName("map")[0].getAttribute("wkid").trim());
+                        ext = xmlConfigDoc.getElementsByTagName("map")[0].getAttribute("initialextent").split(" ");
+                        wkid = parseInt(xmlConfigDoc.getElementsByTagName("map")[0].getAttribute("wkid").trim());
                         // save Colorado extent. This is used in print to see if they are trying to print outside of Colorado.
                         // initExtent is not always the full extent. For example if they had an extent on the URL it does not use this one.
                         fullExtent = new Extent({
@@ -1477,13 +1477,13 @@ function readConfig(){
                     }
                     // Add Links to Help
                     var helplink = [];
-                    if (!xmlDoc.getElementsByTagName("links")[0])
+                    if (!xmlConfigDoc.getElementsByTagName("links")[0])
                         alert("Fatal Error: Missing links tag in config.xml file.","Data Error");
-                    if (xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("helplink"))
-                        helplink = xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("helplink");
+                    if (xmlConfigDoc.getElementsByTagName("links")[0].getElementsByTagName("helplink"))
+                        helplink = xmlConfigDoc.getElementsByTagName("links")[0].getElementsByTagName("helplink");
                     var size = "30px";
-                    if (xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("iconsize"))
-                        size = xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("iconsize")[0].innerHTML;
+                    if (xmlConfigDoc.getElementsByTagName("links")[0].getElementsByTagName("iconsize"))
+                        size = xmlConfigDoc.getElementsByTagName("links")[0].getElementsByTagName("iconsize")[0].innerHTML;
                     var linkStr = "";
                     for (var i = 0; i < helplink.length; i++) {
                         linkStr += '<p><a href="' + helplink[i].getAttribute("url").replace("%3F", "?").replace("%26", "&");
@@ -1493,7 +1493,7 @@ function readConfig(){
                         linkStr += '</p>';
                     }
                     linkStr += '<h3 style="border-bottom:1px solid lightgray;">Links</h3>';
-                    var link = xmlDoc.getElementsByTagName("links")[0].getElementsByTagName("link");
+                    var link = xmlConfigDoc.getElementsByTagName("links")[0].getElementsByTagName("link");
                     for (var i = 0; i < link.length; i++) {
                         // link that goes to current map extent
                         if (link[i].getAttribute("extent")){
@@ -1514,9 +1514,9 @@ function readConfig(){
                     document.getElementById("helpContent").appendChild(linkDiv);
 
                     // add extra widgets like filter opportunies
-                    var widgets = xmlDoc.getElementsByTagName("extra_widgets")[0];
+                    var widgets = xmlConfigDoc.getElementsByTagName("extra_widgets")[0];
                     if (widgets) {
-                        var widget = xmlDoc.getElementsByTagName("extra_widgets")[0].getElementsByTagName("widget");
+                        var widget = xmlConfigDoc.getElementsByTagName("extra_widgets")[0].getElementsByTagName("widget");
                         for (var i = 0; i < widget.length; i++) {
                             var name = widget[i].getAttribute("name");
                             if (name.toLowerCase() === "filter"){
@@ -1551,9 +1551,24 @@ function readConfig(){
                                     if (filterBtns[j].getAttribute("dropdown")) {
                                         btn[j].dropdown = true;
                                         btn[j].list = filterBtns[j].getAttribute("list");
+                                        if (!btn[j].list){
+                                            // read list from database
+                                            if (!filterBtns[j].getAttribute("lookupsearchvalues"))alert("Missing lookupsearchvalues attribute from config.xml widget button title="+btn[j].title);
+                                            if (!filterBtns[j].getAttribute("lookupfilename"))alert("Missing lookupfilename attribute from config.xml widget button title="+btn[j].title);
+                                            if (!filterBtns[j].getAttribute("lookupfield"))alert("Missing lookupfield attribute from config.xml widget button title="+btn[j].title);
+                                            if (!filterBtns[j].getAttribute("database"))alert("Missing database attribute from config.xml widget button title="+btn[j].title);
+                                            if (!filterBtns[j].getAttribute("filename"))alert("Missing filename attribute from config.xml widget button title="+btn[j].title);
+                                            if (!filterBtns[j].getAttribute("database_field"))alert("Missing database_field attribute from config.xml widget button title="+btn[j].title);
+                                            if (!filterBtns[j].getAttribute("database_field_type"))alert("Missing database_field_type attribute from config.xml widget button title="+btn[j].title); 
+                                            btn[j].lookupsearchvalues= filterBtns[j].getAttribute("lookupsearchvalues");
+                                            btn[j].lookupfilename= filterBtns[j].getAttribute("lookupfilename");
+                                            btn[j].lookupfield= filterBtns[j].getAttribute("lookupfield");
+                                            btn[j].database= filterBtns[j].getAttribute("database");
+                                            btn[j].filename= filterBtns[j].getAttribute("filename");
+                                            btn[j].database_field= filterBtns[j].getAttribute("database_field");
+                                            btn[j].database_field_type= filterBtns[j].getAttribute("database_field_type");
+                                        }
                                     }else btn[j].dropdown = false;
-
-                                    
                                 }
                                 myFilter(title,icon,btn);
                             }
@@ -1699,8 +1714,8 @@ function zoomToQueryParams(){
                     var xmlurl = createXMLhttpRequest();
                     xmlurl.onreadystatechange = function () {
                         if (xmlurl.readyState == 4 && xmlurl.status === 200) {
-                            var xmlDoc = createXMLdoc(xmlurl);
-                            var layer = xmlDoc.getElementsByTagName("layer");
+                            var xmlUrlDoc = createXMLdoc(xmlurl);
+                            var layer = xmlUrlDoc.getElementsByTagName("layer");
                             for (var i = 0; i < layer.length; i++) {
                                 if (!layer[i].getElementsByTagName("keyword")[0] || !layer[i].getElementsByTagName("keyword")[0].firstChild)
                                     alert("Missing tag keyword or blank, in " + app + "/url.xml file.", "Data Error");
@@ -1967,10 +1982,10 @@ function getLegendInfo(rootLayer){
             if (err.details && err.details.messages)
               console.error('Error encountered loading legend for ', err.details.url, err.details.messages[0], ' Trying again.');
             else console.error('Error encountered loading legend for ', err.details.url, ' Trying again.');
-            setTimeout(function(rootLayer){
+            //setTimeout(function(rootLayer){
                 // debug don't keep calling right now!!!!!!!
                 //getLegendInfo(rootLayer);
-            },30000, rootLayer);
+            // },30000, rootLayer);
         });
     });
 }

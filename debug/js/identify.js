@@ -59,64 +59,62 @@ function readIdentifyWidget() {
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             try {
-                //require(["dojo/dom", "dijit/registry", "dojo/query", "dojo/dom-construct", "dojo/on"], function(dom, registry, query, domConstruct, on) {
-                    //var xmlDoc=xmlhttp.responseXML;
-                    var xmlDoc = createXMLdoc(xmlhttp);
+                    var xmlIDDoc = createXMLdoc(xmlhttp);
 
                     //---------------
                     // Read Globals
                     //---------------
                     // Load user saved XY projection
-                    if (xmlDoc.getElementsByTagName("xy_projection")[0] && xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0] &&
-                    (xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue !== "dd" && xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue !== "32613"))
+                    if (xmlIDDoc.getElementsByTagName("xy_projection")[0] && xmlIDDoc.getElementsByTagName("xy_projection")[0].childNodes[0] &&
+                    (xmlIDDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue !== "dd" && xmlIDDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue !== "32613"))
                         alert("Error in "+app+"/IdentifyWidget.xml file. Tag, xy_projection, must be 'dd' or '32613'.","Data Error");
                     var myPrj = getCookie("prj");
                     if (myPrj !== "" && (myPrj === "dd" || myPrj === "32613"))
                         settings = { "XYProjection": myPrj };
                     else{
-                        if (xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0]) {
-                            settings = { "XYProjection": xmlDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue };
+                        if (xmlIDDoc.getElementsByTagName("xy_projection")[0].childNodes[0]) {
+                            settings = { "XYProjection": xmlIDDoc.getElementsByTagName("xy_projection")[0].childNodes[0].nodeValue };
                         }
                         else alert("Missing tag: xy_projection in "+app+"/IdentifyWidget.xml", "Data Error");
                     }
 
                     // Map Link Not Used
-                    /*use_map_link = xmlDoc.getElementsByTagName("use_map_link")[0] && xmlDoc.getElementsByTagName("use_map_link")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
+                    /*use_map_link = xmlIDDoc.getElementsByTagName("use_map_link")[0] && xmlIDDoc.getElementsByTagName("use_map_link")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
                     if (use_map_link) {
                         document.getElementById("mapLinkBtn").style.display = "block";
                     }*/
 
                     // Get Extent Not Used
-                    //use_get_extent = xmlDoc.getElementsByTagName("use_get_extent") && xmlDoc.getElementsByTagName("use_get_extent")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
+                    //use_get_extent = xmlIDDoc.getElementsByTagName("use_get_extent") && xmlIDDoc.getElementsByTagName("use_get_extent")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
                     //if (use_get_extent) document.getElementById("showExtentBtn").style.display = "block";
 
-                    var use_gmus = xmlDoc.getElementsByTagName("use_gmus")[0] && xmlDoc.getElementsByTagName("use_gmus")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
+                    var use_gmus = xmlIDDoc.getElementsByTagName("use_gmus")[0] && xmlIDDoc.getElementsByTagName("use_gmus")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
                     if (use_gmus) {
                         settings.useGMUs = true;
-                        if (!xmlDoc.getElementsByTagName("gmu_url")[0])
+                        if (!xmlIDDoc.getElementsByTagName("gmu_url")[0])
                             alert("Missing tag: gmu_url in " + app + "/IdentifyWidget.xml", "Data Error");
                         else
-                            settings.elkUrl = xmlDoc.getElementsByTagName("gmu_url")[0].childNodes[0].nodeValue;
-                        if (!xmlDoc.getElementsByTagName("gmu_field")[0])
+                            settings.elkUrl = xmlIDDoc.getElementsByTagName("gmu_url")[0].childNodes[0].nodeValue;
+                        if (!xmlIDDoc.getElementsByTagName("gmu_field")[0])
                             alert("Missing tag: gmu_field in " + app + "/IdentifyWidget.xml", "Data Error");
                         else
-                            settings.elkField = xmlDoc.getElementsByTagName("gmu_field")[0].childNodes[0].nodeValue;
-                        if (!xmlDoc.getElementsByTagName("sheep_gmu_url")[0])
+                            settings.elkField = xmlIDDoc.getElementsByTagName("gmu_field")[0].childNodes[0].nodeValue;
+                        if (!xmlIDDoc.getElementsByTagName("sheep_gmu_url")[0])
                             alert("Missing tag: sheep_gmu_url in " + app + "/IdentifyWidget.xml", "Data Error");
                         else
-                            settings.sheepUrl = xmlDoc.getElementsByTagName("sheep_gmu_url")[0].childNodes[0].nodeValue;
-                        if (!xmlDoc.getElementsByTagName("sheep_gmu_field")[0])
+                            settings.sheepUrl = xmlIDDoc.getElementsByTagName("sheep_gmu_url")[0].childNodes[0].nodeValue;
+                        if (!xmlIDDoc.getElementsByTagName("sheep_gmu_field")[0])
                             alert("Missing tag: sheep_gmu_field in " + app + "/IdentifyWidget.xml", "Data Error");
                         else
-                            settings.sheepField = xmlDoc.getElementsByTagName("sheep_gmu_field")[0].childNodes[0].nodeValue;
-                        if (!xmlDoc.getElementsByTagName("goat_gmu_url")[0])
+                            settings.sheepField = xmlIDDoc.getElementsByTagName("sheep_gmu_field")[0].childNodes[0].nodeValue;
+                        if (!xmlIDDoc.getElementsByTagName("goat_gmu_url")[0])
                             alert("Missing tag: goat_gmu_url in " + app + "/IdentifyWidget.xml", "Data Error");
                         else
-                            settings.goatUrl = xmlDoc.getElementsByTagName("goat_gmu_url")[0].childNodes[0].nodeValue;
-                        if (!xmlDoc.getElementsByTagName("goat_gmu_field")[0])
+                            settings.goatUrl = xmlIDDoc.getElementsByTagName("goat_gmu_url")[0].childNodes[0].nodeValue;
+                        if (!xmlIDDoc.getElementsByTagName("goat_gmu_field")[0])
                             alert("Missing tag: goat_gmu_field in " + app + "/IdentifyWidget.xml", "Data Error");
                         else
-                            settings.goatField = xmlDoc.getElementsByTagName("goat_gmu_field")[0].childNodes[0].nodeValue;
+                            settings.goatField = xmlIDDoc.getElementsByTagName("goat_gmu_field")[0].childNodes[0].nodeValue;
                         //if (gmu == "Big Game GMU")
                         //    showGMUCombo(settings.elkUrl, settings.elkField);
                         //else if (gmu == "Bighorn GMU")
@@ -129,7 +127,7 @@ function readIdentifyWidget() {
 
                     addSearch(); // adds help, search, and home button. Adds links to help.
 
-                    driving_directions = xmlDoc.getElementsByTagName("driving_directions")[0] && xmlDoc.getElementsByTagName("driving_directions")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
+                    driving_directions = xmlIDDoc.getElementsByTagName("driving_directions")[0] && xmlIDDoc.getElementsByTagName("driving_directions")[0].childNodes[0].nodeValue == "true" ? 1 : 0;
                     /*if (driving_directions) {
                         // Add a link into the InfoWindow Actions panel
                         // Get Directions
@@ -149,11 +147,11 @@ function readIdentifyWidget() {
                         ];
                     }*/
 
-                    if (xmlDoc.getElementsByTagName("elevation")[0] && xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue)
-                        show_elevation = xmlDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue == "true" ? 1 : 0;
-                    if (show_elevation && xmlDoc.getElementsByTagName("elevation_url")[0]) {
-                        if (xmlDoc.getElementsByTagName("elevation_url")[0].firstChild.nodeValue)
-                            elevation_url = xmlDoc.getElementsByTagName("elevation_url")[0].firstChild.nodeValue;
+                    if (xmlIDDoc.getElementsByTagName("elevation")[0] && xmlIDDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue)
+                        show_elevation = xmlIDDoc.getElementsByTagName("elevation")[0].firstChild.nodeValue == "true" ? 1 : 0;
+                    if (show_elevation && xmlIDDoc.getElementsByTagName("elevation_url")[0]) {
+                        if (xmlIDDoc.getElementsByTagName("elevation_url")[0].firstChild.nodeValue)
+                            elevation_url = xmlIDDoc.getElementsByTagName("elevation_url")[0].firstChild.nodeValue;
                         else alert("Missing elevation_url tag in IdentifyWidget.xml.", "Data Error");
                     /*    view.popup.actions.push( 
                             {
@@ -164,7 +162,7 @@ function readIdentifyWidget() {
                         );*/
                     }
                     // Read the Identify Groups from the folder tags
-                    folder = xmlDoc.getElementsByTagName("folder");
+                    folder = xmlIDDoc.getElementsByTagName("folder");
                     for (var f = 0; f < folder.length; f++) {
                         // Set default identifyGroup to first in the list
                         if (f == 0) identifyGroup = folder[f].getAttribute("label");
@@ -1267,7 +1265,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                                 features.push(feature);
                                 // highlight all features (polygons are turned off)
                                 highlightFeature(features.length-1,false);
-                                var xmlDoc = createXMLdoc(XMLHttpRequestObjects[arrIndex]);
+                                var xmlDBDoc = createXMLdoc(XMLHttpRequestObjects[arrIndex]);
                                 
                                 // set header with the layer specified in IdentifyWidget.xml file or use first field value
                                 if (theTitle[identifyGroup] == identifyGroup){
@@ -1360,8 +1358,8 @@ function writeFeatureContent(feature,layerName,thePromise){
                                         // one2one_display: one2one_fields values
                                         if (typeof identifyLayers[identifyGroup][layerName].one2one_fields != "undefined") {
                                             for (j = 0; j < identifyLayers[identifyGroup][layerName].one2one_fields.length; j++) {
-                                                if (xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2one_fields[j]).length > 0) {
-                                                    var one2one_field = xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2one_fields[j])[0];
+                                                if (xmlDBDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2one_fields[j]).length > 0) {
+                                                    var one2one_field = xmlDBDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2one_fields[j])[0];
                                                     if ((one2one_field.getElementsByTagName("linkname").length > 0) && (one2one_field.getElementsByTagName("linkurl").length > 0)) {
                                                         tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].one2one_display[j] + ": </span>";
                                                         tmpStr += "<a href='" + one2one_field.getElementsByTagName("linkurl")[0].firstChild.nodeValue + "' class='idSubValue'>" + one2one_field.getElementsByTagName("linkname")[0].firstChild.nodeValue + "</a>";
@@ -1386,7 +1384,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                                         // one2many bulleted list
                                         if (typeof identifyLayers[identifyGroup][layerName].one2many_fields != "undefined") {
                                             for (j = 0; j < identifyLayers[identifyGroup][layerName].one2many_fields.length; j++) {
-                                                var one2many = xmlDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2many_fields[j]);
+                                                var one2many = xmlDBDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2many_fields[j]);
                                                 // Make regulation title bold and values not bold
                                                 if (identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("regulations")>-1 ||
                                                     identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("restrictions")>-1)

@@ -43,6 +43,83 @@ function myFilter(title,icon,btn){
             btn[j].style.fontWeight=400;
         }
     }
+
+    function fillLookupSearchValues(btn,index,lookupsearchvalues,lookupfield){
+        // Fill filter drop down with aspx database call
+        var xmlhttp = createXMLhttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == 4 && xmlhttp.status === 200) {
+                // xmlhttp.responseXML is null so call createXMLparser instead of createXMLdoc
+                var xmlData=createXMLparser(xmlhttp.responseText.substr(xmlhttp.response.indexOf("?>")+2));
+                var elements = xmlData.getElementsByTagName(lookupfield);
+                var list = [];
+                for (var i=0; i<elements.length; i++){
+                    list.push(elements[i].childNodes[0].nodeValue);
+                }
+                var sel = document.createElement("select");
+                sel.id = "select_"+btn.title;
+                sel.style.width="175px";
+                sel.setAttribute("onchange","makeDropdownActive("+index+")");
+                // Make first option blank so onChange will work
+                var opt = document.createElement("option");
+                opt.label="";
+                opt.value="";
+                sel.appendChild(opt);
+                for(var k=0; k<list.length; k++){
+                    opt = document.createElement("option");
+                    // set the value in this function to the where expression
+                    lookupDataForExpression(btn,opt,expression,list[k])
+                    opt.label = list[k];
+                    sel.appendChild(opt);
+                }
+                btn.appendChild(sel);
+            }
+            else if (xmlhttp.status === 404) {
+                alert("File: "+app+"/"+lookupsearchvalues+" not found.","Data Error");
+            }
+            else if (xmlhttp.readyState===4 && xmlhttp.status===500) {
+                alert("File: "+app+"/"+lookupsearchvalues+" not found.","Data Error");
+            }
+        };
+        xmlhttp.open("GET",app+"/"+lookupsearchvalues+"?v="+ndisVer,true);
+        xmlhttp.send(null);
+    }
+
+    function lookupDataForExpression(btn,opt,expression,label){
+        var xmlhttp = createXMLhttpRequest();
+        xmlhttp.open("POST",btn.database+"?v="+ndisVer+"&key="+label,true);
+        xmlhttp.send(null);
+
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState===4 && xmlhttp.status === 200) {
+                var xmlData=createXMLparser(xmlhttp.responseText.substr(xmlhttp.response.indexOf("?>")+2));
+                var elements = xmlData.getElementsByTagName(btn.filename);
+                if (elements.length == 0) {
+                    alert("Error in config.xml filter widget. Calling "+btn.database+" No features found with that name. "+btn.filename+" Please try again.","Warning");
+                    return;
+                }
+                // build where expression: field IN ('value1', 'value2')
+                expr=btn.database_field+" IN (";
+                for (var i=0; i<elements.length; i++) {
+                        if (i>0) expr += ",";
+                    // String
+                    if (btn.database_field_type.toUpperCase() == "STRING") {
+                        expr += "'"+elements[i].getElementsByTagName(btn.database_field)[0].childNodes[0].nodeValue+"'";
+                    }
+                    // Number
+                    else
+                    {
+                        expr += elements[i].getElementsByTagName(btn.database_field)[0].childNodes[0].nodeValue;
+                    }
+                }
+                expr += ")";
+                opt.value = expr;
+            }
+        };
+        xmlhttp.onerror = function() {
+            alert('There was an error looking up the data from '+btn.database+'?key='+label+" in filter.js.","Code Error");
+        };						
+    }
     
     // filter data displayed by selecting different buttons
     // for example: Family Friendly Fishing Pts
@@ -104,18 +181,22 @@ function myFilter(title,icon,btn){
             }
             document.getElementById("filterContent").appendChild(btn[i]);
             if (btn[i].dropdown){
-                var list = btn[i].list.split(",");
-                var expression = btn[i].expression.split(",");
-                var sel = document.createElement("select");
-                sel.id = "select_"+btn[i].title;
-                sel.setAttribute("onchange","makeDropdownActive("+i+")");
-                for(var k=0; k<list.length; k++){
-                    var opt = document.createElement("option");
-                    opt.value = expression[k];
-                    opt.label = list[k];
-                    sel.appendChild(opt);
+                if (!btn[i].list){
+                    fillLookupSearchValues(btn[i],i,btn[i].lookupsearchvalues,btn[i].lookupfield);
+                }else{
+                    var list = btn[i].list.split(",");
+                    var expression = btn[i].expression.split(",");
+                    var sel = document.createElement("select");
+                    sel.id = "select_"+btn[i].title;
+                    sel.setAttribute("onchange","makeDropdownActive("+i+")");
+                    for(var k=0; k<list.length; k++){
+                        var opt = document.createElement("option");
+                        opt.value = expression[k];
+                        opt.label = list[k];
+                        sel.appendChild(opt);
+                    }
+                    btn[i].appendChild(sel);
                 }
-                btn[i].appendChild(sel);
             }
 
             if (!btn[i].dropdown){

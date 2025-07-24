@@ -233,6 +233,5 @@
         <link label="Send us Your Feedback" text="Please send your questions, comments, or problems with the Colorado HuntingAtlas to ndisadmin@nrel.colostate.edu."
             url="mailto:ndisadmin@nrel.colostate.edu"
             icon="./assets/images/i_mail.png"/>
-	</links>
-	
+	</links>	
 </configuration>

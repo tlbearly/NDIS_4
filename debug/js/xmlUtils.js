@@ -35,10 +35,10 @@
 			{
 				try {
 					txt = xmlhttp.responseText;
-					var xmlDoc=new ActiveXObject("Microsoft.XMLDOM");
-					xmlDoc.async=false;
-					xmlDoc.loadXML(txt);
-					return xmlDoc;
+					var newXmlDoc=new ActiveXObject("Microsoft.XMLDOM");
+					newXmlDoc.async=false;
+					newXmlDoc.loadXML(txt);
+					return newXmlDoc;
 				}
 				catch (e) {
 					alert("ActiveX is turned off. Please Enable or upgrade your browser. System Message :"+e.message,"Warning");
@@ -52,17 +52,19 @@
 			// Return the DOMParser
 			// Call it as follows: xmlDoc = createXMLparser(xmlhttp.responseText);
 			// Used by search.js because it parses the text before calling this.
+			var newXmlDoc;
+			var parser;
 			if (window.DOMParser) // IE9+, Chrome 1+, Firefox 1+, Opera 8+, Safari 3.2+
 			{
 				parser=new DOMParser();
-				xmlDoc=parser.parseFromString(txt,"text/xml");
+				newXmlDoc=parser.parseFromString(txt,"text/xml");
 			}
 			else if(window.ActiveXObject) // Internet Explorer < 9
 			{
 				try {
-					xmlDoc=new ActiveXObject("Microsoft.XMLDOM");
-					xmlDoc.async=false;
-					xmlDoc.loadXML(txt);
+					newXmlDoc=new ActiveXObject("Microsoft.XMLDOM");
+					newXmlDoc.async=false;
+					newXmlDoc.loadXML(txt);
 				}
 				catch (e) {
 					alert("ActiveX is turned off. Please Enable or upgrade your browser. System Message :"+e.message,"Warning");
@@ -70,7 +72,7 @@
 			}
 			else
 				alert ("Cannot lookup identify information. Your browser may be too old.","Warning");
-			return xmlDoc;
+			return newXmlDoc;
 		}
 		
 				//CREATING MULTIPLE XMLHTTPREQUEST OBJECTS FOR EACH CALL

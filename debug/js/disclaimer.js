@@ -7,19 +7,19 @@ function loadDisclaimer(title) {
 		var configFile = app + "/SplashWidget.xml?v="+ndisVer;
 		xmlhttp.onreadystatechange = function() {			
 			if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-				var xmlDoc = createXMLdoc(xmlhttp);
-				if (!xmlDoc) return; // no SplashWidget.xml file = do not show disclaimer
-				if (xmlDoc.getElementsByTagName("disable")[0] && xmlDoc.getElementsByTagName("disable")[0].childNodes[0].nodeValue=="yes") return;
+				var xmlSplashDoc = createXMLdoc(xmlhttp);
+				if (!xmlSplashDoc) return; // no SplashWidget.xml file = do not show disclaimer
+				if (xmlSplashDoc.getElementsByTagName("disable")[0] && xmlSplashDoc.getElementsByTagName("disable")[0].childNodes[0].nodeValue=="yes") return;
 				document.getElementById("disclaimerTitle").innerHTML=title;
 				var content = document.getElementById("disclaimerContent");
 				
 				var cont=null;
 				
-				if (xmlDoc.getElementsByTagName("content")[0]) {
-					if (xmlDoc.getElementsByTagName("content")[0].textContent)
-						cont = xmlDoc.getElementsByTagName("content")[0].textContent;
-					else if (xmlDoc.getElementsByTagName("content")[0].childNodes[0] && xmlDoc.getElementsByTagName("content")[0].childNodes[0].nodeValue)
-						cont = xmlDoc.getElementsByTagName("content")[0].childNodes[0].nodeValue;
+				if (xmlSplashDoc.getElementsByTagName("content")[0]) {
+					if (xmlSplashDoc.getElementsByTagName("content")[0].textContent)
+						cont = xmlSplashDoc.getElementsByTagName("content")[0].textContent;
+					else if (xmlSplashDoc.getElementsByTagName("content")[0].childNodes[0] && xmlSplashDoc.getElementsByTagName("content")[0].childNodes[0].nodeValue)
+						cont = xmlSplashDoc.getElementsByTagName("content")[0].childNodes[0].nodeValue;
 				}	
 				if (cont) {
 					// add cookie notice
