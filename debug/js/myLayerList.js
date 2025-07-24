@@ -149,11 +149,31 @@ function myLayerList() {
         onOffBtn.title = rootlayer.title + " visibility";
         listVisibility.appendChild(onOffBtn);
         if (rootlayer.visible) onOffBtn.checked = true;
+        // If the layer visibility changes, update the onOffBtn. This happens in filter.js
+        // when a filter is applied to a layer that is not visible. It sets the layer and all 
+        // parent layers to visible.
+        view.map.findLayerById(rootlayer.id).watch('visible', (visibility, a, eventName,layer) => {
+            //console.log("visible: ", visibility);
+            //console.log(layer.title, eventName, a);
+            onOffBtn.checked = visibility;
+             if (document.getElementById(layer.title.replace(/ /g, "_") + "_dialog")){
+                // Set switch on popup dialog Visibility
+                document.getElementById(layer.title.replace(/ /g, "_") + "_dialog").querySelectorAll("calcite-block")[1].querySelector("calcite-switch").checked = event.target.checked;
+            
+                // Set opacity of layer list in sub dialog
+                var tables = document.getElementById(layer.title.replace(/ /g, "_") + "_dialog").querySelectorAll("table");
+                var opacity = 0.4;
+                if (onOffBtn.checked)
+                    opacity=1.0;
+                for (var i=0; i<tables.length; i++)
+                    tables[i].style.opacity = opacity;
+            }
+        });
         // Set value when clicked
         onOffBtn.addEventListener("calciteSwitchChange", event => {
             event.target.layer.visible = event.target.checked;
             
-            if (document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog")){
+            /*if (document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog")){
                 // Set switch on popup dialog Visibility
                 document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog").querySelectorAll("calcite-block")[1].querySelector("calcite-switch").checked = event.target.checked;
             
@@ -164,7 +184,7 @@ function myLayerList() {
                     opacity=1.0;
                 for (var i=0; i<tables.length; i++)
                     tables[i].style.opacity = opacity;
-            }
+            }*/
         });
         listItem.appendChild(listVisibility);
         list.appendChild(listItem);  
@@ -571,10 +591,33 @@ function layerListAddSublayerDialogs(event,theLayer){
             } else {
                 subLayeronOffBtn.checked = false;
             }
+            // If the layer visibility changes, update the onOffBtn. This happens in filter.js
+            // when a filter is applied to a layer that is not visible. It sets the layer and all 
+            // parent layers to visible.
+            layer.watch('visible', (visibility, a, eventName,layer) => {
+                //console.log("visible: ", visibility);
+                //console.log(layer.title, eventName, a);
+                subLayeronOffBtn.checked = visibility;
+                // gray out options if not visible
+                if (subLayeronOffBtn.checked){
+                    document.getElementById(selectedItem).style.opacity = 1.0;
+                }else {
+                    document.getElementById(selectedItem).style.opacity = 0.4;
+                }
+                // Set switch on parent dialog Visibility
+                if (document.getElementById("customLayerList")){
+                    var switches = document.getElementById("customLayerList").querySelectorAll("tr");
+                    switches.forEach(mySwitch => {
+                        if (mySwitch.children[1].innerHTML === subLayeronOffBtn.layer.title){
+                            mySwitch.querySelector("calcite-switch").checked = visibility;
+                        }
+                    });
+                }
+            });
             // Set value when clicked
             subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                 event.target.layer.visible = event.target.checked;
-                // gray out options if not visible
+                /* // gray out options if not visible
                 if (event.target.checked){
                     document.getElementById(selectedItem).style.opacity = 1.0;
                 }else {
@@ -588,7 +631,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                             mySwitch.querySelector("calcite-switch").checked = event.target.checked;
                         }
                     });
-                }
+                }*/
             });
             block.appendChild(subLayeronOffBtn);
             
@@ -700,6 +743,14 @@ function layerListAddSublayerDialogs(event,theLayer){
                             subLayeronOffBtn.style.paddingTop = "10px";
                             subLayeronOffBtn.setAttribute("scale", "l"); // large
                             if (item[i].visible) subLayeronOffBtn.checked = true;
+                            // If the layer visibility changes, update the onOffBtn. This happens in filter.js
+                            // when a filter is applied to a layer that is not visible. It sets the layer and all 
+                            // parent layers to visible.
+                            item[i].watch('visible', (visibility, a, eventName,layer) => {
+                                //console.log("visible: ", visibility);
+                                //console.log(layer.title, eventName, a);
+                                subLayeronOffBtn.checked = visibility;
+                            });
                             // Set value when clicked
                             subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                                 event.target.layer.visible = event.target.checked;
@@ -802,10 +853,33 @@ function layerListAddSublayerDialogs(event,theLayer){
                     subLayeronOffBtn.checked = false;
                 }
 
+                // If the layer visibility changes, update the onOffBtn. This happens in filter.js
+                // when a filter is applied to a layer that is not visible. It sets the layer and all 
+                // parent layers to visible.
+                layer.watch('visible', (visibility, a, eventName,layer) => {
+                    //console.log("visible: ", visibility);
+                    //console.log(layer.title, eventName, a);
+                    subLayeronOffBtn.checked = visibility;
+                    // gray out options if not visible
+                    if (subLayeronOffBtn.checked){
+                        subLayerList.style.opacity = "1.0";
+                    }else {
+                        subLayerList.style.opacity = "0.4";
+                    }
+                    // Set switch on parent dialog visibility
+                    if (document.getElementById("customLayerList")){
+                        var switches = document.getElementById("customLayerList").querySelectorAll("tr");
+                        switches.forEach(mySwitch => {
+                            if (mySwitch.children[1].innerHTML === subLayeronOffBtn.layer.title){
+                                mySwitch.querySelector("calcite-switch").checked = subLayeronOffBtn.checked;
+                            }
+                        });
+                    }
+                });
                 // Set visibility when clicked on on/off switch
                 subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                     event.target.layer.visible = event.target.checked;
-                    // gray out options if not visible
+                    /* // gray out options if not visible
                     if (event.target.checked){
                         subLayerList.style.opacity = "1.0";
                     }else {
@@ -819,7 +893,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                                 mySwitch.querySelector("calcite-switch").checked = event.target.checked;
                             }
                         });
-                    }
+                    }*/
                 });
                 block.appendChild(subLayeronOffBtn);
 
@@ -1327,6 +1401,14 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                         subLayeronOffBtn.setAttribute("scale", "l"); // large
                         if (item[j].visible) subLayeronOffBtn.checked = true;
                         else subLayeronOffBtn.checked = false;
+                        // If the layer visibility changes, update the onOffBtn. This happens in filter.js
+                        // when a filter is applied to a layer that is not visible. It sets the layer and all 
+                        // parent layers to visible.
+                        item[j].watch('visible', (visibility, a, eventName,layer) => {
+                            //console.log("visible: ", visibility);
+                            //console.log(layer.title, eventName, a);
+                            subLayeronOffBtn.checked = visibility;
+                        });
                         // Set value when clicked
                         subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                             event.target.layer.visible = event.target.checked;
@@ -1429,6 +1511,14 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
             subLayeronOffBtn.setAttribute("scale", "l"); // large
             if (element.visible) subLayeronOffBtn.checked = true;
             else subLayeronOffBtn.checked = false;
+             // If the layer visibility changes, update the onOffBtn. This happens in filter.js
+            // when a filter is applied to a layer that is not visible. It sets the layer and all 
+            // parent layers to visible.
+            element.watch('visible', (visibility, a, eventName,layer) => {
+                //console.log("visible: ", visibility);
+                //console.log(layer.title, eventName, a);
+                subLayeronOffBtn.checked = visibility;
+            });
             // Set value when clicked
             subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                 event.target.layer.visible = event.target.checked;
@@ -1506,6 +1596,14 @@ function addBlock(row,element,listFontSize,hLevel){
         subLayeronOffBtn.setAttribute("scale", "l"); // large
         if (element.visible) subLayeronOffBtn.checked = true;
         else subLayeronOffBtn.checked = false;
+        // If the layer visibility changes, update the onOffBtn. This happens in filter.js
+        // when a filter is applied to a layer that is not visible. It sets the layer and all 
+        // parent layers to visible.
+        element.watch('visible', (visibility, a, eventName,layer) => {
+            //console.log("visible: ", visibility);
+            //console.log(layer.title, eventName, a);
+            subLayeronOffBtn.checked = visibility;
+        });
         // Set value when clicked
         subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
             event.target.layer.visible = event.target.checked;
@@ -1614,6 +1712,14 @@ function addBlock(row,element,listFontSize,hLevel){
                     subLayeronOffBtn.setAttribute("scale", "l"); // large
                     if (item[j].visible) subLayeronOffBtn.checked = true;
                     else subLayeronOffBtn.checked = false;
+                    // If the layer visibility changes, update the onOffBtn. This happens in filter.js
+                    // when a filter is applied to a layer that is not visible. It sets the layer and all 
+                    // parent layers to visible.
+                    item[j].watch('visible', (visibility, a, eventName,layer) => {
+                        //console.log("visible: ", visibility);
+                        //console.log(layer.title, eventName, a);
+                        subLayeronOffBtn.checked = visibility;
+                    });
                     // Set value when clicked
                     subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                         event.target.layer.visible = event.target.checked;

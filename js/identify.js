@@ -1251,6 +1251,11 @@ function writeFeatureContent(feature,layerName,thePromise){
         if (typeof identifyLayers[identifyGroup][layerName].database != 'undefined') {
             try {
                 createMultiXMLhttpRequest();
+                // encode () as %28 and %29
+                if (typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]] === "string"){
+                    feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]].replace("(","%28");
+                    feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]] = feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]].replace(")","%29");
+                }
                 var url = app + "/" + identifyLayers[identifyGroup][layerName].database + "?v=" + ndisVer + "&key=" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[0]];
                 XMLHttpRequestObjects[xmlIndex].open("GET", url, true); // configure object (method, url, async)
                 // register a function to run when the state changes, if the request
