@@ -1364,7 +1364,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                                         if (typeof identifyLayers[identifyGroup][layerName].one2one_fields != "undefined") {
                                             for (j = 0; j < identifyLayers[identifyGroup][layerName].one2one_fields.length; j++) {
                                                 if (xmlDBDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2one_fields[j]).length > 0) {
-                                                    var one2one_field = xmlDBDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2one_fields[j])[0].trim();
+                                                    var one2one_field = xmlDBDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2one_fields[j])[0];
                                                     if ((one2one_field.getElementsByTagName("linkname").length > 0) && (one2one_field.getElementsByTagName("linkurl").length > 0)) {
                                                         tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].one2one_display[j] + ": </span>";
                                                         tmpStr += "<a href='" + one2one_field.getElementsByTagName("linkurl")[0].firstChild.nodeValue + "' class='idSubValue'>" + one2one_field.getElementsByTagName("linkname")[0].firstChild.nodeValue + "</a>";
@@ -1389,7 +1389,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                                         // one2many bulleted list
                                         if (typeof identifyLayers[identifyGroup][layerName].one2many_fields != "undefined") {
                                             for (j = 0; j < identifyLayers[identifyGroup][layerName].one2many_fields.length; j++) {
-                                                var one2many = xmlDBDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2many_fields[j]).trim();
+                                                var one2many = xmlDBDoc.getElementsByTagName(identifyLayers[identifyGroup][layerName].one2many_fields[j]);
                                                 // Make regulation title bold and values not bold
                                                 if (identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("regulations")>-1 ||
                                                     identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("restrictions")>-1)

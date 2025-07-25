@@ -31,6 +31,8 @@ function makeDropdownActive(selectedBtn){
                 // set the SQL filter for every layer ( if it has layers for different zoom levels)
                 for (var j=0; j<btn[i].layer.length; j++){
                     btn[i].layer[j].definitionExpression = expression;
+                    // zoom to extent of all features
+                    zoomToLayer(btn[i].layer[j], expression);
                     // make layer and all parent layers visible
                     var layerTree = btn[i].layer[j];
                     while (layerTree.title){
@@ -82,6 +84,8 @@ function lookupDataForExpression(btn,label){
             // set the SQL filter for every layer ( if it has layers for different zoom levels)
             for (var j=0; j<btn.layer.length; j++){
                 btn.layer[j].definitionExpression = expr;
+                // zoom to extent of all features
+                zoomToLayer(btn.layer[j], expr); 
                 // make layer and all parent layers visible
                 var layerTree = btn.layer[j];
                 while (layerTree.title){
@@ -94,6 +98,41 @@ function lookupDataForExpression(btn,label){
     xmlhttp.onerror = function() {
         alert('There was an error looking up the data from '+btn.database+'?key='+label+" in filter.js.","Code Error");
     };						
+}
+
+function zoomToLayer(layer,where) {
+    // Zoom to the extent of the displayed features
+    // TODO!!!!!!!! have not tested with FeatureLayer (falls into catch)
+
+    const expression = where;
+    // for mapImageLayers convert to featureLayer
+    layer.createFeatureLayer()
+        .then(function (featLayer){
+            var query = featLayer.createQuery();
+            query.where = expression;
+            var extent = featLayer.queryExtent(query);
+            return extent;
+        })
+        .then(function (response) {
+            // check for no features found
+            if (response.count == 0) return;
+            view.goTo(response.extent).catch((error) => {
+                console.error(error);
+            });
+        })
+        // if already featureLayer
+        .catch((error) => {
+            var query = layer.createQuery();
+            query.where = expression;
+            layer.queryExtent(query)
+                .then(function (response) {
+                    // check for no features found
+                    if (response.count == 0) return;
+                    view.goTo(response.extent).catch((error) => {
+                        console.error(error);
+                    });
+                })
+        })       
 }
 
 function myFilter(title,icon,btn){
@@ -251,7 +290,10 @@ function myFilter(title,icon,btn){
                         document.getElementById("filterIcon").src = this.icon;
                         for (i=0; i<this.layer.length; i++){
                             this.layer[i].definitionExpression = this.expression;
-                            // make layer and all parent layers visible
+                            // zoom to extent of all features
+                            zoomToLayer(this.layer[i], this.expression); 
+                        
+                            // make layer and all parent layers visible in myLayerList.js
                             var layerTree = this.layer[i];
                             while (layerTree.title){
                                 layerTree.visible = true;
@@ -261,44 +303,16 @@ function myFilter(title,icon,btn){
                         // close on mobile
                         if (window.innerWidth <= 768)closeFilter();
                     }
-
-                    // Make buton inactive, select first (all)
-                    else{
-                        this.className="esri-widget--button esri-interactive";
-                        this.active = false;
-                        for (i=0; i<this.layer.length; i++)
-                            this.layer[i].definitionExpression = this.expression;
-                        this.style.fontWeight=400;
-
-                        // make first active
-                        btn[0].className=btn[0].className+" active";
-                        btn[0].active = true;
-                        btn[0].style.fontWeight=500;
-
-                        // find the given layer
-                        if (!btn[0].layer){
-                            btn[0].layer = findLayer(btn[0].layerTitle,btn[0].layerId)
-                        }
-
-                        for (i=0; i<btn[0].layer.length; i++){
-                            btn[0].layer[i].definitionExpression = btn[0].expression;
-                            // make layer and all parent layers visible
-                            var layerTree = btn[0].layer[i];
-                            while (layerTree.title){
-                                layerTree.visible = true;
-                                layerTree = layerTree.parent;
-                            }
-                            
-                        }
-                        // close on mobile
-                        if (window.innerWidth <= 768)closeFilter();
-                    }
+                    // Else button is already active, do nothing
                 },true);
             }
         }
 }
 
 function findLayer(layerTitle,layerIds){
+    // returns array of layers with the given title and layer ids.
+    // Some layers have different symbols at different scales.
+    // For example: Fishing infomation points, Big Game GMUs
     newLayer = [];
     let theLayer = map.allLayers.find(function(layer) {
         if (layer.type !== "group")

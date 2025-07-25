@@ -1603,6 +1603,14 @@ function addBlock(row,element,listFontSize,hLevel){
             //console.log("visible: ", visibility);
             //console.log(layer.title, eventName, a);
             subLayeronOffBtn.checked = visibility;
+            // gray out sublayers if not visible. Start at k=1, because child [0] is the block level on off switch
+            if (subLayeronOffBtn.checked){
+                for (var k=1; k<subLayerGroup.children.length; k++)
+                    subLayerGroup.children[k].style.opacity = "1.0";
+            }else {
+                for (var k=1; k<subLayerGroup.children.length; k++)
+                    subLayerGroup.children[k].style.opacity = "0.4";
+            }
         });
         // Set value when clicked
         subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {

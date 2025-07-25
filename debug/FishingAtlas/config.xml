@@ -121,8 +121,8 @@
         <!-- operationallayers:  Note: Displays in reverse order. -->
         <operationallayers>
             <!-- Note: if parentGroup is the same as the label it will put the layers at the top level instead of in an expandable block -->
-            <!--Land and Access-->
-            <layer label="Land and Access" visible="true" opensublayer="CPW Public Access Properties" transparency_control="true" alpha="1"
+            <!--Land and Access   <layer ... opensublayer="CPW Public Access Properties" -->
+            <layer label="Land and Access" visible="true" transparency_control="true" alpha="1"
                     url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/LandAccess2025/MapServer"/>
             <layer group="Transportation" visible="false" alpha="1" radio="false"/>
                 <layer  parentGroup="Transportation" label="Motor Vehicle Use Map" visible="true" alpha="1"  minScale="144448"
