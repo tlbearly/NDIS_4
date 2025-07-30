@@ -24,7 +24,9 @@
                 url: MapServer or FeatureServer URL
                 transparency_control: Should a transparency control slider be added next to Visibility? Values: "true" or "false". Defaults to false.
                 filter=SQL where filter. For example: "type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
-                symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). For example: "./assets/images/file.png"
+                symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). 
+                    For example: "./assets/images/file.png".  SVG file must include a definition for width and height to load properly in Firefox.
+                symbol_icon_size=Picture marker symbol size. For example: "15px" Default size is 20px if not specified.
                 minScale="144448" layer turns on below this scale. 1:100k="144448" 1:50k="72224"
                 maxScale="144448" layer turns off above this scale
                 listMode=Should this service be included in the layer list?
@@ -57,6 +59,7 @@
                 maxScale="144448" layer turns off above this scale
                 filter=SQL where filter. For example: "type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
                 symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). For example: "./assets/images/file.png"
+                symbol_icon_size=Picture marker symbol size. For example: "15px" Default size is 20px if not specified.
                 listMode=Should this service be included in the layer list?
                 legendEnabled="true" or "false" default is "true". Should this service be include in the legend?
         
@@ -75,6 +78,7 @@
                 maxScale=can be 1 value for all layer ids, or comma delimited min scales for each layerIDs.
                 filter=SQL where filter. Comma delimited, one for each layerIDs above. For example: ",type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
                 symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). Comma delimited, one for each layerIDs above. For example: "./assets/images/file.png,"
+                symbol_icon_size=Picture marker symbol size. Comma delimited one for each layerIDs above. For example: "20px,15px" Default size is 20px if not specified.
                 layerVis=visibility of each layer in display order.
                 layerNames=optional display name. If missing, it will use names from FeatureService. Format="layer1 name,layer2 name,..." in display order.
                 listMode=Should this service be included in the layer list?

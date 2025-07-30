@@ -132,8 +132,8 @@
                 <!--url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/FishingAtlas/FishingAtlas_Data/MapServer</url-->
                 <url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/NonDisplay2025/MapServer</url>
                 <geometry>point</geometry>
-                <fields>WATERCODE,FA_NAME2,COUNTYNAME,PROP_ID,ACCESS_EASE,BOATING,FISH_PRESSURE,STOCKED,Illegal_Stocking</fields>
-                <displaynames>Fish species,Water,County,Property name,Ease of access,Boating,Fishing pressure,Stocked,Notes,</displaynames>
+                <fields>WATERCODE,FA_NAME2,COUNTYNAME,PROP_ID,ACCESS_EASE,BOATING,FISH_PRESSURE,STOCKED,Illegal_Stocking,OPP_FAMILY,OPP_RUSTIC,OPP_ICE</fields>
+                <displaynames>Fish species,Water,County,Property name,Ease of access,Boating,Fishing pressure,Stocked,Notes,Family friendly,More remote fly fishing,Ice fishing</displaynames>
                 <!--  The position in the fields list where the database stuff should be placed  -->
                 <position>3</position>
                 <!--  The database file must be the same directory structure as the index.html file.  -->

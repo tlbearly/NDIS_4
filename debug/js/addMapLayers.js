@@ -89,7 +89,7 @@ function addMapLayers(){
         "esri/layers/FeatureLayer","esri/layers/GroupLayer",], (MapImageLayer, FeatureLayer, GroupLayer) => {
         // Create Layer 3-21-22
         // Get layers from url of config.xml
-        function createLayer(layer,symbol_icon=null,filter=null,transparency_control=false){
+        function createLayer(layer,symbol_icon=null,symbol_icon_size=null,filter=null,transparency_control=false){
             // layer could be the operational layer read from config.xml as an xml document (need to use getAttribute)
             // or event.layer (need to use layer.element)
             //console.log("Creating layer: ");
@@ -252,11 +252,12 @@ function addMapLayers(){
             if (filter) myLayer.definitionExpression = filter;
             // set Symbols
             if (symbol_icon){
+                if (!symbol_icon_size) symbol_icon_size = icon_size;
                 const symbol = {
                     type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-                    url: symbol_icon, // SVG documents must include a definition for width and height to load properly in Firefox. svg does not work in FireFox!!!!!
-                    width: icon_size,
-                    height: icon_size,
+                    url: symbol_icon, // SVG documents must include a definition for width and height to load properly in Firefox.
+                    width: symbol_icon_size,
+                    height: symbol_icon_size,
                     xoffset: 0,
                     yoffset: 0
                 };
@@ -357,17 +358,33 @@ function addMapLayers(){
     //console.log(event.layer.id+" failed to load!!!!!!! ");
     //if (event.layer.loadError && event.layer.loadError.message) console.log("Error: "+event.layer.loadError.message+" Status: "+event.layer.loadStatus);
     //console.log("tries="+tries[event.layer.title]);
-            /*var layer=null;
+            var layer=null;
+            var filter = null;
+            var symbol_icon = null;
+            var symbol_icon_size = null;
+            var transparency_control = null;
             for(i=0;i<xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
                 if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("label") === event.layer.id){
                     layer = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i];
+                    if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("filter")){
+                        filter = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("filter");
+                    }
+                    if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon")){
+                        symbol_icon = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon");
+                    }
+                    if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon_size")){
+                        symbol_icon_size = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon_size");
+                    }
+                    if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("transparency_control")){
+                        transparency_control = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("transparency_control");
+                    }
                     break;
                 }
-            }*/
+            }
             // Try every 2 seconds for up to 5 times 
             if (tries[event.layer.title] < 4){
                 //console.log("Retrying to load (every 2 seconds): "+event.layer.id);
-                setTimeout(function(){createLayer(event.layer);},2000);
+                setTimeout(function(){createLayer(event.layer,symbol_icon,symbol_icon_size,filter,transparency_control);},2000);
             } 
             // Greater than 5 tries. Keep trying every 30 seconds
             else {
@@ -378,7 +395,7 @@ function addMapLayers(){
     //console.log("url="+layer.getAttribute("url"));
                 //if (layer){
                     //console.log("Retrying to load (every 30 seconds): "+event.layer.id);
-                    setTimeout(function(){createLayer(event.layer);},30000);
+                    setTimeout(function(){createLayer(event.layer,symbol_icon,symbol_icon_size,filter,transparency_control);},30000);
                 //}
             }
         }
@@ -500,7 +517,7 @@ function addMapLayers(){
             ids = ids.reverse();
             return ids;
         }
-        function addGroupLayer(groupName, vis, opacity, radio, featureservice, portal, minScale, maxScale, layerIds, layerVis, layerNames, listMode, legendEnabled, popupFields,popupLabels,filters,symbol_icons){
+        function addGroupLayer(groupName, vis, opacity, radio, featureservice, portal, minScale, maxScale, layerIds, layerVis, layerNames, listMode, legendEnabled, popupFields,popupLabels,filters,symbol_icons,symbol_icon_sizes){
             // Creates a group and adds feature service layers in layerVis. Returns the GroupLayer
             // groupName: string, name of this group
             // vis: boolean, is this group visible?
@@ -516,6 +533,7 @@ function addMapLayers(){
             // popupLabels: labels for above fields NOT USED
             // filters: a SQL expression to filter the service
             // symbol_icons: a marker symbol svg or png file to use for a point layer
+            // symbol_icon_sizes: a marker symbol size to use for a point layer
             var visMode = "independent";
             if(radio) visMode="exclusive";
             vis = vis.toLowerCase() === "true";
@@ -589,9 +607,6 @@ function addMapLayers(){
                 maxScales = maxScale.split(",").reverse();
                 if (minScales.length != ids.length) alert("In config.xml, group layer "+groupLayer.title+", the layer with url="+featureservice+" maxScale must have 1 value or the same number of comma dilimited vales as layerIds.");
             }
-            layerVis = layerVis.reverse();
-            if (filters) filters.reverse();
-            if (symbol_icons)symbol_icons.reverse();
             if (layerVis.length != ids.length){
                 alert("Error in "+app+"/config.xml operationallayers. In layer group "+groupName+", list of layerIds and layerVis must have the same number of elements.");
                 return groupLayer;
@@ -606,10 +621,15 @@ function addMapLayers(){
 
             // Add each featureservice layer to this group
             for(var i=0;i<ids.length;i++){
-                if (filters.length < i+1) filters.push(null);
-                if (filters.length > i && filters[i] === "") filters[i] = null;
-                if (symbol_icons.length < i+1) symbol_icons.push(null);
-                if (symbol_icons.length > i && symbol_icons[i] === "") symbol_icons[i] = null;
+                if (!filters) filters=[null];
+                else if (filters.length < i+1) filters.push(null);
+                else if (filters.length > i && filters[i] === "") filters[i] = null;
+                if (!symbol_icons) symbol_icons=[null];
+                else if (symbol_icons && symbol_icons.length < i+1) symbol_icons.push(null);
+                else if (symbol_icons && symbol_icons.length > i && symbol_icons[i] === "") symbol_icons[i] = null;
+                if (!symbol_icon_sizes) symbol_icon_sizes=[null];
+                else if (symbol_icon_sizes && symbol_icon_sizes.length < i+1) symbol_icon_sizes.push(null);
+                else if (symbol_icon_sizes && symbol_icon_sizes.length > i && symbol_icon_sizes[i] === "") symbol_icon_sizes[i] = null;
                 if (layerVis[i] == null) alert("Missing layerVis item ("+i+") for "+groupName+" in config.xml. Should be true or false.","Data Error");
                 vis = layerVis[i].toLowerCase() === "true";
                 // parse out minScale=value1,value2...
@@ -620,12 +640,12 @@ function addMapLayers(){
                 // use layer names from config.xml 
                 if (layerNames != null){
                     //tries[layerNames[i]+ids[i]]=0;
-                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],myMinScale,myMaxScale,layerNames[i],listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i]);
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],myMinScale,myMaxScale,layerNames[i],listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i],symbol_icon_sizes[i]);
                 } 
                 // Use feature service layer names 
                 else {
                     //tries[groupLayer.title+ids[i]]=0; // don't know layer names at this point
-                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],myMinScale,myMaxScale,null,listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i]);
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],myMinScale,myMaxScale,null,listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i],symbol_icon_sizes[i]);
                 }
             }
             return groupLayer;
@@ -649,7 +669,11 @@ function addMapLayers(){
                 var popupFields = [];
                 var popupLabels = [];
                 var filter = null;
+                var filters = [];
                 var symbol_icon = null;
+                var symbol_icons = [];
+                var symbol_icon_size = null;
+                var symbol_icon_sizes = [];
                 var listMode = "show";
                 var legendEnabled = true;
                 for(var i=0;i<xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
@@ -672,6 +696,13 @@ function addMapLayers(){
                                         symbol_icons = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon").split(",");
                                         symbol_icon = symbol_icons[k];
                                         if (symbol_icon === "") symbol_icon = null;
+                                    }
+                                    if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon_size")){
+                                        symbol_icon_sizes = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("symbol_icon_size").split(",");
+                                        if (symbol_icon_sizes){
+                                            symbol_icon_size = symbol_icon_sizes[k];
+                                            if (symbol_icon_size === "") symbol_icon_size = null;
+                                        }
                                     }
                                     break;
                                 }
@@ -701,12 +732,12 @@ function addMapLayers(){
                 }else {
                     id = layer.id;
                 }
-                createSubGroupLayer(layer.parent,layer.url,layer.visible,id,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon);
+                createSubGroupLayer(layer.parent,layer.url,layer.visible,id,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon,symbol_icon_size);
                 layer.parent.remove(layer);
             },tim);  
         }
 
-        function createSubGroupLayer(groupLayer,url,visible,id,minScale,maxScale,title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon){		
+        function createSubGroupLayer(groupLayer,url,visible,id,minScale,maxScale,title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon,symbol_icon_size){		
             var fsUrl;
             if (url[url.length-1]==="/")
                 fsUrl = url + id;
@@ -844,11 +875,12 @@ function addMapLayers(){
                 subGroupLayer.definitionExpression = filter;
             // apply marker symbol
             if (symbol_icon){
+                if (!symbol_icon_size) symbol_icon_size = icon_size;
                  const symbol = {
                     type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-                    url: symbol_icon, // SVG documents must include a definition for width and height to load properly in Firefox. svg does not work in FireFox!!!!!
-                    width: icon_size,
-                    height: icon_size,
+                    url: symbol_icon, // SVG documents must include a definition for width and height to load properly in Firefox.
+                    width: symbol_icon_size,
+                    height: symbol_icon_size,
                     xoffset: 0,
                     yoffset: 0
                 };
@@ -972,9 +1004,8 @@ function addMapLayers(){
         var regexp = /([^a-zA-Z0-9 \-,\._\/:])/g;
         var popupFields = [];
         var popupLabels = [];
-        var filters = [];
-        var symbol_icons = [];
         var symbol_icon;
+        var symbol_icon_size;
         var filter;
         var transparency_control;
         var listMode = "show";
@@ -983,8 +1014,10 @@ function addMapLayers(){
             minScale=0;
             maxScale=0;
             symbol_icon = null;
+            symbol_icon_size = null;
             filter = null;
             transparency_control = false;
+            var symbol_icons=null,symbol_icon_sizes=null,filters=null;
             var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null,portal=null;	
             if (layer[i].getAttribute("maxScale"))
                 maxScale = layer[i].getAttribute("maxScale").replace(regexp,"");
@@ -1000,6 +1033,13 @@ function addMapLayers(){
             // picture marker symbol file svg or png
             if (layer[i].getAttribute("symbol_icon")){
                 symbol_icon = layer[i].getAttribute("symbol_icon");
+            }
+            // picture marker symbol size, if not found use default size
+            
+            if (layer[i].getAttribute("symbol_icon_size")){
+                symbol_icon_size = layer[i].getAttribute("symbol_icon_size");
+            }else{
+                symbol_icon_size = icon_size;
             }
             // filter: where expression to apply
             if (layer[i].getAttribute("filter")){
@@ -1065,6 +1105,8 @@ function addMapLayers(){
                             filters = layer[i].getAttribute("filter").split(",");
                         if (layer[i].getAttribute("symbol_icon"))
                             symbol_icons = layer[i].getAttribute("symbol_icon").replace(regexp,"").split(",");
+                        if (layer[i].getAttribute("symbol_icon_size"))
+                            symbol_icon_sizes = layer[i].getAttribute("symbol_icon_size").replace(regexp,"").split(",");
                         if (layer[i].getAttribute("legendEnabled")){
                             legendEnabled = layer[i].getAttribute("legendEnabled");
                             if (legendEnabled !== "true" || legendEnabled !== "false") alert("Error in config.xml file. legendEnabled must be true or false for layer label: "+layer[i].label,"Data Error");
@@ -1072,7 +1114,11 @@ function addMapLayers(){
                     }
                     
                     // returns a GroupLayer with feature layers added to to it. Use for group layer Elk and feature layers species data for elk.
-                    groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,radio,url,portal,minScale,maxScale,layerIds,layerVis,layerNames,listMode,legendEnabled,popupFields,popupLabels,filters,symbol_icons)};
+                    if(layerVis) layerVis.reverse();
+                    if (filters) filters.reverse();
+                    if (symbol_icons)symbol_icons.reverse();
+                    if (symbol_icon_sizes)symbol_icon_sizes.reverse();
+                    groupLayers[groupName] = {"layer": addGroupLayer(groupName,groupVis,groupOpacity,radio,url,portal,minScale,maxScale,layerIds,layerVis,layerNames,listMode,legendEnabled,popupFields,popupLabels,filters,symbol_icons,symbol_icon_sizes)};
                     if (parentGroupName != null && parentGroupName != "")
                         groupLayers[parentGroupName].layer.add(groupLayers[groupName].layer);
                     else{
@@ -1164,10 +1210,9 @@ function addMapLayers(){
                 if (symbol_icon){
                     const symbol = {
                         type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
-                        url: symbol_icon, // svg does not work in FireFox!!!!!
-                        size: 20,
-                        width: 20,
-                        height: 20,
+                        url: symbol_icon, // SVG documents must include a definition for width and height to load properly in Firefox.
+                        width: symbol_icon_size,
+                        height: symbol_icon_size,
                         xoffset: 0,
                         yoffset: 0
                     };
@@ -1243,7 +1288,7 @@ function addMapLayers(){
                 //console.log("loading layer "+layer[i].getAttribute("label")+" i="+i);
                 
                 // createLayer checks if layer has a getAttrubute function and reads values from config.xml file			
-                createLayer(layer[i],symbol_icon,filter,transparency_control);
+                createLayer(layer[i],symbol_icon,symbol_icon_size,filter,transparency_control);
             }		
         }
         // -- Layer List --

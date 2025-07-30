@@ -206,15 +206,15 @@
 				<fields>Name,Manager,CGPropertyName,CGReservable,URL1</fields>
 				<displaynames>Name,Manager,Property Name,Reservable,Campground Website</displaynames>
 	   		</layer>
-			<!-- License Agent  -->
+			<!-- Mandatory Check Site  -->
 			<layer label="Mandatory Check Site">
-				<id>4</id>
-				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/BaseData2025/MapServer/</url>
+				<id>1</id>
+				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
 				<geometry>point</geometry>
-				<fields>CheckSiteType,StreetAddress,AnimalChecks,FrontDeskServices</fields>
-				<displaynames>Site Type,Address,Animal Checks,Front Desk Services</displaynames>
+				<fields>CheckSiteType,StreetAddress,AnimalChecks,FrontDeskServices,URL</fields>
+				<displaynames>Site Type,Address,Animal Checks,Front Desk Services,Schedule of Operations</displaynames>
 	   		</layer>
-			<!-- Check Station  -->
+			<!-- License Agent  -->
 			<layer label="License Agent">
 				<id>2</id>
 				<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/</url>
