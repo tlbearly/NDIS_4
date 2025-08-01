@@ -28,11 +28,12 @@ function makeDropdownActive(selectedBtn){
             if (label != "" && btn[i].dropdown == true && document.getElementById("select_"+btn[i].title).selectedOptions[0].value === ""){
                 expression = lookupDataForExpression(btn[i],label);
             } else {
+                // zoom to extent of all features
+                zoomToLayer(btn[i].layer[0], expression);
                 // set the SQL filter for every layer ( if it has layers for different zoom levels)
                 for (var j=0; j<btn[i].layer.length; j++){
                     btn[i].layer[j].definitionExpression = expression;
-                    // zoom to extent of all features
-                    zoomToLayer(btn[i].layer[j], expression);
+                    
                     // make layer and all parent layers visible
                     var layerTree = btn[i].layer[j];
                     while (layerTree.title){
@@ -81,11 +82,12 @@ function lookupDataForExpression(btn,label){
             }
             expr += ")";
             document.getElementById("select_"+btn.title).selectedOptions[0].value = expr;
+            // zoom to extent of all features, only do this once
+            zoomToLayer(btn.layer[0], expr); 
             // set the SQL filter for every layer ( if it has layers for different zoom levels)
             for (var j=0; j<btn.layer.length; j++){
                 btn.layer[j].definitionExpression = expr;
-                // zoom to extent of all features
-                zoomToLayer(btn.layer[j], expr); 
+                
                 // make layer and all parent layers visible
                 var layerTree = btn.layer[j];
                 while (layerTree.title){
@@ -115,7 +117,10 @@ function zoomToLayer(layer,where) {
         })
         .then(function (response) {
             // check for no features found
-            if (response.count == 0) return;
+            if (response.count == 0) {
+                alert("Nothing was found.","Notice");
+                return;
+            }
             view.goTo(response.extent).catch((error) => {
                 console.error(error);
             });
@@ -127,7 +132,10 @@ function zoomToLayer(layer,where) {
             layer.queryExtent(query)
                 .then(function (response) {
                     // check for no features found
-                    if (response.count == 0) return;
+                    if (response.count == 0) {
+                        alert("Nothing was found.","Notice");
+                        return;
+                    }
                     view.goTo(response.extent).catch((error) => {
                         console.error(error);
                     });
@@ -288,10 +296,12 @@ function myFilter(title,icon,btn){
                         // Update title by filter button
                         filterShowing.innerHTML = "<strong>Showing: </strong>"+ this.title;
                         document.getElementById("filterIcon").src = this.icon;
+                        
+                        // zoom to extent of all features, only do this once
+                        zoomToLayer(this.layer[0], this.expression);
+                        // set the SQL filter for every layer ( if it has layers for different zoom levels)
                         for (i=0; i<this.layer.length; i++){
                             this.layer[i].definitionExpression = this.expression;
-                            // zoom to extent of all features
-                            zoomToLayer(this.layer[i], this.expression); 
                         
                             // make layer and all parent layers visible in myLayerList.js
                             var layerTree = this.layer[i];

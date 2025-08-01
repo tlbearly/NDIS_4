@@ -506,7 +506,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                     radioGroup.parentNode.placeholder = selectedItem;
                     radioGroup.parentNode.open = false;
                     // Update layer description
-                    iframe1.src = app+"/layer-desc/" + selectedItem + ".html";
+                    iframe1.src = "./"+app+"/layer-desc/" + selectedItem + ".html?v="+Date.now();
                     if (layer.title === "Game Species")
                         setGMU(species); // update search widget and map
                     // Update opacity is whole block is visible or not
@@ -533,7 +533,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             iframe1.style.height = "300px"; 
             iframe1.style.width = "100%";
             iframe1.slot="message";
-            iframe1.src = app+"/layer-desc/" + selectedItem + ".html";
+            iframe1.src = "./"+app+"/layer-desc/" + selectedItem + ".html?v="+Date.now();
             iframe1.setAttribute("frameborder",0);
             //iframe.style.border = "none";
             iframe1.style.margin = "0";
@@ -545,7 +545,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             openBtn.slot = "title";
             openBtn.scale = "m";
             openBtn.addEventListener("click", function (event) {
-                window.open(app+"/layer-desc/" + selectedItem + ".html", "_blank");
+                window.open("./"+app+"/layer-desc/" + selectedItem + ".html?v="+Date.now(), "_blank");
             });
             notice.appendChild(openBtn);
             notice.appendChild(iframe1);
@@ -788,7 +788,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 iframe1.style.height = "300px"; 
                 iframe1.style.width = "100%";
                 iframe1.slot="message";
-                iframe1.src = app+"/layer-desc/" + layer.title + ".html";
+                iframe1.src = "./"+app+"/layer-desc/" + layer.title + ".html?v="+Date.now();
                 iframe1.setAttribute("frameborder",0);
                 //iframe.style.border = "none";
                 iframe1.style.margin = "0";
@@ -801,7 +801,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 openBtn.slot = "title";
                 openBtn.scale = "m";
                 openBtn.addEventListener("click", function (event) {
-                    window.open(app+"/layer-desc/" + layer.title + ".html", "_blank");
+                    window.open("./"+app+"/layer-desc/" + layer.title + ".html?v="+Date.now(), "_blank");
                 });
                 notice.appendChild(openBtn);
                 notice.appendChild(iframe1);
