@@ -5,7 +5,7 @@ var openTOCgroups=[];
 var tries={}; // number of times we have tried to load each map layer
 var loadedFromCfg; // true when the layer has loaded and set the visiblelayers when setting layers from URL
 var labelFromURL = false;
-var icon_size = "20px"; // picture marker icon size for symbol_icon in config.xml file. Does nothing!!!!!! 
+var icon_size = "20px"; // picture marker default icon size for symbol_icon if not found in config.xml file.
 
 function addGraphicsAndLabels() {
     //----------------------------------------------------------------
