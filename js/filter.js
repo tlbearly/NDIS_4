@@ -1,5 +1,5 @@
 function makeDropdownActive(selectedBtn){
-        // make all buttons inactive
+    // first make all buttons inactive
     var btn = document.getElementsByName("filterBtn");
     for(var i=0; i<btn.length; i++){
         if (i!=selectedBtn){

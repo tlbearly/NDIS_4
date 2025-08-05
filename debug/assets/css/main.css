@@ -160,6 +160,11 @@ body,
   padding: 5px 0;
 }
 
+.esri-print__header-title {
+    background-color: var(--background);
+    width: 100%;
+}
+
 calcite-tab-title {
   font-weight: 600;
   /*font-size: var (--calcite-font-size-2)!important;*/
