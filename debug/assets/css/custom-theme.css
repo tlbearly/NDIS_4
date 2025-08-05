@@ -23,12 +23,12 @@
     --background: #e0dec8;
 }
 .calcite-mode-light {
-    /*--calcite-color-text-inverse: #000; /* text color on --brand background */
+    /*--calcite-color-text-inverse: #000; /* DO NOT INCLUDE THIS HERE! text color on --brand background */
     --calcite-color-brand: var(--brand)!important;
     --calcite-color-brand-press: var(--press);
     --calcite-color-brand-hover: var(--hover);
     --calcite-color-brand-underline: var(--underline);
-    --calcite-dialog-background-color: #fff; /* background color of Layer List */
+    /*--calcite-dialog-background-color: #fff; /* DO NOT INCLUDE THIS HERE! Print Exports will be blank. Background color of Layer List */
 }
 /* link colors   a:-webkit-any-link, */
 a, .link, a:-webkit-any-link {
