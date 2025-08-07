@@ -1,20 +1,17 @@
 /* When you create a new color theme you must also create a color-pin.png file in assets/images/ where color is the theme color.
-   Then edit identify.js and utilFuncs.js and add this color pin to the if checks. Search for color-pin.png. */
+   Then edit identify.js and utilFuncs.js and add this color pin to the if checks. Search for color-pin.png. 
+   Also, you will need to edit index.html and each file in app/layer-desc/ and change the class in the body tag to the new color.
+   <body class="green-theme">
+   --brand color must look good as a background with white text.  */
 
 .green-theme {
-  --brand: #a1a889;/*#d4dbbe*/
-  --hover: #75873c;/*#aaaf99*/
+  --brand: #a1a889;
+  --hover: #75873c;
   --press:  #4e5d2d;
   --underline: #aaaf9966;
   --link-hover: #758b45;
   --lightBackground: #eff3e1;
   --background: #d4dbbe;
-  --calcite-color-text-inverse: #000; /* text color on --brand background */
-  --calcite-color-brand: var(--brand)!important;
-  --calcite-color-brand-press: var(--press);
-  --calcite-color-brand-hover: var(--hover);
-  --calcite-color-brand-underline: var(--underline);
-  --calcite-dialog-background-color: #fff; /* background color of Layer List */
 }
 .orange-theme{
     --brand: #e0dec8;
@@ -24,21 +21,22 @@
     --link-hover: #f8b944;
     --lightBackground: #f3f3e1;
     --background: #e0dec8;
-    --calcite-color-text-inverse: #000; /* text color on --brand background */
+}
+.calcite-mode-light {
+    /*--calcite-color-text-inverse: #000; /* DO NOT INCLUDE THIS HERE! text color on --brand background */
     --calcite-color-brand: var(--brand)!important;
     --calcite-color-brand-press: var(--press);
     --calcite-color-brand-hover: var(--hover);
     --calcite-color-brand-underline: var(--underline);
-    --calcite-dialog-background-color: #fff; /* background color of Map Layers */
+    /*--calcite-dialog-background-color: #fff; /* DO NOT INCLUDE THIS HERE! Print Exports will be blank. Background color of Layer List */
 }
-
 /* link colors   a:-webkit-any-link, */
-a, .link {
+a, .link, a:-webkit-any-link {
     color: var(--press)!important;
     text-decoration: underline;
 }
 /*  a:-webkit-any-link:hover, */
-a:hover, .link:hover {
+a:hover, .link:hover, a:-webkit-any-link:link {
     color: var(--link-hover)!important;
 }
 /* identify marker symbol color NOT WORKING change themeColor.png in assests/images */
@@ -55,16 +53,17 @@ a:hover, .link:hover {
     background-color: var(--lightBackground);
     border-left-color: var(--press);
 }
-/* calcite-slider in map layer list! */
-calcite-slider {
-    --calcite-color-brand: var(--press);
-}
 calcite-tab-title {
     --calcite-color-brand: var(--press);
 }
 calcite-tab-title:active {
     color: var(--press);
 }
+/* calcite-slider in map layer list! */
+calcite-slider {
+    --calcite-color-brand: var(--press);
+}
+
 calcite-tile {
     --calcite-color-brand: var(--press);
 }
@@ -85,6 +84,8 @@ calcite-switch {
   --calcite-color-brand-press: var(--press);
   --calcite-color-brand-underline: var(--underline);
 }
+
+
 input{
     border-color: light-dark(var(--hover), var(--brand)) !important;
     border-radius: 5px !important;
@@ -99,6 +100,11 @@ select{
     border-width: 2px;
     padding: 3px;
 }
+/* The operating system will replace the hover color!!! So there is no way to change this. */
+/*select option:focus, option:hover, option:active {
+  background: var(--brand)!important;
+  color:#fff;
+}*/
 /* try to get rid of blue border on selected button */
 button,
     textarea,

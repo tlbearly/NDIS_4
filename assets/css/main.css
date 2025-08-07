@@ -254,6 +254,10 @@ calcite-panel,
   }
 }
 
+.esri-print__header-title {
+  background-color: var(--background);
+  width: 100%;
+}
 /* modal popup, disclaimer and error message */
 .modalBkg {
   display: none; /* Hidden by default */
