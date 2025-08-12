@@ -20,11 +20,11 @@ Sub Page_Load(Sender As Object, E as EventArgs)
   Dim strCommand As String
   Dim DataSet1 As New DataSet
 
-  strConnect =  "Provider=Microsoft.ACE.OLEDB.16.0;"
+  strConnect =  "Provider=Microsoft.ACE.OLEDB.12.0;"
 '*************************************************
 '        Update database url here
 '*************************************************
-  strConnect += "Data Source=C:\Projects\fishingatlas\Data\Working\AtlasFishSpecies.mdb;"
+  strConnect += "Data Source=C:\CPWProjects\fishingatlas\Data\AtlasFishSpecies.mdb;"
   strConnect += "Persist Security Info=False"
 
   Response.Write ("<?xml version=""1.0"" encoding=""UTF-8""?>"&vbcrlf)

@@ -13,7 +13,7 @@
   <meta http-equiv="pragma" content="no-cache" />
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9,IE=10,IE=11" />
-
+  <link rel="shortcut icon" href="./assets/images/logo.svg" type="image/svg">
   <script src="https://js.arcgis.com/4.31/"></script>
   <!-- download a copy of calcite -->
   <!--script type="module" src="./calcite-components/2.13.0/calcite.esm.js"></script-->
@@ -47,6 +47,15 @@
       }
     // force rounded corners
     window.onload = (event) => {
+	  // NOT WORKING! Sometime the fav icon is blank!
+	  // Add fav icon. The icon that appears in tab and is saved to homepage on mobile. Make it app specific named i_app.svg
+	  /*var fav_icon = document.createElement('link');
+	  fav_icon.setAttribute('rel','shortcut icon');
+	  var img = './assets/images/i_'+app.toLowerCase()+'.svg';
+	  fav_icon.setAttribute('href',img);
+	  fav_icon.setAttribute('type','image/svg');
+	  document.head.appendChild(fav_icon);*/
+	  
       // Watch for map scale change
       // Providing `initial: true` in ReactiveWatchOptions
       // checks immediately after initialization

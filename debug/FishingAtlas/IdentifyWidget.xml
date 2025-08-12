@@ -332,7 +332,7 @@
 			</layer>
 		</folder>
         <!-- Set the IRWIN_to_Inciweb_View feature service here. Used in identify. Use url with id!!! (FeatureServer/0) -->  
-		<!--folder label="Wildfires">
+		<folder label="Wildfires">
 			<layer label="Wildfire Incidents">
 				<id>0</id>
 				<url>https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0</url>
@@ -347,6 +347,6 @@
 				<fields>IncidentName,GISAcres</fields>
 				<displaynames>Incident Name,Calculated Acres</displaynames>
 			</layer>
-		</folder-->
+		</folder>
     </tree>
 </configuration>

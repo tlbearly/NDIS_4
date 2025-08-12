@@ -22,9 +22,7 @@
                 url: MapServer or FeatureServer URL
                 transparency_control: Should a transparency control slider be added next to Visibility? Values: "true" or "false". Defaults to false.
                 filter=SQL where filter. For example: "type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
-                symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width).
-                    For example: "./assets/images/file.png".  SVG file must include a definition for width and height to load properly in Firefox.
-                symbol_icon_size=Picture marker symbol size. For example: "15px" Default size is 20px if not specified.
+                symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). For example: "./assets/images/file.png"
                 minScale="144448" layer turns on below this scale. 1:100k="144448" 1:50k="72224"
                 maxScale="144448" layer turns off above this scale
                 listMode="show" or "hide" default is "show". Should this service be included in the layer list?
@@ -58,9 +56,7 @@
                 minScale="144448" layer turns on below this scale. 1:100k="144448" 1:50k="72224"
                 maxScale="144448" layer turns off above this scale
                 filter=SQL where filter. For example: "type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
-                symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). 
-                    For example: "./assets/images/file.png". SVG file must include a definition for width and height to load properly in Firefox.
-                symbol_icon_size=Picture marker symbol size. For example: "15px" Default size is 20px if not specified.
+                symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). For example: "./assets/images/file.png"
                 listMode=Should this service be included in the layer list?
                 legendEnabled="true" or "false" default is "true". Should this service be include in the legend?
         
@@ -78,9 +74,7 @@
                 minScale=can be 1 value for all layer ids, or comma delimited min scales for each layerIDs.
                 maxScale=can be 1 value for all layer ids, or comma delimited min scales for each layerIDs.
                 filter=SQL where filter. Comma delimited, one for each layerIDs above. For example: ",type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
-                symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width).
-                    Comma delimited, one for each layerIDs above. For example: "./assets/images/file.png,".  SVG file must include a definition for width and height to load properly in Firefox.
-                symbol_icon_size=Picture marker symbol size. Comma delimited one for each layerIDs above. For example: "20px,15px" Default size is 20px if not specified.
+                symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). Comma delimited, one for each layerIDs above. For example: "./assets/images/file.png,"
                 layerVis=visibility of each layer in display order.
                 layerNames=optional display name. If missing, it will use names from FeatureService. Format="layer1 name,layer2 name,..." in display order.
                 listMode=Should this service be included in the layer list?
@@ -138,9 +132,7 @@
                 <layer parentGroup="Transportation" label="Colorado State Parks Roads" visible="false" minScale="144448"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1" />
                 <!-- use &lt;&gt; for not equal in SQL Expression filter for <> -->
-                <!--For picture marker symbols for point layers use: 
-                    symbol_icon="./assets/images/file.svg,./assets/images/file.png"
-                    symbol_icon_size="20px,15px" Default size is 20px if not specified-->
+                <!--For picture marker symbols for point layers use: symbol_icon="./assets/images/file.svg,./assets/images/file.png"-->
                 <layer parentGroup="Transportation" group="Trails" visible="true" open="false"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/"
                     layerIds="14,15"
@@ -153,16 +145,13 @@
                     symbol_icon="./assets/images/ANSBoat_sm.svg"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/PublicWID/FeatureServer/0"/>
 			    <layer parentGroup="Fishing Info" label="Stream Guage" visible="true" alpha="1"
-                    symbol_icon="./assets/images/stream_gauge_sm.svg"
-                    symbol_icon_size="15px" minScale="144448" filter="governing_location = 'CO, USA'"
+                    symbol_icon="./assets/images/stream_gauge_sm.svg" minScale="144448" filter="governing_location = 'CO, USA'"
                     url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/Live_Stream_Gauges_v1/FeatureServer/0"/>
                 <layer parentGroup="Fishing Info" label="Fishing Info" visible="true" alpha="0.9"
             		url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/FishingInfo2025/MapServer"/>
-            <layer group="Wildfire" visible="true" alpha="1"/>
-                <layer parentGroup="Wildfire" label="Wildfire Incidents" visible="true" alpha="0.8" 
-                    url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
-                <layer parentGroup="Wildfire" label="Wildfire Perimeters" visible="true" alpha="0.8"
-                    url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
+            <!--layer group="Wildfire" label="Wildfire" visible="false" alpha="0.8"/>
+			    <layer parentGroup="Wildfire" label="Wildfire Perimeters"visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
+			    <layer parentGroup="Wildfire" label="Wildfire Incidents" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/-->
             <layer label="Base Data" visible="true" alpha="1.0" listMode="hide"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/BaseData2025/MapServer"/>
        </operationallayers>
@@ -183,24 +172,21 @@
         <link label="CPW Website"
             url="https://cpw.state.co.us"
             icon="./assets/images/logo.svg"/>
-        <link label="Colorado Hunting Atlas"
-            url="./index.html?app=HuntingAtlas"
+		<link label="OLD Colorado Hunting Atlas"
+            url="https://ndismaps.nrel.colostate.edu/OldAtlas/index.html?app=HuntingAtlas"
             icon="./assets/images/i_huntingatlas.svg"
-            extent="true"/>
-		<link label="OLD Colorado Fishing Atlas"
-            url="https://ndismaps.nrel.colostate.edu/OldAtlas/index.html?app=FishingAtlas"
-            icon="./assets/images/i_fishingatlas.svg"
             extent="true"/>	
+        <link label="Colorado Fishing Atlas"
+            url="./index.html?app=FishingAtlas"
+            icon="./assets/images/i_fishingatlas.svg"
+            extent="true"/>
+		<link label="Big Game Brochure"
+    		url="https://cpw.state.co.us/aboutus/Pages/RegulationsBrochures.aspx"
+    		icon="./assets/images/i_brochure.svg"/>
 		<link label="Buy License!"
-    		url="https://www.cpwshop.com/home.page"											
+    		url="https://www.cpwshop.com/home.page"
     		icon="./assets/images/i_license.svg"/>
-		<link label="Fishing Brochure"
-    		url="http://case.epaperflip.com/Colorado/fishing"
-    		icon="assets/images/i_documentadd.png"/>
-		<link label="Stocking Report"
-    		url="https://cpw.state.co.us/thingstodo/Pages/StockingReport.aspx"
-    		icon="assets/images/i_documentadd2.png"/>
-        <link label="Send us Your Feedback" text="Please send your questions, comments, or problems with the Colorado FishingAtlas to ndisadmin@nrel.colostate.edu."
+        <link label="Send us Your Feedback" text="Please send your questions, comments, or problems with the Colorado HuntingAtlas to ndisadmin@nrel.colostate.edu."
             url="mailto:ndisadmin@nrel.colostate.edu"
             icon="./assets/images/i_mail.png"/>
     </links>

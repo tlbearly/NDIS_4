@@ -189,7 +189,7 @@
                     layerVis="true,true"
                     layerNames="Trailheads,Trails"
                     minScale="36112,144448"/>
-            <layer group="Wildfire" visible="false" alpha="1"/>
+            <layer group="Wildfire" visible="true" alpha="1"/>
                 <layer parentGroup="Wildfire" label="Wildfire Incidents" visible="true" alpha="0.8" 
                     url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
                 <layer parentGroup="Wildfire" label="Wildfire Perimeters" visible="true" alpha="0.8"

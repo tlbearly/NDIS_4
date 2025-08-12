@@ -158,9 +158,11 @@
                     url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/Live_Stream_Gauges_v1/FeatureServer/0"/>
                 <layer parentGroup="Fishing Info" label="Fishing Info" visible="true" alpha="0.9"
             		url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/FishingInfo2025/MapServer"/>
-            <!--layer group="Wildfire" label="Wildfire" visible="false" alpha="0.8"/>
-			    <layer parentGroup="Wildfire" label="Wildfire Perimeters"visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
-			    <layer parentGroup="Wildfire" label="Wildfire Incidents" visible="true" alpha="0.8" url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/-->
+            <layer group="Wildfire" visible="true" alpha="1"/>
+                <layer parentGroup="Wildfire" label="Wildfire Incidents" visible="true" alpha="0.8" 
+                    url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/0"/>
+                <layer parentGroup="Wildfire" label="Wildfire Perimeters" visible="true" alpha="0.8"
+                    url="https://services9.arcgis.com/RHVPKKiFTONKtxq3/ArcGIS/rest/services/USA_Wildfires_v1/FeatureServer/1"/>
             <layer label="Base Data" visible="true" alpha="1.0" listMode="hide"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/FishingAtlas2025/BaseData2025/MapServer"/>
        </operationallayers>
@@ -181,13 +183,17 @@
         <link label="CPW Website"
             url="https://cpw.state.co.us"
             icon="./assets/images/logo.svg"/>
-        <link label="HuntingAtlas"
+        <link label="Colorado Hunting Atlas"
             url="./index.html?app=HuntingAtlas"
-            icon="./assets/images/logo.svg"
+            icon="./assets/images/i_huntingatlas.svg"
             extent="true"/>
+		<link label="OLD Colorado Fishing Atlas"
+            url="https://ndismaps.nrel.colostate.edu/OldAtlas/index.html?app=FishingAtlas"
+            icon="./assets/images/i_fishingatlas.svg"
+            extent="true"/>	
 		<link label="Buy License!"
-    		url="https://cpw.state.co.us/BuyApply/pages/fishing.aspx"
-    		icon="assets/images/i_buylicense.png"/>
+    		url="https://www.cpwshop.com/home.page"											
+    		icon="./assets/images/i_license.svg"/>
 		<link label="Fishing Brochure"
     		url="http://case.epaperflip.com/Colorado/fishing"
     		icon="assets/images/i_documentadd.png"/>

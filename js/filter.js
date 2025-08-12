@@ -195,7 +195,7 @@ function myFilter(title,icon,btn){
                 alert("File: "+app+"/"+lookupsearchvalues+" not found.","Data Error");
             }
         };
-        xmlhttp.open("GET",app+"/"+lookupsearchvalues+"?v="+ndisVer,true);
+        xmlhttp.open("GET","./"+app+"/"+lookupsearchvalues+"?v="+ndisVer,true);
         xmlhttp.send(null);
     }
     

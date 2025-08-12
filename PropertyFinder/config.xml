@@ -24,9 +24,7 @@
                 url: MapServer or FeatureServer URL
                 transparency_control: Should a transparency control slider be added next to Visibility? Values: "true" or "false". Defaults to false.
                 filter=SQL where filter. For example: "type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
-                symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). 
-                    For example: "./assets/images/file.png".  SVG file must include a definition for width and height to load properly in Firefox.
-                symbol_icon_size=Picture marker symbol size. For example: "15px" Default size is 20px if not specified.
+                symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). For example: "./assets/images/file.png"
                 minScale="144448" layer turns on below this scale. 1:100k="144448" 1:50k="72224"
                 maxScale="144448" layer turns off above this scale
                 listMode=Should this service be included in the layer list?
@@ -59,7 +57,6 @@
                 maxScale="144448" layer turns off above this scale
                 filter=SQL where filter. For example: "type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
                 symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). For example: "./assets/images/file.png"
-                symbol_icon_size=Picture marker symbol size. For example: "15px" Default size is 20px if not specified.
                 listMode=Should this service be included in the layer list?
                 legendEnabled="true" or "false" default is "true". Should this service be include in the legend?
         
@@ -78,7 +75,6 @@
                 maxScale=can be 1 value for all layer ids, or comma delimited min scales for each layerIDs.
                 filter=SQL where filter. Comma delimited, one for each layerIDs above. For example: ",type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
                 symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). Comma delimited, one for each layerIDs above. For example: "./assets/images/file.png,"
-                symbol_icon_size=Picture marker symbol size. Comma delimited one for each layerIDs above. For example: "20px,15px" Default size is 20px if not specified.
                 layerVis=visibility of each layer in display order.
                 layerNames=optional display name. If missing, it will use names from FeatureService. Format="layer1 name,layer2 name,..." in display order.
                 listMode=Should this service be included in the layer list?
@@ -88,9 +84,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 -->
 <configuration xmlns:xsi="//www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
-    <title>Debug Hunting Atlas</title>
+    <title>Ver4 Property Finder</title>
     <!--subtitle>Colorado Parks and Wildlife</subtitle-->
-    <app>huntingatlas</app>
+    <app>propertyfinder</app>
     <!-- logo in header bar-->
     <logo>./assets/images/logo.svg</logo>
 	<httpproxy>/proxy/DotNet/proxy.ashx</httpproxy>
@@ -126,55 +122,7 @@
 			<layer label="Land and Access" transparency_control="true" visible="true" alpha="1.0"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccess2025/MapServer"/>
 			
-            <!-- Game Species group layer Bob's -->
-            <layer group="Game Species" transparency_control="true" visible="false" alpha="0.7" radio="true"/>
-                <!--Elk layerNames="Migration Patterns,Migration Corridors,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Resident Population Area,Overall Range"-->
-                <!--Bighorn layerNames="Migration Patterns,Migration Corridors,Severe Winter Range,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Overall Range"-->
-                 <layer group="Black Bear" parentGroup="Game Species" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="21,19,22"
-                    layerVis="true,true,true"
-                    layerNames="Black Bear Summer Concentration,Black Bear Fall Concentration,Black Bear Overall Range"/>
-                <layer group="White-Tailed Deer" parentGroup="Game Species" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="193-195"
-                    layerVis="true,false,false"
-                    layerNames="White-Tailed Deer Concentration Area,White-Tailed Deer Winter Range,White-Tailed Deer Overall Range"/>
-                <layer group="Turkey" parentGroup="Game Species" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="201-203"
-                    layerVis="true,true,true"
-                    layerNames="Turkey Winter Concentration Area,Turkey Winter Range,Turkey Overall Range"/>
-                <layer group="Pronghorn" parentGroup="Game Species" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="115,119,121,122,124"
-                    layerVis="false,false,true,true,false"
-                    layerNames="Pronghorn Migration Patterns,Pronghorn Migration Corridors,Pronghorn Winter Concentration,Pronghorn Winter Range,Pronghorn Overall Range"/>
-                <layer group="Mule Deer" parentGroup="Game Species" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="96,102,104,105,99"
-                    layerVis="false,true,true,true,true"
-                    layerNames="Mule Deer Migration Patterns,Mule Deer Migration Corridors,Mule Deer Winter Concentration Area,Mule Deer Winter Range,Mule Deer Summer Range"/>
-                <layer group="Mountain Goat" parentGroup="Game Species" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="87,89-92"
-                    layerVis="true,true,true,true,false"
-                    layerNames="Mountain Goat Migration Cooridors,Mountain Goat Concentration Area,Mountain Goat Summer Range,Mountain Goat Winter Range,Mountain Goat Overall Range"/>
-                <layer group="Moose" parentGroup="Game Species" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="80,82,84,83,85"
-                    layerVis="true,true,true,true,false"
-                    layerNames="Moose Migration Patterns,Moose Concentration Area,Moose Summer Range,Moose Winter Range,Moose Overall Range"/>
-                <layer group="Elk" parentGroup="Game Species" visible="true"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="33,40,42,43,36"
-                    layerVis="false,true,true,true,true"
-                    layerNames="Elk Migration Patterns,Elk Migration Corridors,Elk Winter Concentration Area,Elk Winter Range,Elk Summer Range"/>
-                <layer group="Bighorn Sheep" parentGroup="Game Species" visible="false"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="8,9,15-17,10,11,18"
-                    layerVis="false,true,true,true,true,false,true,false"
-                    layerNames="Bighorn Migration Patterns,Bighorn Migration Corridors,Bighorn Winter Severe Range,Bighorn Winter Concentration Area,Bighorn Winter Range,Bighorn Summer Concentration Area,Bighorn Summer Range,Bighorn Overall Range"/>
+
             <layer group="Transportation" visible="true" alpha="1" radio="false"/>
                 <!-- MVUM Status and Visitor Map Symbology are not used -->
                 <!--url="https://services.arcgis.com/h4jNYexE41HKnu98/ArcGIS/rest/services/Motor_Vehicle_Use_Map_Roads/FeatureServer/0"/-->

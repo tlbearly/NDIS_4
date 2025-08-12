@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////
+//
+// Search
+//
+// GNIS and ESRI's address layer will added automatically. Change this in mySearch.js
+// layer tag: A layer to be added to the search drop down.
+// name: The display name for the layer.
+// url: The url for the layer in the mapservice or featureservice. Must include the id.
+// searchFields: The field to search on
+// displayField: The field to display
+// placeholder: displayed before the user types it this layer is the only one selected
+//
+// Default values:
+//	maxResults: 6
+//  maxSuggestions: 50
+//  suggestionsEnabled: true
+//  minSuggestCharacters: 1
+//  exactMatch: false
+//
+// zoomscale: Scale to zoom to for points.
+////////////////////////////////////////////////////////////////////////////////
+-->
+<configuration>
+	<zoomscale>72224</zoomscale>
+	<layer>
+		<name>CPW Properties (STL, SWA, SFU, or WWA)</name>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/11</url>
+		<searchFields>PropName</searchFields>
+		<displayfield>PropName</displayfield>
+		<exactMatch>false</exactMatch>
+		<maxSuggestions>10</maxSuggestions>
+		<placeholder>Search CPW Properties</placeholder>
+	</layer>
+	<layer>
+		<name>Big Game GMUs</name>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/15</url>
+		<searchFields>GMUID</searchFields>
+		<displayfield>GMUID</displayfield>
+		<exactMatch>true</exactMatch>
+		<maxResults>6</maxResults>
+		<maxSuggestions>10</maxSuggestions>
+		<minSuggestCharacters>1</minSuggestCharacters>
+		<placeholder>Search GMUs</placeholder>
+	</layer>
+	<layer>
+  		<name>Township Range</name> 
+ 		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/32</url> 
+ 		<searchFields>TOWNRANGE</searchFields>
+		<displayfield>TOWNRANGE</displayfield>
+		<placeholder>Search Township Range (1N 73W)</placeholder>
+  	</layer>
+	<layer>
+		<name>Campground</name>
+		<url>https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/NonDisplay2025/MapServer/3</url>
+		<searchFields>Name</searchFields>
+		<displayfield>Name</displayfield>
+		<placeholder>Search Campgrounds</placeholder>
+	</layer>
+	<layer>
+		<name>MVUM Road Names</name>
+        <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1</url>
+		<searchFields>NAME</searchFields>
+		<displayfield>NAME</displayfield>
+		<placeholder>MVUM Road Name</placeholder>
+		<suggestionTemplate>{NAME}, #{ID}, {FORESTNAME}</suggestionTemplate>
+	</layer>
+	<layer>
+		<name>MVUM Road #</name>
+        <url>https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1</url>
+		<searchFields>ID</searchFields>
+		<displayfield>ID</displayfield>
+		<placeholder>MVUM Road #</placeholder>
+		<suggestionTemplate>#{ID}, {FORESTNAME}</suggestionTemplate>
+	</layer>
+	<!--layer>
+		<name>Counties</name>
+		<url>https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_FindAPlaceTool_Data/MapServer/1</url>
+		<searchFields>COUNTYNAME</searchFields>
+		<displayfield>COUNTYNAME<displayfield>
+		<exactMatch>false</exactMatch>
+		<placeholder>Search Counties</placeholder>
+	</layer-->
+</configuration>
