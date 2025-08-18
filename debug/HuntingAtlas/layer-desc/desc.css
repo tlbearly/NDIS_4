@@ -5,13 +5,13 @@ body{
 	box-sizing: border-box;
 	overflow-x: hidden;
 	max-width: 900px;
-    margin: auto;
+	margin: auto;
 	background-color: #efefef;
 }
 article{
 	background-color: #fff;
 	padding: 10px;
-    min-height: 100vh;
+	min-height: 100vh;
 }
 .headcontent {
 	text-align:center;

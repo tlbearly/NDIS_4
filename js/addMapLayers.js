@@ -5,7 +5,7 @@ var openTOCgroups=[];
 var tries={}; // number of times we have tried to load each map layer
 var loadedFromCfg; // true when the layer has loaded and set the visiblelayers when setting layers from URL
 var labelFromURL = false;
-var icon_size = "20px"; // picture marker icon size for symbol_icon in config.xml file. Does nothing!!!!!! 
+var icon_size = "20px"; // picture marker icon size for symbol_icon in config.xml file. 
 
 function addGraphicsAndLabels() {
     //----------------------------------------------------------------
@@ -150,7 +150,7 @@ function addMapLayers(){
                             "listMode": listMode,
                             "legendEnabled": legendEnabled,
                             ///TODO this does not exist in v4.24**********  "visibleLayers": layerObj[id].visLayers
-                            "sublayers": layerObj[id].visLayers // remove this, it will delete data. Loop through and set these layers to visible other to not visible.
+                           // "sublayers": layerObj[id].visLayers // remove this, it will delete data. Loop through and set these layers to visible other to not visible.
                         });
                     // not found on url, not visible
                     }else {
@@ -889,6 +889,52 @@ function addMapLayers(){
                     symbol: symbol
                 }
             }
+            // TODO: Trails testing adding symbols
+                if (subGroupLayer.url.indexOf("CPWAdminData")>-1 && id == 15){
+                    subGroupLayer.renderer = {
+                            type: "simple",
+                            symbol: {
+                                color: {a: .5,
+                                    r: 80,
+                                    g: 255,
+                                    b: 80
+                                },
+                                join: "round",
+                                miterLimit: 2,
+                                style: "solid",//"dash",
+                                type: "simple-line",
+                                width: 3
+                            },
+                        };
+                }
+                // label trailheads
+                if (subGroupLayer.url.indexOf("CPWAdminData")>-1 && id == 14){ 
+                    const labelClass = {
+                        // autocasts as new LabelClass()
+                        symbol: {
+                        type: "text", // autocasts as new TextSymbol()
+                        color: "black",
+                        haloColor: [255,255,255,1.0],
+                        haloSize: "2px",
+                        xoffset: -4,
+                        yoffset: -16,
+                        horizontalAlignment: "center",
+                        verticalAlignment: "baseline",
+                        font: {
+                            //autocasts as new Font()
+                            family: "Arial",
+                            size: 10
+                        }
+                        },
+                        labelPlacement: "always-horizontal", //below-center for points
+                        text: label,
+                        labelExpressionInfo: {
+                            expression: "$feature.name"
+                        }
+                    };
+                    // TODO needs to be featureservice to add labels!!!!
+                    subGroupLayer.labelingInfo=[labelClass];
+                }
             groupLayer.add(subGroupLayer);
         }
 
@@ -1205,7 +1251,6 @@ function addMapLayers(){
                     fsLayer.maxScale = maxScale;
                 }
             
-                
                 // set Symbols
                 if (symbol_icon){
                     const symbol = {
@@ -1220,8 +1265,8 @@ function addMapLayers(){
                         type: "simple",
                         symbol: symbol
                     }
-                    if (filter) fsLayer.definitionExpression = filter;
                 }
+                if (filter) fsLayer.definitionExpression = filter;
                 // TODO: testing adding symbols
                 /*if (fsLayer.url.indexOf("CPWAdminData")>-1 && url.indexOf(15) > -1){
                     fsLayer.renderer = {
@@ -1359,11 +1404,11 @@ function readURLParmeters(){
 
         // Layer
         if (queryObjParams.get("layer")){
-            queryObjParams.get("layer") = queryObjParams.get("layer").replace(/~/g, " "); // for email from mobile app
+            queryObj.layer = queryObjParams.get("layer").replace(/~/g, " "); // for email from mobile app
             regexp=/([^a-zA-Z0-9 \-\|,\._()])/g; // allow \ for the test (\' \") but remove it for the clean
-            if (regexp.test(queryObjParams.get("layer"))) alert("Illegal characters were found on the URL. Layers may not load properly.","Warning");
+            if (regexp.test(queryObj.layer)) alert("Illegal characters were found on the URL. Layers may not load properly.","Warning");
             //regexp=/([^a-zA-Z0-9 \-,\._()])/g; // Used if testing for \\ above
-            queryObj.layer=queryObjParams.get("layer").replace(regexp,""); // clean it
+            queryObj.layer=queryObj.layer.replace(regexp,""); // clean it
         }
 
         // keyword

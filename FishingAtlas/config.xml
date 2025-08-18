@@ -90,7 +90,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 -->
 <configuration xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
-    <title>Colorado Fishing Atlas</title>
+    <title>Ver4 Fishing Atlas</title>
     <app>fishingatlas</app>
     <!-- logo in header bar-->
     <logo>./assets/images/logo.svg</logo>
@@ -183,27 +183,24 @@
         <link label="CPW Website"
             url="https://cpw.state.co.us"
             icon="./assets/images/logo.svg"/>
-        <link label="Colorado Hunting Atlas"
-            url="./index.html?app=HuntingAtlas"
-            icon="./assets/images/i_huntingatlas.svg"
-            extent="true"/>
 		<link label="OLD Colorado Fishing Atlas"
             url="https://ndismaps.nrel.colostate.edu/OldAtlas/index.html?app=FishingAtlas"
             icon="./assets/images/i_fishingatlas.svg"
+            extent="true"/>
+        <link label="Hunting Atlas"
+            url="./index.html?app=HuntingAtlas"
+            icon="./assets/images/i_huntingatlas.svg"
             extent="true"/>	
-		<link label="Buy License!"
-    		url="https://www.cpwshop.com/home.page"											
+        <link label="Buy License!"
+    		url="https://www.cpwshop.com/home.page"
     		icon="./assets/images/i_license.svg"/>
 		<link label="Fishing Brochure"
-    		url="http://case.epaperflip.com/Colorado/fishing"
+    		url="https://cpw.state.co.us/aboutus/Pages/RegulationsBrochures.aspx"
     		icon="assets/images/i_documentadd.png"/>
-		<link label="Stocking Report"
-    		url="https://cpw.state.co.us/thingstodo/Pages/StockingReport.aspx"
-    		icon="assets/images/i_documentadd2.png"/>
         <link label="Send us Your Feedback" text="Please send your questions, comments, or problems with the Colorado FishingAtlas to ndisadmin@nrel.colostate.edu."
             url="mailto:ndisadmin@nrel.colostate.edu"
-            icon="./assets/images/i_mail.png"/>
-    </links>
+            icon="./assets/images/i_mail.png"/>  
+	</links>
     <extra_widgets>
         <widget name="filter" title="Fishing Opportunities" icon="OppAll_Icon.svg">
             <!--buttons in filter dropdown. Filters a layer in the map.

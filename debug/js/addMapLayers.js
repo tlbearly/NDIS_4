@@ -150,7 +150,7 @@ function addMapLayers(){
                             "listMode": listMode,
                             "legendEnabled": legendEnabled,
                             ///TODO this does not exist in v4.24**********  "visibleLayers": layerObj[id].visLayers
-                            "sublayers": layerObj[id].visLayers // remove this, it will delete data. Loop through and set these layers to visible other to not visible.
+                           // "sublayers": layerObj[id].visLayers // remove this, it will delete data. Loop through and set these layers to visible other to not visible.
                         });
                     // not found on url, not visible
                     }else {
@@ -889,6 +889,52 @@ function addMapLayers(){
                     symbol: symbol
                 }
             }
+            // TODO: Trails testing adding symbols
+                if (subGroupLayer.url.indexOf("CPWAdminData")>-1 && id == 15){
+                    subGroupLayer.renderer = {
+                            type: "simple",
+                            symbol: {
+                                color: {a: .5,
+                                    r: 80,
+                                    g: 255,
+                                    b: 80
+                                },
+                                join: "round",
+                                miterLimit: 2,
+                                style: "solid",//"dash",
+                                type: "simple-line",
+                                width: 3
+                            },
+                        };
+                }
+                // label trailheads
+                if (subGroupLayer.url.indexOf("CPWAdminData")>-1 && id == 14){ 
+                    const labelClass = {
+                        // autocasts as new LabelClass()
+                        symbol: {
+                            type: 'text', // autocasts as new TextSymbol()
+                            color: 'black',
+                            haloColor: [255,255,255,1.0],
+                            haloSize: '2px',
+                            xoffset: -4,
+                            yoffset: -16,
+                            horizontalAlignment: "center",
+                            verticalAlignment: "baseline",
+                            font: {
+                                //autocasts as new Font()
+                                family: 'Arial',
+                                size: 10
+                            }
+                        },
+                        labelPlacement: "always-horizontal", //below-center for points
+                        text: label,
+                        labelExpressionInfo: {
+                            expression: "$feature.name"
+                        }
+                    };
+                    // TODO needs to be featureservice to add labels!!!!
+                    subGroupLayer.labelingInfo=[labelClass];
+                }
             groupLayer.add(subGroupLayer);
         }
 
@@ -952,23 +998,26 @@ function addMapLayers(){
                 var layerArr = layersArr[i].split("|");
                 if (layerArr[0] == "") continue;// tlb 1-5-18 if no layers are visible 
                 layerArr[0] = layerArr[0].replace(/~/g, " ");
-                if (layerArr.length == 3)
+                if (layerArr.length == 3){
                     layerArr.push(true);
-                if (layerArr[2] == -1)
-                    layerObj[layerArr[0]] = {
-                        "opacity": layerArr[1],
-                        "visLayers": [], // tlb 1-5-18 used to be [-1],
-                        "visible": true
-                    };
-                else
-                    layerObj[layerArr[0]] = {
-                        "opacity": layerArr[1],
-                        "visLayers": layerArr[2].split("-"),
-                        "visible": layerArr[3] == "1" ? true : false
-                    };
-                // Convert visLayers from strings to int using bitwise conversion
-                for (j = 0; j < layerObj[layerArr[0]].visLayers.length; j++)
-                    layerObj[layerArr[0]].visLayers[j] = layerObj[layerArr[0]].visLayers[j] | 0;
+                    if (layerArr[2] == -1)
+                        layerObj[layerArr[0]] = {
+                            "opacity": layerArr[1],
+                            "visLayers": [], // tlb 1-5-18 used to be [-1],
+                            "visible": true
+                        };
+                    else
+                        layerObj[layerArr[0]] = {
+                            "opacity": layerArr[1],
+                            "visLayers": layerArr[2].split("-"),
+                            "visible": layerArr[3] == "1" ? true : false
+                        };
+                    // Convert visLayers from strings to int using bitwise conversion
+                    for (j = 0; j < layerObj[layerArr[0]].visLayers.length; j++)
+                        layerObj[layerArr[0]].visLayers[j] = layerObj[layerArr[0]].visLayers[j] | 0;
+                }else {
+                    layerObj.layer=""; //missing parameters, ignor this &layer
+                }
             }
         }
 
@@ -1205,7 +1254,6 @@ function addMapLayers(){
                     fsLayer.maxScale = maxScale;
                 }
             
-                
                 // set Symbols
                 if (symbol_icon){
                     const symbol = {
@@ -1220,9 +1268,52 @@ function addMapLayers(){
                         type: "simple",
                         symbol: symbol
                     }
-                    if (filter) fsLayer.definitionExpression = filter;
                 }
+                if (filter) fsLayer.definitionExpression = filter;
                 // TODO: testing adding symbols
+                // label GMU
+                if (fsLayer.url.indexOf("CPWAdminData")>-1 && url.indexOf(6) > -1){ 
+                    fsLayer.renderer = {
+                            type: "simple",
+                            symbol: {
+                                color: {a: 1,
+                                    r: 0,
+                                    g: 0,
+                                    b: 0
+                                },
+                                join: "round",
+                                miterLimit: 2,
+                                style: "solid",
+                                type: "simple-line",
+                                width: 1.5
+                            },
+                        };
+                    const labelClass = {
+                        // autocasts as new LabelClass()
+                        symbol: {
+                            type: "text", // autocasts as new TextSymbol()
+                            color: "black",
+                            haloColor: [255,255,253,1.0],
+                            haloSize: "2px",
+                            
+                            font: {
+                                //autocasts as new Font()
+                                family: "Arial",
+                                weight: "bold",
+                                size: 18
+                            }
+                        },
+                        text: label,
+                        maxScale: 0,
+                        minScale: 2500000,
+                        labelPlacement: 'center-along',
+                        labelExpressionInfo: {
+                            expression: "$feature.GMUID"
+                        }
+                    };
+                    // TODO needs to be featureservice to add labels!!!!
+                    fsLayer.labelingInfo=[labelClass];
+                }
                 /*if (fsLayer.url.indexOf("CPWAdminData")>-1 && url.indexOf(15) > -1){
                     fsLayer.renderer = {
                             type: "simple",
@@ -1359,11 +1450,11 @@ function readURLParmeters(){
 
         // Layer
         if (queryObjParams.get("layer")){
-            queryObjParams.get("layer") = queryObjParams.get("layer").replace(/~/g, " "); // for email from mobile app
+            queryObj.layer = queryObjParams.get("layer").replace(/~/g, " "); // for email from mobile app
             regexp=/([^a-zA-Z0-9 \-\|,\._()])/g; // allow \ for the test (\' \") but remove it for the clean
-            if (regexp.test(queryObjParams.get("layer"))) alert("Illegal characters were found on the URL. Layers may not load properly.","Warning");
+            if (regexp.test(queryObj.layer)) alert("Illegal characters were found on the URL. Layers may not load properly.","Warning");
             //regexp=/([^a-zA-Z0-9 \-,\._()])/g; // Used if testing for \\ above
-            queryObj.layer=queryObjParams.get("layer").replace(regexp,""); // clean it
+            queryObj.layer=queryObj.layer.replace(regexp,""); // clean it
         }
 
         // keyword

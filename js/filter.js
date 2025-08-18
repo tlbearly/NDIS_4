@@ -105,7 +105,7 @@ function lookupDataForExpression(btn,label){
 function zoomToLayer(layer,where) {
     // Zoom to the extent of the displayed features
     // TODO!!!!!!!! have not tested with FeatureLayer (falls into catch)
-
+    if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Filter'});
     const expression = where;
     // for mapImageLayers convert to featureLayer
     layer.createFeatureLayer()

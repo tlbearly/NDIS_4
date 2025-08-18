@@ -92,6 +92,7 @@ function addMeasure(graphicsLayer){
         //    clearMeasurements();
         //});
         function distanceMeasurement() {
+            if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Measure Distance'});
             measure.activeTool = "distance";
             measure.active = true;
             distBtn.classList.add("active");
@@ -107,6 +108,7 @@ function addMeasure(graphicsLayer){
   
         // Call the appropriate AreaMeasurement2D or AreaMeasurement3D
         function areaMeasurement() {
+            if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Measure Area'});
             measure.activeTool = "area";
             measure.active = true;
             distBtn.classList.remove("active");

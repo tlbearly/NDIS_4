@@ -123,9 +123,17 @@
         <!-- operationallayers:  Note: Displays in reverse order. -->
         <operationallayers>
             <!-- Land and Access is hard coded in myLayerList.js to add correct GMU layer: big game, sheep, or goat -->
-			<layer label="Land and Access" transparency_control="true" visible="true" alpha="1.0"
+			<layer label="Land and Access" transparency_control="true" visible="false" alpha="1.0"
                 url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccess2025/MapServer"/>
-			
+			<layer group="Land and Access" transparency_control="true" visible="true" alpha="1.0"/>
+                <layer parentGroup="Land and Access" label="Land Management (COMaP v20240702)" visible="false" alpha="1.0"
+                    url="https://tiles.arcgis.com/tiles/KNdRU5cN6ENqCTjk/arcgis/rest/services/Land_Management/MapServer"/>
+                    <!-->"https://tiles.arcgis.com/tiles/KNdRU5cN6ENqCTjk/arcgis/rest/services/Land_Management/MapServer/0"/-->
+                <layer parentGroup="Land and Access" label="CoMap" transparency_control="true" visible="true" alpha="0.7"
+                    filter="MANAGER IN ('BLM', 'FWS', 'NPS', 'USFS - ARAP', 'USFS - COM', 'USFS - GM', 'USFS - GUNN', 'USFS - MANTI-LA SAL', 'USFS - PIKE', 'USFS - PNG', 'USFS - RIO GRANDE', 'USFS - ROOS', 'USFS - ROUTT', 'USFS - SAN JUAN', 'USFS - SI', 'USFS - UNC', 'USFS - WHITE RIVER', 'TRIBE') And PUBLIC_ACCESS &lt;&gt; 'No'"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/COMaP_Map_Service/FeatureServer/0"/>
+                <layer parentGroup="Land and Access" label="GMU Boundary" visible="true" alpha="1.0"
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/6"/>
             <!-- Game Species group layer Bob's -->
             <layer group="Game Species" transparency_control="true" visible="false" alpha="0.7" radio="true"/>
                 <!--Elk layerNames="Migration Patterns,Migration Corridors,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Resident Population Area,Overall Range"-->
@@ -167,9 +175,9 @@
                     layerNames="Moose Migration Patterns,Moose Concentration Area,Moose Summer Range,Moose Winter Range,Moose Overall Range"/>
                 <layer group="Elk" parentGroup="Game Species" visible="true"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
-                    layerIds="33,40,42,43,36"
-                    layerVis="false,true,true,true,true"
-                    layerNames="Elk Migration Patterns,Elk Migration Corridors,Elk Winter Concentration Area,Elk Winter Range,Elk Summer Range"/>
+                    layerIds="33,40,42,43,35,36,39,44"
+                    layerVis="false,true,true,true,false,true,false,false"
+                    layerNames="Elk Migration Patterns,Elk Migration Corridors,Elk Winter Concentration Area,Elk Winter Range,Elk Summer Concentration Range,Elk Summer Range,Elk Resident Population Area,Elk Overall Range"/>
                 <layer group="Bighorn Sheep" parentGroup="Game Species" visible="false"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
                     layerIds="8,9,15-17,10,11,18"
@@ -180,7 +188,7 @@
                 <!--url="https://services.arcgis.com/h4jNYexE41HKnu98/ArcGIS/rest/services/Motor_Vehicle_Use_Map_Roads/FeatureServer/0"/-->
                 <layer  parentGroup="Transportation" label="Motor Vehicle Use Map" visible="true" alpha="1"  minScale="144448"
 					url="https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_02/MapServer/1"/>
-                <layer  parentGroup="Transportation" label="BLM Colorado Routes" visible="true" alpha="1" minScale="144448"
+                <layer  parentGroup="Transportation" label="BLM Colorado Routes" visible="false" alpha="1" minScale="144448"
                     url="https://gis.blm.gov/coarcgis/rest/services/transportation/BLM_CO_GTLF/FeatureServer/5" />
                 <layer parentGroup="Transportation" label="Colorado State Parks Roads" visible="false" minScale="144448"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/1" />

@@ -90,7 +90,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 -->
 <configuration xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
-    <title>Colorado Fishing Atlas</title>
+    <title>Debug Fishing Atlas</title>
     <app>fishingatlas</app>
     <!-- logo in header bar-->
     <logo>./assets/images/logo.svg</logo>

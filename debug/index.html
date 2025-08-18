@@ -13,7 +13,10 @@
   <meta http-equiv="pragma" content="no-cache" />
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9,IE=10,IE=11" />
-  <link rel="shortcut icon" href="./assets/images/logo.svg" type="image/svg">
+  <meta name="description" content="Explore Colorado Parks and WildlifeU+2019s Hunting Atlas, Fishing Atlas, and Property Finder to plan your next outdoor adventure. View big game concentrations, fishing opportunities, and public access lands on interactive maps, and generate geo-referenced PDF maps to take in the field with you." />
+  <meta name="keywords" content="Colorado,map,maps,hunting,fishing">
+  <link rel="canonical" href="https://ndis-2020-dev.nrel.colostate.edu/ver4/debug/index.html"/>
+  <link id="favicon" rel="shortcut icon" href="./assets/images/logo.svg" type="image/svg">
   <script src="https://js.arcgis.com/4.31/"></script>
   <!-- download a copy of calcite -->
   <!--script type="module" src="./calcite-components/2.13.0/calcite.esm.js"></script-->
@@ -28,33 +31,31 @@
   <script type="text/javascript" src="js/xmlUtils.js?v=1.01" async="true"></script>
   <script type="text/javascript" src="js/disclaimer.js?v=1.01" async="true"></script>
   <script type="text/javascript" src="js/utilFuncs.js?v=1.01" async="true"></script>
-  <script type="text/javascript" src="js/addMapLayers.js?v=1.01" async="true"></script> <!-- read config.xml, add links to help -->
+  <script type="text/javascript" src="js/addMapLayers.js?v=1.01cc" async="true"></script> <!-- read config.xml, add links to help -->
   <script type="text/javascript" src="js/myBasemaps.js?v=1.01" async="true"></script>
-  <script type="text/javascript" src="js/myLayerList.js?v=1.01" async="true"></script>
-  <script type="text/javascript" src="js/mySearch.js?v=1.01" async="true"></script>
+  <script type="text/javascript" src="js/myLayerList.js?v=1.01a" async="true"></script>
+  <script type="text/javascript" src="js/mySearch.js?v=1.01a" async="true"></script>
   <script type="text/javascript" src="js/identify.js?v=1.01" async="true"></script> <!-- read IdentifyWidget.xml -->
   <script type="text/javascript" src="js/errorBox.js?v=1.01" async="true"></script>
-  <script type="text/javascript" src="js/myMeasure.js?v=1.01" async="true"></script>
-  <script type="text/javascript" src="js/filter.js?v=1.01" async="true"></script>
+  <script type="text/javascript" src="js/myMeasure.js?v=1.01a" async="true"></script>
+  <script type="text/javascript" src="js/filter.js?v=1.01a" async="true"></script>
 
   <script>
     function closeHelp(){
         document.getElementById("help").style.display = "none";
       }
       function openHelp(){
+        if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Help'});
         view.graphics.removeAll(); // clear identify graphics
         document.getElementById("help").style.display = "block";
       }
     // force rounded corners
     window.onload = (event) => {
-	  // NOT WORKING! Sometime the fav icon is blank!
-	  // Add fav icon. The icon that appears in tab and is saved to homepage on mobile. Make it app specific named i_app.svg
-	  /*var fav_icon = document.createElement('link');
-	  fav_icon.setAttribute('rel','shortcut icon');
-	  var img = './assets/images/i_'+app.toLowerCase()+'.svg';
-	  fav_icon.setAttribute('href',img);
-	  fav_icon.setAttribute('type','image/svg');
-	  document.head.appendChild(fav_icon);*/
+      // NOT WORKING! Sometime the fav icon is blank!
+      // Add fav icon. The icon that appears in tab and is saved to homepage on mobile. Make it app specific named i_app.svg
+      //var fav_icon = document.getElementById("favicon");
+      //var img = window.location.href.substr(0,window.location.href.indexOf("index"))+'assets/images/i_'+app.toLowerCase()+'.svg';
+      //fav_icon.setAttribute('href',img);
 	  
       // Watch for map scale change
       // Providing `initial: true` in ReactiveWatchOptions
@@ -89,6 +90,7 @@
         if (!document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").shadowRoot.children.length < 0) return;
         if (!document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").shadowRoot.querySelector("header")) return;
         //if (!document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").shadowRoot.querySelector("#close")) return;
+        if (!document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").shadowRoot.querySelector("#close").shadowRoot) return;
         if (!document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").shadowRoot.querySelector("#close").shadowRoot.querySelector("button")) return;
         clearInterval(tim);
         document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").style.borderRadius = "0.75rem";
@@ -102,16 +104,6 @@
         if (window.matchMedia("(max-width: 767px)").matches){
           document.querySelector("#layerlist").shadowRoot.querySelector("calcite-panel").style.maxHeight = "50vh";
         }
-        // help border radius and position
-        //document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.borderRadius = "0.75rem";
-        // mobile
-        /*if (window.matchMedia("(max-width: 767px)").matches){
-          document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.marginTop = "10px";
-        document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.marginLeft = "0px";
-        }else {
-          document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.marginTop = "95px";
-          document.querySelector("#help").shadowRoot.querySelector("calcite-panel").style.marginLeft = "-10px";
-        }*/
 
         // layer list sub dialogs 
         setTimeout(function(){
@@ -152,12 +144,6 @@
     const ndisVer = Date.now();
     // this is read from IdentifyWidget.xml file in identify.js readIdentifyWidget()
     var settings = {
-      //elkField: "GMUID",
-      //elkUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/2",
-      //sheepField: "BSGMU",
-      //sheepUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/15",
-      //goatField: "MGGMU",
-      //goatUrl: "https://ndismaps.nrel.colostate.edu/ArcGIS/rest/services/HuntingAtlas/HuntingAtlas_AssetReport_Data/MapServer/16"
     };
     // for multiple httprequests. Used in identify.js and resourceReport.js
     var xmlIndex = 0;
@@ -215,15 +201,6 @@
         const graphicsLayer = new GraphicsLayer();
         graphicsLayer.title = "Graphics Layer";
         map.add(graphicsLayer);
-        /*let initExtent = new Extent({
-          "xmin": -12350000,
-          "ymin": 4250000,
-          "xmax": -11150000,
-          "ymax": 5250000,
-          "spatialReference": {
-            "wkid": 102100
-          }
-        });*/
         view = new MapView({
           map: map,
           //extent: initExtent,
@@ -232,7 +209,8 @@
             color: [255, 255, 0, 1],
             haloOpacity: 0.9,
             fillOpacity: 0.2
-          },
+          }
+          /*,
           popup: {
             dockEnabled: true,
             //collapseEnabled: false,
@@ -249,7 +227,7 @@
               actionBar: false // hide zoom in button
               //closeButton: true
             }
-          }
+          }*/
         });
 
         const nonLayers = ["Graphics Layer", "World Hillshade", "World Imagery", "USGSTopo", "USA Topo Maps", "USGSImageryTopo", "", "World Topo Map", "World Basemap", "World Basemap v2"];
@@ -261,24 +239,7 @@
           doIdentify(event);
         });
 
-        var popupOpenCount = 0;
         view.when(() => {
-          // Hide graphic pin when identify closes
-          /*reactiveUtils.watch(
-            () => view.popup.visible,
-            (visible) => {
-              if (!visible){
-                view.graphics.removeAll();
-              }
-              else {
-                popupOpenCount++;
-              }
-            }
-          );*/
-        
-          // test using esri layerlist
-          //myMapLayers();
-
           // Add title, logo, and search
           const titlediv=document.createElement("div");
           titlediv.style.padding="5px";
@@ -313,7 +274,6 @@
           logo.style.marginRight="10px";
           logo.setAttribute("align","middle");
           logo.addEventListener("click",function(){
-            //view.closePopup();
             closeIdentify();
             closeMeasure();
             openHelp();
@@ -322,7 +282,6 @@
           helpLink.className="help_button";
           helpLink.title="Help";
           helpLink.addEventListener("click",function(){
-            //view.closePopup();
             closeIdentify();
             closeMeasure();
             openHelp();
@@ -366,7 +325,6 @@
           mapScale.appendChild(mapScaleList);
           let scales = ["9M","4M","2M","1M","500k","250k","100k","50k","24k","10k","2k","1k"];
           let values = ["9244649","4622324","2311162","1155581","577791","288895","144448","72224","36112","9028","2257","1128"];
-          //<span id="mapscale" style="display:block; z-index: 3; position:relative; float:left; width: 200px; color:#FFF; text-shadow: 0 0 .1em #000; text-shadow: -.1em -.1em .2em #000; text-shadow: .1em .1em .1em #000;">Map Scale 1: 
           for (var i=0;i<scales.length;i++){
             let option = document.createElement("option");
             option.innerHTML=scales[i];
@@ -395,7 +353,6 @@
           });
           // Add the locate widget to the top left corner of the view
           view.ui.add(locateBtn, "bottom-right");
-
 
           // MARK: -- Print -- 
           printInit();
@@ -447,6 +404,9 @@
             templateCustomTextElements: {
               "Subtitle": "subtitle"
             }
+          });
+          print.on("complete",function(results){
+            if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Print'});
           });
           const printExpand = new Expand({
             view,
@@ -502,7 +462,7 @@
       <h2><span id="helpTitle">Help</span><button id="helpClose" class="myCloseButton"  onclick="javascript:closeHelp()" aria-busy="false" aria-label="Close" aria-pressed="false">X</button></h2>
     </header>
     <article>
-      <div id="helpContent" class="helpContent">If you are having trouble using or reading this map, plesae contact Colorado Parks and Widllife at 303-297-1192.</div>
+      <div id="helpContent" class="helpContent">If you are having trouble using or reading this map, please contact Colorado Parks and Wildlife at 303-297-1192.</div>
     </article>
   </div>
   <div id="viewDiv"></div>
@@ -515,6 +475,21 @@
             <option value="dm">Degrees, Decimal Minutes</option>
         </select>
     </div>
-</body>
 
+<!-- Add Google Analytics 4 Stats for G-KZGSCS9DMG Live Site or G-SPF3WKXMYJ Test Site ndis-2020-dev -->
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SPF3WKXMYJ&l=GTMdataLayer"></script>
+<script>
+  window.GTMdataLayer = window.GTMdataLayer || [];
+  function gtag(){GTMdataLayer.push(arguments);}
+    gtag('js', new Date());
+    // Custom Dimension Values to pass. Set this up in Google Analytics 4 in Admin/Custom Definitions. https://analytics.google.com/analytics
+    // live: G-KZGSCS9DMG, dev: G-SPF3WKXMYJ
+    gtag('config', 'G-SPF3WKXMYJ', {
+      cookie_flags: 'max-age=7200;secure;samesite=none',
+      'app_name': app.toLowerCase()
+    });
+</script>
+<!-- End Google Analytics 4 -->
+ </body>
 </html>

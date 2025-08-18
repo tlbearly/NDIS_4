@@ -23,13 +23,22 @@ function myLayerList() {
 
         // Tab Titles: Layers  Basemaps
         const tabTitle1 = document.createElement("calcite-tab-title");
+        tabTitle1.addEventListener("click",function(){
+            if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Layer List'});
+        });
         tabTitle1.select = true;
         tabTitle1.innerHTML = "Layers";
         tabNav.appendChild(tabTitle1);
         const tabTitle2 = document.createElement("calcite-tab-title");
+        tabTitle2.addEventListener("click",function(){
+            if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Basemaps'});
+        });
         tabTitle2.innerHTML = "Basemaps";
         tabNav.appendChild(tabTitle2);
         const tabTitle3 = document.createElement("calcite-tab-title");
+        tabTitle3.addEventListener("click",function(){
+            if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Legend'});
+        });
         tabTitle3.innerHTML = "Legend";
         tabNav.appendChild(tabTitle3);
     }catch(err){
@@ -249,6 +258,7 @@ function myLayerList() {
         layerListExpand.style.width = "140px";
     }    
     layerListExpand.addEventListener("click", function (event) {
+        if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Layer List'});
         document.getElementById("layerlist").open = true;
     });
     view.ui.add(layerListExpand, "top-right");

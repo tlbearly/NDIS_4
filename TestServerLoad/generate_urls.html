@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        function readHar(){
+            const jsonString = fetch("data.json").then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                    return response.json();  
+            })
+            .then(data => {
+                console.log("Number of requests: "+data.log.entries.length);
+                for (var i=0; i<data.log.entries.length; i++)
+                    document.write(data.log.entries[i].request.url+",")
+            })  
+            .catch(error => console.error('Failed to fetch data:', error));   
+        }
+    </script>
+</head>
+<body>
+    Generating URLs from har file created by running the atlas in Network of Chrome's DevTools. Then downloading file to ver4/TestServerLoad and naming it data.json.
+    <p><a href="javascript:readHar()"><button>Read File</button></a></p>
+</body>
+</html>

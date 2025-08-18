@@ -23,13 +23,22 @@ function myLayerList() {
 
         // Tab Titles: Layers  Basemaps
         const tabTitle1 = document.createElement("calcite-tab-title");
+        tabTitle1.addEventListener("click",function(){
+            if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Layer List'});
+        });
         tabTitle1.select = true;
         tabTitle1.innerHTML = "Layers";
         tabNav.appendChild(tabTitle1);
         const tabTitle2 = document.createElement("calcite-tab-title");
+        tabTitle2.addEventListener("click",function(){
+            if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Basemaps'});
+        });
         tabTitle2.innerHTML = "Basemaps";
         tabNav.appendChild(tabTitle2);
         const tabTitle3 = document.createElement("calcite-tab-title");
+        tabTitle3.addEventListener("click",function(){
+            if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Legend'});
+        });
         tabTitle3.innerHTML = "Legend";
         tabNav.appendChild(tabTitle3);
     }catch(err){
@@ -249,6 +258,7 @@ function myLayerList() {
         layerListExpand.style.width = "140px";
     }    
     layerListExpand.addEventListener("click", function (event) {
+        if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Layer List'});
         document.getElementById("layerlist").open = true;
     });
     view.ui.add(layerListExpand, "top-right");
@@ -506,7 +516,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                     radioGroup.parentNode.placeholder = selectedItem;
                     radioGroup.parentNode.open = false;
                     // Update layer description
-                    iframe1.src = app+"/layer-desc/" + selectedItem + ".html";
+                    iframe1.src = "./"+app+"/layer-desc/" + selectedItem + ".html?v="+Date.now();
                     if (layer.title === "Game Species")
                         setGMU(species); // update search widget and map
                     // Update opacity is whole block is visible or not
@@ -533,7 +543,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             iframe1.style.height = "300px"; 
             iframe1.style.width = "100%";
             iframe1.slot="message";
-            iframe1.src = app+"/layer-desc/" + selectedItem + ".html";
+            iframe1.src = "./"+app+"/layer-desc/" + selectedItem + ".html?v="+Date.now();
             iframe1.setAttribute("frameborder",0);
             //iframe.style.border = "none";
             iframe1.style.margin = "0";
@@ -545,7 +555,7 @@ function layerListAddSublayerDialogs(event,theLayer){
             openBtn.slot = "title";
             openBtn.scale = "m";
             openBtn.addEventListener("click", function (event) {
-                window.open(app+"/layer-desc/" + selectedItem + ".html", "_blank");
+                window.open("./"+app+"/layer-desc/" + selectedItem + ".html?v="+Date.now(), "_blank");
             });
             notice.appendChild(openBtn);
             notice.appendChild(iframe1);
@@ -788,7 +798,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 iframe1.style.height = "300px"; 
                 iframe1.style.width = "100%";
                 iframe1.slot="message";
-                iframe1.src = app+"/layer-desc/" + layer.title + ".html";
+                iframe1.src = "./"+app+"/layer-desc/" + layer.title + ".html?v="+Date.now();
                 iframe1.setAttribute("frameborder",0);
                 //iframe.style.border = "none";
                 iframe1.style.margin = "0";
@@ -801,7 +811,7 @@ function layerListAddSublayerDialogs(event,theLayer){
                 openBtn.slot = "title";
                 openBtn.scale = "m";
                 openBtn.addEventListener("click", function (event) {
-                    window.open(app+"/layer-desc/" + layer.title + ".html", "_blank");
+                    window.open("./"+app+"/layer-desc/" + layer.title + ".html?v="+Date.now(), "_blank");
                 });
                 notice.appendChild(openBtn);
                 notice.appendChild(iframe1);

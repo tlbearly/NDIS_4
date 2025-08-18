@@ -242,7 +242,8 @@ function createSearchWidget(sources,zoomScale){
         searchWidget.on("search-complete", function (event) {
             // The results are stored in the event Object[]
             // Highlight and label the result for 10 seconds
-            
+            if (typeof gtag === 'function')gtag('event','widget_click',{'widget_name': 'Search'});
+
             // Zoom to point
             const regexp = /^-?\d*\.?\d*, *-?\d*\.?\d*$/;
             if (event.searchTerm.match(regexp)){
