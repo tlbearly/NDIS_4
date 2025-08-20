@@ -29,7 +29,7 @@
                 symbol_icon_size=Picture marker symbol size. For example: "15px" Default size is 20px if not specified.
                 minScale="144448" layer turns on below this scale. 1:100k="144448" 1:50k="72224"
                 maxScale="144448" layer turns off above this scale
-                listMode=Should this service be included in the layer list?
+                listMode=Should this service be included in the layer list? hide, show
                 legendEnabled="true" or "false" default is "true". Should this service be include in the legend?
         
         group layer
@@ -60,7 +60,7 @@
                 filter=SQL where filter. For example: "type &lt;&gt; 'Road'". For not equal <> use &lt;&gt;
                 symbol_icon=Picture marker symbol image file for point layer. Can be png or svg (but needs height and width). For example: "./assets/images/file.png"
                 symbol_icon_size=Picture marker symbol size. For example: "15px" Default size is 20px if not specified.
-                listMode=Should this service be included in the layer list?
+                listMode=Should this service be included in the layer list? hide, show
                 legendEnabled="true" or "false" default is "true". Should this service be include in the legend?
         
         sub group under the parent group with or without layers under it.
@@ -81,7 +81,7 @@
                 symbol_icon_size=Picture marker symbol size. Comma delimited one for each layerIDs above. For example: "20px,15px" Default size is 20px if not specified.
                 layerVis=visibility of each layer in display order.
                 layerNames=optional display name. If missing, it will use names from FeatureService. Format="layer1 name,layer2 name,..." in display order.
-                listMode=Should this service be included in the layer list?
+                listMode=Should this service be included in the layer list? hide,show
                 legendEnabled="true" or "false" default is "true". Should this service be include in the legend?
         
     hideGroupSublayers: do not show sublayers in a group. If a mapservice url has the id with it, you will need to add it to this tag.
@@ -123,17 +123,29 @@
         <!-- operationallayers:  Note: Displays in reverse order. -->
         <operationallayers>
             <!-- Land and Access is hard coded in myLayerList.js to add correct GMU layer: big game, sheep, or goat -->
-			<layer label="Land and Access" transparency_control="true" visible="false" alpha="1.0"
-                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccess2025/MapServer"/>
+            <!-- Land and Access is hard coded in myLayerList.js to add legend -->
+            <!-- GMU is hard coded in addMapLayers.js to style the line color and labels -->
+			
 			<layer group="Land and Access" transparency_control="true" visible="true" alpha="1.0"/>
-                <layer parentGroup="Land and Access" label="Land Management (COMaP v20240702)" visible="false" alpha="1.0"
-                    url="https://tiles.arcgis.com/tiles/KNdRU5cN6ENqCTjk/arcgis/rest/services/Land_Management/MapServer"/>
+                <layer parentGroup="Land and Access" label="Land Management (COMaP v20240702)" visible="true" alpha="0.5"
+                    url="https://vectortileservices5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/ha_hunting_atlas/VectorTileServer"/>
                     <!-->"https://tiles.arcgis.com/tiles/KNdRU5cN6ENqCTjk/arcgis/rest/services/Land_Management/MapServer/0"/-->
-                <layer parentGroup="Land and Access" label="CoMap" transparency_control="true" visible="true" alpha="0.7"
+                <!-- show CoMap at <= 10,000 scale -->
+                <layer parentGroup="Land and Access" label="COMap below 10k" visible="true" alpha="1.0" minScale="10000"
+                    listMode="hide" legendEnabled="false"
+                    url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/COMaP2025/MapServer"/>
+                <!--CPW Properties-->
+                <layer parentGroup="Land and Access" label="Land and Access" visible="true" alpha="1.0"
+                    url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccessSub2025/MapServer"/>
+                <!--layer parentGroup="Land and Access" label="CoMap" transparency_control="true" visible="false" alpha="0.7"
                     filter="MANAGER IN ('BLM', 'FWS', 'NPS', 'USFS - ARAP', 'USFS - COM', 'USFS - GM', 'USFS - GUNN', 'USFS - MANTI-LA SAL', 'USFS - PIKE', 'USFS - PNG', 'USFS - RIO GRANDE', 'USFS - ROOS', 'USFS - ROUTT', 'USFS - SAN JUAN', 'USFS - SI', 'USFS - UNC', 'USFS - WHITE RIVER', 'TRIBE') And PUBLIC_ACCESS &lt;&gt; 'No'"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/COMaP_Map_Service/FeatureServer/0"/>
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/COMaP_Map_Service/FeatureServer/0"/-->
                 <layer parentGroup="Land and Access" label="GMU Boundary" visible="true" alpha="1.0"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/6"/>
+                <!-- GMU for labels below 36k-->
+                <layer parentGroup="Land and Access" label="GMU Boundary" visible="true" alpha="1.0" minScale="36000"
+                    listMode="hide" legendEnabled="false"
+                    url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/GMU2025/MapServer"/>
             <!-- Game Species group layer Bob's -->
             <layer group="Game Species" transparency_control="true" visible="false" alpha="0.7" radio="true"/>
                 <!--Elk layerNames="Migration Patterns,Migration Corridors,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Resident Population Area,Overall Range"-->

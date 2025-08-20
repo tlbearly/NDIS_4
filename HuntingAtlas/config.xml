@@ -119,14 +119,17 @@
         <!-- operationallayers:  Note: Displays in reverse order. -->
         <operationallayers>
             <!-- Land and Access is hard coded in myLayerList.js to add correct GMU layer: big game, sheep, or goat -->
-			<layer label="Land and Access" transparency_control="true" visible="false" alpha="1.0"
-                url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccess2025/MapServer"/>
+			<!-- Land and Access is hard coded in myLayerList.js to add legend -->
+            <!-- GMU is hard coded in addMapLayers.js to style the line color and labels -->
 			<layer group="Land and Access" transparency_control="true" visible="true" alpha="1.0"/>
-                <layer parentGroup="Land and Access" label="CoMap" visible="true" alpha="0.7"
+                <!--layer parentGroup="Land and Access" label="CoMap" visible="true" alpha="0.7"
                     filter="MANAGER IN ('BLM', 'FWS', 'NPS', 'USFS - ARAP', 'USFS - COM', 'USFS - GM', 'USFS - GUNN', 'USFS - MANTI-LA SAL', 'USFS - PIKE', 'USFS - PNG', 'USFS - RIO GRANDE', 'USFS - ROOS', 'USFS - ROUTT', 'USFS - SAN JUAN', 'USFS - SI', 'USFS - UNC', 'USFS - WHITE RIVER', 'TRIBE') And PUBLIC_ACCESS &lt;&gt; 'No'"
-                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/COMaP_Map_Service/FeatureServer/0"/>
+                    url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/COMaP_Map_Service/FeatureServer/0"/-->
                 <layer parentGroup="Land and Access" label="GMU Boundary" visible="true" alpha="1.0"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/arcgis/rest/services/CPWAdminData/FeatureServer/6"/>
+                <layer parentGroup="Land and Access" label="Land and Access" visible="true" alpha="1.0" minScale="10000"
+                    listMode="false" legendEnabled="true"
+                    url="https://ndismaps.nrel.colostate.edu/arcgis/rest/services/HuntingAtlas2025/LandAccess2025/MapServer/5"/>
             <!-- Game Species group layer Bob's -->
             <layer group="Game Species" transparency_control="true" visible="false" alpha="0.7" radio="true"/>
                 <!--Elk layerNames="Migration Patterns,Migration Corridors,Winter Concentration Area,Winter Range,Summer Concentration Area,Summer Range,Resident Population Area,Overall Range"-->

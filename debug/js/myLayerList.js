@@ -181,6 +181,19 @@ function myLayerList() {
         // Set value when clicked
         onOffBtn.addEventListener("calciteSwitchChange", event => {
             event.target.layer.visible = event.target.checked;
+            // make CoMap visible in legend because VectorTileLayers cannot display a legend
+            if (event.target.layer.title.indexOf("Land and Access") > -1) {
+                for (var m=0;m<event.target.layer.allLayers.items.length;m++){
+                    if (event.target.layer.allLayers.items[m].title.indexOf("Land Management") > -1) {
+                        if (event.target.checked &&
+                            event.target.layer.allLayers.items[m].visible)
+                            document.getElementById("coMap").style.display = "block";
+                        else {
+                            document.getElementById("coMap").style.display = "none";
+                        }
+                    }
+                }
+            }
             
             /*if (document.getElementById(event.target.layer.title.replace(/ /g, "_") + "_dialog")){
                 // Set switch on popup dialog Visibility
@@ -227,6 +240,19 @@ function myLayerList() {
             container: tab3Content
         });
         tab3.appendChild(tab3Content);
+        
+        // CoMap Vector Tile layer cannot do legends add it here
+        var coMapDiv = document.createElement('div');
+        coMapDiv.id = "coMap";
+        coMapDiv.style.display = "none";
+        coMapDiv.style.backgroundColor = "#fff";
+        coMapDiv.style.padding = "0 30px";
+        coMapDiv.style.position = "relative";
+        coMapDiv.style.top = "-30px";
+        coMapDiv.style.borderBottomLeftRadius = "12px";
+        coMapDiv.innerHTML = '<div class="esri-legend__layer-table esri-legend__layer-table--size-ramp" style="padding-bottom:10px;"><div class="esri-legend__layer-caption">Land Management (COMaP v20240702)</div><div class="esri-legend__layer-body"><div class="esri-legend__layer-row"><div class="esri-legend__layer-cell esri-legend__layer-cell--symbols"><img alt="BLM" aria-label="BLM" border="0" class="esri-legend__symbol" height="20" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAPElEQVQ4je3MMQ0AMAhFwReCEKRUOlLYcEE6tgIY/wk47yaAYEc5EDOcjc2M9I3op1ChQoUKX1hm5NJXF00nCONUnKyoAAAAAElFTkSuQmCC" width="20" style="opacity: 1;"></div><div class="esri-legend__layer-cell esri-legend__layer-cell--info">BLM</div></div><div class="esri-legend__layer-row"><div class="esri-legend__layer-cell esri-legend__layer-cell--symbols"><img alt="BLM Wilderness" aria-label="BLM Wilderness" border="0" class="esri-legend__symbol" height="20" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAP0lEQVQ4jWP5f71BgeEPgwIDNQALwwMWqGEOVDHwD8MBFqoYhARGDRw1cNTAUQNHDYQZyMLwgOEPwwEqmfYAAMzsC2NKdro7AAAAAElFTkSuQmCC" width="20" style="opacity: 1;"></div><div class="esri-legend__layer-cell esri-legend__layer-cell--info">BLM Wilderness</div></div><div class="esri-legend__layer-row"><div class="esri-legend__layer-cell esri-legend__layer-cell--symbols"><img alt="Forest Service" aria-label="Forest Service" border="0" class="esri-legend__symbol" height="20" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAO0lEQVQ4jWM5fn2+AgMDgwIDdcADFohh/xyoYx7TARbqGIQAowaOGjhq4KiBowYiDHzAwMB0gErmPQAACr8IUGyljkEAAAAASUVORK5CYII=" width="20" style="opacity: 1;"></div><div class="esri-legend__layer-cell esri-legend__layer-cell--info">Forest Service</div></div><div class="esri-legend__layer-row"><div class="esri-legend__layer-cell esri-legend__layer-cell--symbols"><img alt="Forest Service Wilderness" aria-label="Forest Service Wilderness" border="0" class="esri-legend__symbol" height="20" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAARUlEQVQ4je3UIRUAIBAEUcQEuShI4tCCWheFIPt4CBT+5E6AL4e5RoCiFSSxAcU5rVeAoKQC+lCDBg0aNPjAt21lBSaxL9wPElBgzMElAAAAAElFTkSuQmCC" width="20" style="opacity: 1;"></div><div class="esri-legend__layer-cell esri-legend__layer-cell--info">Forest Service Wilderness</div></div><div class="esri-legend__layer-row"><div class="esri-legend__layer-cell esri-legend__layer-cell--symbols"><img alt="National Grassland" aria-label="National Grassland" border="0" class="esri-legend__symbol" height="20" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAQ0lEQVQ4je3MMRWAQAwFwS1WyEk5Wcg7B1iIkP+Amj5lRsB4v9eSLBoES8l6YHeEkmNH9E8nnHDCCScEMFiS05EF6wPhQA9VJirh8AAAAABJRU5ErkJggg==" width="20" style="opacity: 1;"></div><div class="esri-legend__layer-cell esri-legend__layer-cell--info">National Grassland</div></div><div class="esri-legend__layer-row"><div class="esri-legend__layer-cell esri-legend__layer-cell--symbols"><img alt="National Wildlife Refuge" aria-label="National Wildlife Refuge" border="0" class="esri-legend__symbol" height="20" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAARUlEQVQ4je3MQQ0AIAwDwGapkElBDs6wgQMsTMiy8CJBwJ49AcezpoNwdEgEQXhVjY7PaJsd0U+hQoUKFb4wEUbbLVsiLipqDPUNXIj2AAAAAElFTkSuQmCC" width="20" style="opacity: 1;"></div><div class="esri-legend__layer-cell esri-legend__layer-cell--info">National Wildlife Refuge</div></div><div class="esri-legend__layer-row"><div class="esri-legend__layer-cell esri-legend__layer-cell--symbols"><img alt="National Park Service" aria-label="National Park Service" border="0" class="esri-legend__symbol" height="20" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAQ0lEQVQ4je3MMRHAMAwAMQ8PxFA6hllpBYqB/PUyZOru0QIg3rUSzWggFGh+EU9HiG46ol864YQTTjjhDYVCd0cm1AGF4xIiurPi4QAAAABJRU5ErkJggg==" width="20" style="opacity: 1;"></div><div class="esri-legend__layer-cell esri-legend__layer-cell--info">National Park Service</div></div></div></div>';
+        tab3.appendChild(coMapDiv);
+
         tabs.appendChild(tab3);
     });
 
@@ -889,6 +915,19 @@ function layerListAddSublayerDialogs(event,theLayer){
                 // Set visibility when clicked on on/off switch
                 subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                     event.target.layer.visible = event.target.checked;
+                    // make CoMap visible in legend because VectorTileLayers cannot display a legend
+                    if (event.target.layer.title.indexOf("Land and Access") > -1) {
+                        for (var m=0;m<event.target.layer.allLayers.items.length;m++){
+                            if (event.target.layer.allLayers.items[m].title.indexOf("Land Management") > -1) {
+                                if (event.target.checked &&
+                                    event.target.layer.allLayers.items[m].visible)
+                                    document.getElementById("coMap").style.display = "block";
+                                else {
+                                    document.getElementById("coMap").style.display = "none";
+                                }
+                            }
+                        }
+                    }
                     /* // gray out options if not visible
                     if (event.target.checked){
                         subLayerList.style.opacity = "1.0";
@@ -917,6 +956,7 @@ function layerListAddSublayerDialogs(event,theLayer){
 
                 // set the opacity of the layer list. Gray out if switch is off.
                 if (!layer.visible) subLayerList.style.opacity = 0.4;
+
                 var subLayerListItem;
                 //var layerCount = -1; // id of sublayer to fill in if layer has not loaded yet
                 // Visibility list in sublayer popup
@@ -1411,6 +1451,7 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
                         subLayeronOffBtn.setAttribute("scale", "l"); // large
                         if (item[j].visible) subLayeronOffBtn.checked = true;
                         else subLayeronOffBtn.checked = false;
+                        
                         // If the layer visibility changes, update the onOffBtn. This happens in filter.js
                         // when a filter is applied to a layer that is not visible. It sets the layer and all 
                         // parent layers to visible.
@@ -1512,6 +1553,12 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
             row.appendChild(iconDiv);
 
             // Add Switch to actions-end of list Item
+            
+            // make CoMap visible in legend because VectorTileLayers cannot display a legend
+            if (element.title.indexOf("Land Management") > -1) {
+                document.getElementById("coMap").style.display = element.visible ? "block" : "none";
+            }
+                        
             let subLayerVisibility = document.createElement("td");
             subLayerVisibility.style.float = "right";
             let subLayeronOffBtn = document.createElement("calcite-switch");
@@ -1532,6 +1579,10 @@ function addToLayerList(row,element,block, listFontSize, hLevel){
             // Set value when clicked
             subLayeronOffBtn.addEventListener("calciteSwitchChange", event => {
                 event.target.layer.visible = event.target.checked;
+                // make CoMap visible in legend because VectorTileLayers cannot display a legend
+                if (event.target.layer.title.indexOf("Land Management") > -1) {
+                    document.getElementById("coMap").style.display = event.target.checked ? "block" : "none";
+                }
             });
             subLayerVisibility.appendChild(subLayeronOffBtn);
             row.appendChild(subLayerVisibility);

@@ -1371,9 +1371,9 @@ function writeFeatureContent(feature,layerName,thePromise){
                                                         tmpStr += "<br/>";
                                                     }
                                                     // Make title bold and values not bold if greater than 5 words
-                                                    //else if (one2one_field.childNodes.length > 0 && (identifyLayers[identifyGroup][layerName].one2one_display[j].toLowerCase().indexOf("regulations")>-1 ||
-                                                    //    identifyLayers[identifyGroup][layerName].one2one_display[j].toLowerCase().indexOf("specific area")>-1)) {
-                                                    else if (one2one_field.childNodes.length > 0 && (one2one_field.childNodes[0].nodeValue.match(/(\w+)/g).length > 5)) {
+                                                    else if (one2one_field.childNodes.length > 0 && (identifyLayers[identifyGroup][layerName].one2one_display[j].toLowerCase().indexOf("regulations")>-1 ||
+                                                        identifyLayers[identifyGroup][layerName].one2one_display[j].toLowerCase().indexOf("specific area")>-1)) {
+                                                    //else if (one2one_field.childNodes.length > 0 && (one2one_field.childNodes[0].nodeValue.match(/(\w+)/g).length > 5)) {
                                                         tmpStr += "<span class='idSubValue'>"+identifyLayers[identifyGroup][layerName].one2one_display[j] + ": </span>";
                                                         tmpStr += "<span class='idSubTitle'>"+one2one_field.childNodes[0].nodeValue+"</span>";
                                                         tmpStr += "<br/>";
@@ -1404,7 +1404,8 @@ function writeFeatureContent(feature,layerName,thePromise){
                                                     // No html links, linkname and linkurl tags not used in returned XML
                                                     else {
                                                         // Make regulation title bold and values not bold
-                                                        if (identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("regulations")>-1)
+                                                        if (identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("regulations")>-1 ||
+                                                            identifyLayers[identifyGroup][layerName].displaynames[0].toLowerCase().indexOf("restrictions")>-1)
                                                             tmpStr += "<li class='idSubTitle'>" + one2many[h].childNodes[0].nodeValue + "</li>";
                                                         else
                                                             tmpStr += "<li class='idSubValue'>" + one2many[h].childNodes[0].nodeValue + "</li>";
@@ -1583,7 +1584,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                             tmpStr += "<span class='idSubTitle'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubValue'>" + toTitleCase(feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].toLowerCase())+"</span>";
                         }
                         // If greater than 5 words in the text, make title bold and text not bold
-                        else if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
+                        /*else if ((typeof feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] === "string") &&
                             feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]].match(/(\w+)/g).length > 5 &&
                             identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Address") == -1 &&
                             identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Inspection Station") == -1 &&
@@ -1591,7 +1592,7 @@ function writeFeatureContent(feature,layerName,thePromise){
                             identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Phone") == -1 &&
                             identifyLayers[identifyGroup][layerName].displaynames[i].indexOf("Hours") == -1) { //identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("restrictions")>-1 ){
                             tmpStr += "<span class='idSubValue'>"+identifyLayers[identifyGroup][layerName].displaynames[i] + ": </span><span class='idSubTitle'>" + feature.attributes[identifyLayers[identifyGroup][layerName].fields[i]] +"</span>";
-                        }
+                        }*/
                         // MVUM Seasonal Roads
                         else if (identifyLayers[identifyGroup][layerName].displaynames[i] === "Seasonal"){
                             // If MVUM SEASONAL is yearlong do not display the dates January = December

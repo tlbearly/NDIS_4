@@ -17,6 +17,8 @@
   <script>
 	// Replace indexM with index and load page
   var loc = document.location.href.replace("indexM","index");
+  if (loc.indexOf("?") > -1) loc += "&v="+Date.now();
+  else loc += "?v="+Date.now();
 	location.href = loc;
   </script>
   </head>

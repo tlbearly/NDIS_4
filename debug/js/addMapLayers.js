@@ -86,7 +86,7 @@ function addMapLayers(){
 
     require([
         "esri/layers/MapImageLayer",
-        "esri/layers/FeatureLayer","esri/layers/GroupLayer",], (MapImageLayer, FeatureLayer, GroupLayer) => {
+        "esri/layers/FeatureLayer","esri/layers/GroupLayer","esri/layers/VectorTileLayer"], (MapImageLayer, FeatureLayer, GroupLayer,VectorTileLayer) => {
         // Create Layer 3-21-22
         // Get layers from url of config.xml
         function createLayer(layer,symbol_icon=null,symbol_icon_size=null,filter=null,transparency_control=false){
@@ -116,6 +116,8 @@ function addMapLayers(){
                 if (listMode === null) listMode = "show";
                 legendEnabled = layer.getAttribute("legendEnabled");
                 if (legendEnabled === null) legendEnabled = true;
+                else if (legendEnabled === "false") legendEnabled = false;
+                else if (legendEnabled === "true") legendEnabled = true;
             }
             else {
                 alert("Failed to load layer. layer.id and layer.getAttribute do not exist.", "Error");
@@ -188,7 +190,7 @@ function addMapLayers(){
                         });
                 }
                 else {
-                    alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit addMapLayers.js line 183 to add new type.");
+                    alert("Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit addMapLayers.js line 191 to add new type.");
                     return;
                 }
             // Set layer properties from config.xml file
@@ -240,7 +242,7 @@ function addMapLayers(){
 
                 }
                 else {
-                    alert("Layer: "+id+" Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit addMapLayers.js line 175 to add new type.");
+                    alert("Layer: "+id+" Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit addMapLayers.js line 243 to add new type.");
                     return;
                 }
             }
@@ -640,12 +642,12 @@ function addMapLayers(){
                 // use layer names from config.xml 
                 if (layerNames != null){
                     //tries[layerNames[i]+ids[i]]=0;
-                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],myMinScale,myMaxScale,layerNames[i],listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i],symbol_icon_sizes[i]);
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],myMinScale,myMaxScale,layerNames[i],listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i],symbol_icon_sizes[i],opacity);
                 } 
                 // Use feature service layer names 
                 else {
                     //tries[groupLayer.title+ids[i]]=0; // don't know layer names at this point
-                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],myMinScale,myMaxScale,null,listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i],symbol_icon_sizes[i]);
+                    createSubGroupLayer(groupLayer,featureservice,vis,ids[i],myMinScale,myMaxScale,null,listMode,legendEnabled,popupFields,popupLabels,filters[i],symbol_icons[i],symbol_icon_sizes[i],opacity);
                 }
             }
             return groupLayer;
@@ -675,6 +677,7 @@ function addMapLayers(){
                 var symbol_icon_size = null;
                 var symbol_icon_sizes = [];
                 var listMode = "show";
+                var opacity = 1.0;
                 var legendEnabled = true;
                 for(var i=0;i<xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer").length;i++){
                     if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("group") === layer.parent.title){
@@ -715,6 +718,9 @@ function addMapLayers(){
                         if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("legendEnabled")){
                             legendEnabled = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("legendEnabled");
                         }
+                        if (xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("alpha")){
+                            opacity = xmlConfigDoc.getElementsByTagName("operationallayers")[0].getElementsByTagName("layer")[i].getAttribute("alpha");
+                        }
                         break;
                     }
                 }
@@ -724,7 +730,7 @@ function addMapLayers(){
                 /* layer.id is not a number!!!!! not working
                 if (layer.id == 1900) {
                 tries[layer.parent.title+"19"]=1;
-                //createSubGroupLayer(layer.parent,layer.url,layer.visible,19,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels);
+                //createSubGroupLayer(layer.parent,layer.url,layer.visible,19,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon,symbol_icon_size,opacity);
                 }*/
                 var id;
                 if (layer.layerId){
@@ -732,12 +738,12 @@ function addMapLayers(){
                 }else {
                     id = layer.id;
                 }
-                createSubGroupLayer(layer.parent,layer.url,layer.visible,id,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon,symbol_icon_size);
+                createSubGroupLayer(layer.parent,layer.url,layer.visible,id,minScale,maxScale,layer.title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon,symbol_icon_size,opacity);
                 layer.parent.remove(layer);
             },tim);  
         }
 
-        function createSubGroupLayer(groupLayer,url,visible,id,minScale,maxScale,title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon,symbol_icon_size){		
+        function createSubGroupLayer(groupLayer,url,visible,id,minScale,maxScale,title,listMode,legendEnabled,popupFields,popupLabels,filter,symbol_icon,symbol_icon_size,opacity){		
             var fsUrl;
             if (url[url.length-1]==="/")
                 fsUrl = url + id;
@@ -752,23 +758,27 @@ function addMapLayers(){
                 if (url.toLowerCase().indexOf("mapserver") > -1){
                     subGroupLayer = new MapImageLayer({
                         url: url,
-                        //opacity: Number(alpha),
+                        opacity: Number(opacity),
                         title: title,
                         id: id,
                         listMode: listMode,
                         legendEnabled: legendEnabled,
                         visible: visible
                     });
-                }else{
+                }else if(url.toLowerCase().indexOf("featureserver") > -1){
                     subGroupLayer = new FeatureLayer({
                         url: fsUrl,
                         visible: visible,
                         title: title,
                         listMode: listMode,
+                        opacity: Number(opacity),
                         legendEnabled: legendEnabled
                         //id: id, // do not use id, let it create this on it's own
                     });
-                }   
+                }else {
+                    alert("Layer: "+id+" "+title+" Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit addMapLayers.js line 772 to add new type.");
+                    return;
+                }  
                 // identify popup template
                 if (popupFields && popupLabels){
                     const template = addPopupTemplate(title,popupFields,popupLabels);
@@ -779,21 +789,25 @@ function addMapLayers(){
                 if (url.toLowerCase().indexOf("mapserver") > -1){
                     subGroupLayer = new MapImageLayer({
                         url: url,
-                        //opacity: Number(alpha),
+                        opacity: Number(opacity),
                         title: title,
                         id: id,
                         listMode: listMode,
                         legendEnabled: legendEnabled,
                         visible: visible
                     });
-                }else {
+                }else if (url.toLowerCase().indexOf("featureserver") > -1){
                     subGroupLayer = new FeatureLayer({
                         url: fsUrl,
                         visible: visible,
+                        opacity: Number(opacity),
                         //id: id, // do not use id, let it create this on it's own
                         listMode: listMode,
                         legendEnabled: legendEnabled
                     });
+                }else{
+                    alert("Layer: "+id+" "+title+" Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit addMapLayers.js line 801 to add new type.");
+                    return;
                 }
 
                 // Wait until layer loads then the title will be assigned. Then remove feature service name from the title (eg. "CPWSpeciesData -")
@@ -895,15 +909,15 @@ function addMapLayers(){
                             type: "simple",
                             symbol: {
                                 color: {a: .5,
-                                    r: 80,
-                                    g: 255,
-                                    b: 80
+                                    r: 16,//80,
+                                    g: 79,//255,
+                                    b: 4 //80
                                 },
                                 join: "round",
                                 miterLimit: 2,
                                 style: "solid",//"dash",
                                 type: "simple-line",
-                                width: 3
+                                width: 1
                             },
                         };
                 }
@@ -1057,9 +1071,13 @@ function addMapLayers(){
         var symbol_icon_size;
         var filter;
         var transparency_control;
-        var listMode = "show";
-        var legendEnabled = true;
+        var listMode;
+        var legendEnabled;
         for (i = 0; i < layer.length; i++) {
+            var listMode = "show";
+            var legendEnabled = true;
+            popupFields = [];
+            popupLabels = [];
             minScale=0;
             maxScale=0;
             symbol_icon = null;
@@ -1069,9 +1087,9 @@ function addMapLayers(){
             var symbol_icons=null,symbol_icon_sizes=null,filters=null;
             var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null,portal=null;	
             if (layer[i].getAttribute("maxScale"))
-                maxScale = layer[i].getAttribute("maxScale").replace(regexp,"");
+                maxScale = parseInt(layer[i].getAttribute("maxScale").replace(regexp,""));
             if (layer[i].getAttribute("minScale"))
-                minScale = layer[i].getAttribute("minScale").replace(regexp,"");	
+                minScale = parseInt(layer[i].getAttribute("minScale").replace(regexp,""));
             if (layer[i].getAttribute("open")){
                 groupOpen = layer[i].getAttribute("open").replace(regexp,"");
                 if (groupOpen === "true") openTOCgroups.push(groupName);
@@ -1093,6 +1111,16 @@ function addMapLayers(){
             // filter: where expression to apply
             if (layer[i].getAttribute("filter")){
                 filter = layer[i].getAttribute("filter");
+            }
+            if (layer[i].getAttribute("legendEnabled")){
+                legendEnabled = layer[i].getAttribute("legendEnabled");
+                if (legendEnabled === "true") legendEnabled = true;
+                else if (legendEnabled === "false") legendEnabled = false
+                if (legendEnabled !== true && legendEnabled !== false) alert("Error in config.xml file. legendEnabled must be true or false for layer label: "+layer[i].label,"Data Error");
+            }
+            if (layer[i].getAttribute("listMode")){
+                listMode = layer[i].getAttribute("listMode");
+                if (listMode !== "show" && listMode !== "hide") alert("Error in config.xml file. listMode must be show or hide for layer label: "+layer[i].label,"Data Error");
             }
             // add a transparency control? true or false
             if (layer[i].getAttribute("transparency_control")){
@@ -1145,10 +1173,7 @@ function addMapLayers(){
                             popupFields = layer[i].getAttribute("popup_fields").split(",");
                         if (layer[i].getAttribute("popup_labels"))
                             popupLabels = layer[i].getAttribute("popup_labels").split(",");
-                        if (layer[i].getAttribute("listMode")){
-                            listMode = layer[i].getAttribute("listMode");
-                            if (listMode !== "show" || listMode !== "hide") alert("Error in config.xml file. listMode must be show or hide for layer label: "+layer[i].label,"Data Error");
-                        }
+                        
                         // SQL expressions
                         if (layer[i].getAttribute("filter"))
                             filters = layer[i].getAttribute("filter").split(",");
@@ -1156,10 +1181,6 @@ function addMapLayers(){
                             symbol_icons = layer[i].getAttribute("symbol_icon").replace(regexp,"").split(",");
                         if (layer[i].getAttribute("symbol_icon_size"))
                             symbol_icon_sizes = layer[i].getAttribute("symbol_icon_size").replace(regexp,"").split(",");
-                        if (layer[i].getAttribute("legendEnabled")){
-                            legendEnabled = layer[i].getAttribute("legendEnabled");
-                            if (legendEnabled !== "true" || legendEnabled !== "false") alert("Error in config.xml file. legendEnabled must be true or false for layer label: "+layer[i].label,"Data Error");
-                        }
                     }
                     
                     // returns a GroupLayer with feature layers added to to it. Use for group layer Elk and feature layers species data for elk.
@@ -1231,6 +1252,8 @@ function addMapLayers(){
                         url: url,
                         title: label,
                         opacity: Number(opacity),
+                        listMode: listMode,
+                        legendEnabled: legendEnabled,
                         id: label
                     });
                     if (id != -1){
@@ -1238,16 +1261,32 @@ function addMapLayers(){
                       //  tries[label+id] = 0;
                     }
                     //else tries[label] = 0;
-                }else {
+                }else if (url.toLowerCase().indexOf("featureserver") > -1){
                     fsLayer = new FeatureLayer({
                         visible: layerVis === "true",
                         url: url,
                         title: label,
                         opacity: Number(opacity),
+                        listMode: listMode,
+                        legendEnabled: legendEnabled,
                         //layerId: label, // do not use layerId, it sets this from url
                         id: label
                     });
                     //tries[fsLayer.title+fsLayer.layerId] = 0;
+                }else if (url.toLowerCase().indexOf("vectortileserver") > -1){
+                    fsLayer = new VectorTileLayer({
+                        visible: layerVis === "true",
+                        url: url,
+                        title: label,
+                        opacity: Number(opacity),
+                        //legendEnabled: legendEnabled, this does not exist
+                        //layerId: label, // do not use layerId, it sets this from url
+                        id: label
+                    });
+                }
+                else{
+                    alert("Layer: "+id+", "+title+" Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit addMapLayers.js line 1267 to add new type.");
+                    return;
                 }
                 if (minScale > 0 || maxScale > 0){
                     fsLayer.minScale = minScale;
@@ -1270,6 +1309,7 @@ function addMapLayers(){
                     }
                 }
                 if (filter) fsLayer.definitionExpression = filter;
+                
                 // TODO: testing adding symbols
                 // label GMU
                 if (fsLayer.url.indexOf("CPWAdminData")>-1 && url.indexOf(6) > -1){ 
@@ -1298,15 +1338,15 @@ function addMapLayers(){
                             
                             font: {
                                 //autocasts as new Font()
-                                family: "Arial",
+                                family: "Noto Sans", //"Arial",
                                 weight: "bold",
                                 size: 18
                             }
                         },
                         text: label,
                         maxScale: 0,
-                        minScale: 2500000,
-                        labelPlacement: 'center-along',
+                        minScale: 4622324,
+                        labelPlacement: 'always-horizontal',
                         labelExpressionInfo: {
                             expression: "$feature.GMUID"
                         }
