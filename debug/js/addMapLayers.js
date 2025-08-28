@@ -1108,10 +1108,16 @@ function addMapLayers(){
             transparency_control = false;
             var symbol_icons=null,symbol_icon_sizes=null,filters=null;
             var url=null,layerIds=null,layerVis=null,parentGroupName = null,layerNames=null,portal=null;	
-            if (layer[i].getAttribute("maxScale"))
-                maxScale = parseInt(layer[i].getAttribute("maxScale").replace(regexp,""));
-            if (layer[i].getAttribute("minScale"))
-                minScale = parseInt(layer[i].getAttribute("minScale").replace(regexp,""));
+            if (layer[i].getAttribute("maxScale")){
+                maxScale = layer[i].getAttribute("maxScale").replace(regexp,"");
+                if (maxScale.indexOf(",") == -1)
+                    maxScale = parseInt(maxScale);
+            }
+            if (layer[i].getAttribute("minScale")){
+                minScale = layer[i].getAttribute("minScale").replace(regexp,"");
+                if(minScale.indexOf(",") == -1)
+                    minScale = parseInt(minScale);
+            }
             if (layer[i].getAttribute("open")){
                 groupOpen = layer[i].getAttribute("open").replace(regexp,"");
                 if (groupOpen === "true") openTOCgroups.push(groupName);
