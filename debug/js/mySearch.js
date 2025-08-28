@@ -392,12 +392,14 @@ function createSearchWidget(sources,zoomScale){
                 searchWidget.container.style.width = "195px";
             }
         });
+        
         // Adds the search widget below other elements in
         // the top left corner of the view
         view.ui.add(searchWidget, {
             position: "top-left",
             index: 2
         });
+        document.getElementsByClassName("esri-ui-top-left")[0].className += " slider";
 
         // Home button
         // esri/widgets/Home is deprecated!!!

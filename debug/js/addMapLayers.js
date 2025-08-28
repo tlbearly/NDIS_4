@@ -775,8 +775,19 @@ function addMapLayers(){
                         legendEnabled: legendEnabled
                         //id: id, // do not use id, let it create this on it's own
                     });
+                }else if (url.toLowerCase().indexOf("vectortileserver") > -1){
+                    fsLayer = new VectorTileLayer({
+                        visible: visible,
+                        url: fsUrl,
+                        title: title,
+                        opacity: Number(opacity),
+                        //listMode: listMode --> this does not exist for vector tiles
+                        //legendEnabled: legendEnabled --> this does not exist for vector tiles
+                        //layerId: label, // do not use layerId, it sets this from url
+                        id: id
+                    });
                 }else {
-                    alert("Layer: "+id+" "+title+" Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit addMapLayers.js line 772 to add new type.");
+                    alert("Layer: "+id+" "+url+" Unknown operational layer type. It must be of type MapServer, FeatureServer, or VectorTileLayer. Or edit addMapLayers.js line 779 to add new type.");
                     return;
                 }  
                 // identify popup template
@@ -805,8 +816,19 @@ function addMapLayers(){
                         listMode: listMode,
                         legendEnabled: legendEnabled
                     });
+                }else if (url.toLowerCase().indexOf("vectortileserver") > -1){
+                    fsLayer = new VectorTileLayer({
+                        visible: visible,
+                        url: fsUrl,
+                        title: title,
+                        opacity: Number(opacity),
+                        //listMode: listMode --> this does not exist for vector tiles
+                        //legendEnabled: legendEnabled --> this does not exist for vector tiles
+                        //layerId: label, // do not use layerId, it sets this from url
+                        id: id
+                    });
                 }else{
-                    alert("Layer: "+id+" "+title+" Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit addMapLayers.js line 801 to add new type.");
+                    alert("Layer: "+id+" "+url+" Unknown operational layer type. It must be of type MapServer, FeatureServer, or VectorTileServer. Or edit addMapLayers.js line 801 to add new type.");
                     return;
                 }
 
@@ -915,7 +937,7 @@ function addMapLayers(){
                                 },
                                 join: "round",
                                 miterLimit: 2,
-                                style: "solid",//"dash",
+                                style: "dash",
                                 type: "simple-line",
                                 width: 1
                             },
@@ -1285,7 +1307,7 @@ function addMapLayers(){
                     });
                 }
                 else{
-                    alert("Layer: "+id+", "+title+" Unknown operational layer type. It must be of type MapServer or FeatureServer. Or edit addMapLayers.js line 1267 to add new type.");
+                    alert("Layer: "+id+", "+url+" Unknown operational layer type. It must be of type MapServer, FeatureServer, or VectorTileServer. Or edit addMapLayers.js line 1288 to add new type.");
                     return;
                 }
                 if (minScale > 0 || maxScale > 0){
@@ -1340,12 +1362,12 @@ function addMapLayers(){
                                 //autocasts as new Font()
                                 family: "Noto Sans", //"Arial",
                                 weight: "bold",
-                                size: 18
+                                size: 12
                             }
                         },
                         text: label,
                         maxScale: 0,
-                        minScale: 4622324,
+                        minScale: 4622325,
                         labelPlacement: 'always-horizontal',
                         labelExpressionInfo: {
                             expression: "$feature.GMUID"
@@ -1430,6 +1452,7 @@ function addMapLayers(){
 
 function readURLParmeters(){
     try {
+        console.log("readURLParameters");
         var xycoords_format = getCookie("xycoords");
         if (xycoords_format == "")
             document.getElementById('xycoords_combo').value = "dms";

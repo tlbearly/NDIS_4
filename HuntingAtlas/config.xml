@@ -168,7 +168,7 @@
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
                     layerIds="80,82,84,83,85"
                     layerVis="true,true,true,true,false"
-                    layerNames="Moose Migration Patterns,Moose Concentration Area,Moose Summer Range,Moose Winter Range,Moose Overall Range"/>
+                    layerNames="Moose Migration Patterns,Moose Concentration Area,Moose Winter Range,Moose Summer Range,Moose Overall Range"/>
                 <layer group="Elk" parentGroup="Game Species" visible="true"
                     url="https://services5.arcgis.com/ttNGmDvKQA7oeDQ3/ArcGIS/rest/services/CPWSpeciesData/FeatureServer/"
                     layerIds="33,40,42,43,35,36,39,44"

@@ -22,6 +22,15 @@
     --lightBackground: #f3f3e1;
     --background: #e0dec8;
 }
+.blue-theme{
+  --brand: #8993a8;
+  --hover: #3c4f87;
+  --press:  #2d3c5d;
+  --underline: #999daf66;
+  --link-hover: #454a8b;
+  --lightBackground: #e1e3f3;
+  --background: #becadb;
+}
 .calcite-mode-light {
     /*--calcite-color-text-inverse: #000; /* DO NOT INCLUDE THIS HERE! text color on --brand background */
     --calcite-color-brand: var(--brand)!important;

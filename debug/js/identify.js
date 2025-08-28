@@ -1702,6 +1702,8 @@ function writeFeatureContent(feature,layerName,thePromise){
                                 tmpStr+='horseback-sm-ffffff.svg" class="class-ico"></span>';
                             else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("hiking")>-1)
                                 tmpStr+='hike-sm-ffffff.svg" class="class-ico"></span>';
+                            else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("bikes")>-1)
+                                tmpStr+='bike-sm-ffffff.svg" class="class-ico"></span>';
                             else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("dogs")>-1)
                                 tmpStr+='dogwalking-sm-ffffff.svg" class="class-ico"></span>';
                             else if (identifyLayers[identifyGroup][layerName].displaynames[i].toLowerCase().indexOf("motorcycles")>-1)
@@ -1747,7 +1749,7 @@ function addClickPoint(){
     // Add click point to view.graphics
     // add marker pin at clickpoint
     require(["esri/Graphic"], function ( Graphic) {
-        var pinImg;
+        var pinImg; // allways use orange pin
         if (document.getElementsByTagName("body")[0].className.indexOf("green")>-1) pinImg = "green-pin.png";
         else if (document.getElementsByTagName("body")[0].className.indexOf("blue")>-1) pinImg = "blue-pin.png";
         else if (document.getElementsByTagName("body")[0].className.indexOf("orange")>-1) pinImg = "orange-pin.png";
